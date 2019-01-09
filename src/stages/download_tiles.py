@@ -12,8 +12,8 @@ def get_suffix(product):
         return ""
 
 
-@stage(workers=1)
-def download_latest_tiles(tiles, years, tile_date):
+@stage(workers=4)
+def download_latest_tiles(tiles, years, tile_date, root):
 
     url_pattern = "gs://earthenginepartners-hansen/alert/{date}/GLADalert_{date}_alert{product}{year_dig}_{tile}.tif"
 
@@ -28,7 +28,7 @@ def download_latest_tiles(tiles, years, tile_date):
                     tile=tile,
                     product=get_suffix(product),
                 )
-                output_dir = os.path.join("data", "tiles", tile, "download")
+                output_dir = os.path.join(root, "tiles", tile, "download")
                 pathlib.Path(output_dir).mkdir(parents=True, exist_ok=True)
                 output_file = os.path.join(output_dir, product + str(year) + ".tif")
                 try:

@@ -1,3 +1,4 @@
 data
+src/data
 venv
 .mypy_cache
