@@ -7,7 +7,7 @@ setup(
     package_dir={"": "src"},
     packages=["stages", "utils"],
     author="thomas.maschler",
-    install_requires=["google-cloud-storage", "parallelpipe", "gdal"],
+    install_requires=["google-cloud-storage", "parallelpipe", "gdal", "numba", "numpy"],
     # entry_points={"console_scripts": ["pixel_depth=utils.pixel_depth:main"]},
-    scripts=["src/utils/pixel_depth.py"],
+    scripts=["src/utils/pixel_depth.py", "src/utils/encode_date_conf.py"],
 )

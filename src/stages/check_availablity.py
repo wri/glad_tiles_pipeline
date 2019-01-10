@@ -3,7 +3,7 @@ import datetime
 import logging
 
 
-def _check_tifs_exist(day_str, tiles, years):
+def _check_tifs_exist(day_str, tile_ids, years):
 
     client = storage.Client()
     bucket = client.bucket("earthenginepartners-hansen")
@@ -18,14 +18,14 @@ def _check_tifs_exist(day_str, tiles, years):
 
     for year in years:
         year_dig = str(year)[2:]
-        for tile in tiles:
+        for tile_id in tile_ids:
             conf_str = "alert/{0}/GLADalert_{0}_alert{1}_{2}.tif".format(
-                day_str, year_dig, tile
+                day_str, year_dig, tile_id
             )
             logging.debug("Checking for TIFF: " + conf_str)
 
             alert_str = "alert/{0}/GLADalert_{0}_alertDate{1}_{2}.tif".format(
-                day_str, year_dig, tile
+                day_str, year_dig, tile_id
             )
             logging.debug("Checking for TIFF: " + alert_str)
 
@@ -38,11 +38,11 @@ def _check_tifs_exist(day_str, tiles, years):
 
         logging.info(
             "Day {} has {} out of {} tiles for year {}".format(
-                day_str, tif_count, len(tiles), year
+                day_str, tif_count, len(tile_ids), year
             )
         )
 
-    return tif_count == len(tiles) * len(years)
+    return tif_count == len(tile_ids) * len(years)
 
 
 def get_most_recent_day(**kwargs):

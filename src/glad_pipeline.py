@@ -1,6 +1,7 @@
 from stages.download_tiles import download_latest_tiles
 from stages.check_availablity import get_most_recent_day
 from stages.change_pixel_depth import change_pixel_depth
+from stages.encode_glad import encode_date_conf
 import os
 import shutil
 import logging
@@ -9,12 +10,7 @@ import argparse
 
 from typing import Dict, Any, List
 
-tiles = [
-    "040W_10S_030W_00N",
-    "040W_20S_030W_10S",
-    "050W_10S_040W_00N",
-    "050W_00N_040W_10N",
-]
+tiles = ["050W_10S_040W_00N", "050W_00N_040W_10N"]
 
 kwargs: Dict[str, Any] = {
     "years": [2018, 2019],
@@ -73,7 +69,12 @@ def main():
         root = kwargs["root"]
         if os.path.exists(root):
             shutil.rmtree(root)
-        pipe = tiles | download_latest_tiles(**kwargs) | change_pixel_depth(**kwargs)
+        pipe = (
+            tiles
+            | download_latest_tiles(**kwargs)
+            | change_pixel_depth(**kwargs)
+            | encode_date_conf(**kwargs)
+        )
 
         for tif in pipe.results():
             logging.info("Downloaded TIF: " + tif)

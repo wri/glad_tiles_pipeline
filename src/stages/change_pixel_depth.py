@@ -1,13 +1,11 @@
+from utils.utils import output_tiles, file_details
 from parallelpipe import stage
 import subprocess as sp
-import os
 import logging
-import pathlib
-from pathlib import PurePath
 
 
-@stage(workers=4)
-def change_pixel_depth(files, **kwargs):
+@stage(workers=2)
+def change_pixel_depth(tiles, **kwargs):
 
     try:
         # tiles = kwargs["tiles"]
@@ -16,22 +14,20 @@ def change_pixel_depth(files, **kwargs):
         logging.warning("Wrong number of arguments")
     else:
 
-        for f in files:
-            p = PurePath(f)
-            f_name = p.parts[-1]
-            tile = p.parts[-3]
-            output_dir = os.path.join(root, "tiles", tile, "source")
-            pathlib.Path(output_dir).mkdir(parents=True, exist_ok=True)
-            output_file = os.path.join(output_dir, f_name)
+        for tile in tiles:
+            f_name, tile_id, year = file_details(tile)
+
+            output = output_tiles(root, tile_id, "pixel_depth", year, f_name)
+
             try:
                 logging.debug(
-                    ["pixel_depth.py", "-i", tile, "-o", output_file, "-d", "UInt16"]
+                    ["pixel_depth.py", "-i", tile, "-o", output, "-d", "UInt16"]
                 )
                 sp.check_call(
-                    ["pixel_depth.py", "-i", f, "-o", output_file, "-d", "UInt16"]
+                    ["pixel_depth.py", "-i", tile, "-o", output, "-d", "UInt16"]
                 )
             except sp.CalledProcessError:
-                logging.warning("Failed to change pixel depth for file: " + f)
+                logging.warning("Failed to change pixel depth for file: " + tile)
             else:
-                logging.info("Change pixel depth for file: " + f)
-                yield output_file
+                logging.info("Change pixel depth for file: " + tile)
+                yield output
