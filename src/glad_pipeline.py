@@ -1,7 +1,7 @@
 from stages.download_tiles import download_latest_tiles
 from stages.check_availablity import get_most_recent_day
 from stages.change_pixel_depth import change_pixel_depth
-from stages.encode_glad import encode_date_conf
+from stages.encode_glad import encode_date_conf, date_conf_pairs
 import os
 import shutil
 import logging
@@ -74,6 +74,7 @@ def main():
             | download_latest_tiles(**kwargs)
             | change_pixel_depth(**kwargs)
             | encode_date_conf(**kwargs)
+            | date_conf_pairs
         )
 
         for tif in pipe.results():
