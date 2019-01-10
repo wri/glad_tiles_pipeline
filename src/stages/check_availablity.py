@@ -45,7 +45,10 @@ def _check_tifs_exist(day_str, tiles, years):
     return tif_count == len(tiles) * len(years)
 
 
-def get_most_recent_day(tiles, years):
+def get_most_recent_day(**kwargs):
+
+    tiles = kwargs["tiles"]
+    years = kwargs["years"]
 
     today = datetime.datetime.today()
     final_day = None

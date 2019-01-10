@@ -13,8 +13,11 @@ def get_suffix(product):
 
 
 @stage(workers=4)
-def download_latest_tiles(tiles, years, tile_date, root):
+def download_latest_tiles(tiles, **kwargs):
 
+    years = kwargs["years"]
+    tile_date = kwargs["tile_date"]
+    root = kwargs["root"]
     url_pattern = "gs://earthenginepartners-hansen/alert/{date}/GLADalert_{date}_alert{product}{year_dig}_{tile}.tif"
 
     for tile in tiles:

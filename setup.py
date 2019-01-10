@@ -8,5 +8,6 @@ setup(
     packages=["stages", "utils"],
     author="thomas.maschler",
     install_requires=["google-cloud-storage", "parallelpipe", "gdal"],
-    entry_points={"console_scripts": ["decode16bit=utils.write_16bit_raster:main"]},
+    # entry_points={"console_scripts": ["pixel_depth=utils.pixel_depth:main"]},
+    scripts=["src/utils/pixel_depth.py"],
 )
