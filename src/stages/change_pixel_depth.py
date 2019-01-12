@@ -29,5 +29,5 @@ def change_pixel_depth(tiles, **kwargs):
             except sp.CalledProcessError:
                 logging.warning("Failed to change pixel depth for file: " + tile)
             else:
-                logging.info("Change pixel depth for file: " + tile)
+                logging.info("Changed pixel depth for file: " + tile)
                 yield output

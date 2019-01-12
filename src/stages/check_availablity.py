@@ -3,29 +3,30 @@ import datetime
 import logging
 
 
-def _check_tifs_exist(day_str, tile_ids, years):
+def _check_tifs_exist(process_date, tile_ids, years):
 
     client = storage.Client()
     bucket = client.bucket("earthenginepartners-hansen")
 
     name_list = [
-        blob.name for blob in bucket.list_blobs(prefix="alert/{}".format(day_str))
+        blob.name
+        for blob in bucket.list_blobs(prefix="GLADalert/{}".format(process_date))
     ]
 
     logging.debug("Available TIFFS: " + str(name_list))
-
-    tif_count = 0
+    tif_count = list()
 
     for year in years:
+        c = 0
         year_dig = str(year)[2:]
         for tile_id in tile_ids:
-            conf_str = "alert/{0}/GLADalert_{0}_alert{1}_{2}.tif".format(
-                day_str, year_dig, tile_id
+            conf_str = "GLADalert/{0}/alert{1}_{2}.tif".format(
+                process_date, year_dig, tile_id
             )
             logging.debug("Checking for TIFF: " + conf_str)
 
-            alert_str = "alert/{0}/GLADalert_{0}_alertDate{1}_{2}.tif".format(
-                day_str, year_dig, tile_id
+            alert_str = "GLADalert/{0}/alertDate{1}_{2}.tif".format(
+                process_date, year_dig, tile_id
             )
             logging.debug("Checking for TIFF: " + alert_str)
 
@@ -34,15 +35,16 @@ def _check_tifs_exist(day_str, tile_ids, years):
 
             # if both alert and conf rasters exist, tile is ready to download
             if len(filtered_names) == 2:
-                tif_count += 1
+                c += 1
+        tif_count.append(c)
 
         logging.info(
             "Day {} has {} out of {} tiles for year {}".format(
-                day_str, tif_count, len(tile_ids), year
+                process_date, c, len(tile_ids), year
             )
         )
 
-    return tif_count == len(tile_ids) * len(years)
+    return sum(tif_count) == len(tile_ids) * len(years)
 
 
 def get_most_recent_day(**kwargs):
@@ -51,23 +53,15 @@ def get_most_recent_day(**kwargs):
     years = kwargs["years"]
 
     today = datetime.datetime.today()
-    final_day = None
 
     # check for most recent day of GLAD data
-    for day_offset_int in range(0, 11):
-        day_offset_str = (today - datetime.timedelta(days=day_offset_int)).strftime(
-            "%m_%d"
+    for day_offset in range(0, 11):
+        process_date = (today - datetime.timedelta(days=day_offset)).strftime(
+            "%Y/%m_%d"
         )
 
-        if _check_tifs_exist(day_offset_str, tiles, years):
-            final_day = day_offset_str
-            break
+        if _check_tifs_exist(process_date, tiles, years):
+            return process_date
 
-    final_day = "01_09"  # TODO: remove this line
-
-    if final_day:
-        return final_day
-
-    else:
-        logging.error("Checked GCS for last 10 days - none had all tiled TIFs")
-        raise ValueError("Checked GCS for last 10 days - none had all tiled TIFs")
+    logging.error("Checked GCS for last 10 days - none had all tiled TIFs")
+    raise ValueError("Checked GCS for last 10 days - none had all tiled TIFs")

@@ -48,7 +48,7 @@ def date_conf_pairs(tiles):
             tile_pairs[basedir]["conf"] = tile
 
         if len(tile_pairs[basedir]) == 2:
-            logging.info("Create pairs for: " + basedir)
+            logging.info("Created pairs for: " + basedir)
             yield tile_pairs[basedir]
 
     for key, value in tile_pairs.items():

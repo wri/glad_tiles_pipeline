@@ -4,3 +4,6 @@ venv
 .mypy_cache
 .idea
 *.egg-info
+build
+bin
+*.so
