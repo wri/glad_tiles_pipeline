@@ -49,7 +49,7 @@ def _check_tifs_exist(process_date, tile_ids, years):
 
 def get_most_recent_day(**kwargs):
 
-    tiles = kwargs["tiles"]
+    tile_ids = kwargs["tile_ids"]
     years = kwargs["years"]
 
     today = datetime.datetime.today()
@@ -60,7 +60,7 @@ def get_most_recent_day(**kwargs):
             "%Y/%m_%d"
         )
 
-        if _check_tifs_exist(process_date, tiles, years):
+        if _check_tifs_exist(process_date, tile_ids, years):
             return process_date
 
     logging.error("Checked GCS for last 10 days - none had all tiled TIFs")

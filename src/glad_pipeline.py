@@ -20,13 +20,6 @@ import argparse
 
 from typing import Dict, Any, List
 
-tiles = ["050W_10S_040W_00N", "050W_00N_040W_10N"]
-
-kwargs: Dict[str, Any] = {
-    "years": [2018, 2019],
-    "root": "/home/thomas/projects/gfw-sync/glad_tiles_pipeline/data",
-}
-
 
 def str2bool(v):
     if v.lower() in ("yes", "true", "t", "y", "1"):
@@ -38,26 +31,53 @@ def str2bool(v):
 
 
 def get_logger(debug=True):
-    root = logging.getLogger()
+
+    root = logging.getLogger(__name__)
     if debug:
         root.setLevel(logging.DEBUG)
     else:
         root.setLevel(logging.INFO)
+
     handler = logging.StreamHandler(sys.stdout)
-    if debug:
-        handler.setLevel(logging.DEBUG)
-    else:
-        handler.setLevel(logging.INFO)
     formatter = logging.Formatter(
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
     handler.setFormatter(formatter)
+
     root.addHandler(handler)
     return root
 
 
-def main():
+def preprocessed_tile_pipe(tile_ids, **kwargs):
 
+    pipe = (
+        tile_ids
+        | download_preprocessed_tiles_years(**kwargs)
+        | download_preprocessed_tiles_year(**kwargs)
+        | date_conf_pairs()
+        | combine_date_conf_pairs(**kwargs)
+        | year_pairs(**kwargs)
+        | merge_years(**kwargs)
+        # | backup_files(**kwargs)
+    )
+    return pipe
+
+
+def latest_tile_pipe(tile_ids, **kwargs):
+    pipe = (
+        tile_ids
+        | download_latest_tiles(**kwargs)
+        | change_pixel_depth(**kwargs)
+        | encode_date_conf(**kwargs)
+        | date_conf_pairs()
+        | combine_date_conf_pairs(**kwargs)
+        | year_pairs(**kwargs)
+        | merge_all_years(**kwargs)
+    )
+    return pipe
+
+
+def get_parser():
     parser = argparse.ArgumentParser(description="Change the data type of a raster.")
     parser.add_argument(
         "--debug",
@@ -67,46 +87,42 @@ def main():
         default=False,
         help="Activate debug mode.",
     )
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+def main():
+
+    args = get_parser()
+
     get_logger(debug=args.debug)
 
-    root = kwargs["root"]
-    kwargs["missing_years"] = range(2015, min(kwargs["years"]))
+    TILE_IDS = ["050W_10S_040W_00N", "050W_00N_040W_10N"]
+    ROOT = ("/home/thomas/projects/gfw-sync/glad_tiles_pipeline/data",)
+    YEARS = [2018, 2019]
+    MISSING_YEARS = range(2015, min(YEARS))
+
+    kwargs: Dict[str, Any] = {
+        "years": YEARS,
+        "root": ROOT,
+        "missing_years": MISSING_YEARS,
+    }
 
     try:
-        kwargs["tile_date"] = get_most_recent_day(tiles=tiles, **kwargs)
+        kwargs["tile_date"] = get_most_recent_day(tile_ids=TILE_IDS, **kwargs)
     except ValueError:
         logging.error("Cannot find recently processes tiles. Aborting")
         pass
     else:
 
-        if os.path.exists(root):
-            shutil.rmtree(root)
+        if os.path.exists(ROOT):
+            shutil.rmtree(ROOT)
 
-        pipe = (
-            tiles
-            | download_preprocessed_tiles_years(**kwargs)
-            | download_preprocessed_tiles_year(**kwargs)
-            | date_conf_pairs()
-            | combine_date_conf_pairs(**kwargs)
-            | year_pairs(**kwargs)
-            | merge_years(**kwargs)
-            # | backup_files(**kwargs)
-        )
+        pipe = preprocessed_tile_pipe(**kwargs)
 
         for output in pipe.results():
             logging.info("Intermediate  output: " + str(output))
 
-        pipe = (
-            tiles
-            | download_latest_tiles(**kwargs)
-            | change_pixel_depth(**kwargs)
-            | encode_date_conf(**kwargs)
-            | date_conf_pairs()
-            | combine_date_conf_pairs(**kwargs)
-            | year_pairs(**kwargs)
-            | merge_all_years(**kwargs)
-        )
+        pipe = latest_tile_pipe(**kwargs)
 
         for output in pipe.results():
             logging.info("Final  output: " + str(output))
@@ -116,6 +132,7 @@ def main():
 
 
 def test():
+
     get_logger(debug=True)
     input = [
         {
@@ -135,6 +152,16 @@ def test():
             "conf": "/home/thomas/projects/gfw-sync/glad_tiles_pipeline/data/tiles/050W_00N_040W_10N/encode_date_conf/2018/conf.tif",
         },
     ]
+
+    ROOT = ("/home/thomas/projects/gfw-sync/glad_tiles_pipeline/data",)
+    YEARS = [2018, 2019]
+    MISSING_YEARS = range(2015, min(YEARS))
+
+    kwargs: Dict[str, Any] = {
+        "years": YEARS,
+        "root": ROOT,
+        "missing_years": MISSING_YEARS,
+    }
 
     pipe = input | combine_date_conf_pairs(**kwargs)
 
