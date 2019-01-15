@@ -1,5 +1,11 @@
 from parallelpipe import stage
-from helpers.utils import output_tiles, file_details
+from helpers.utils import (
+    output_tiles,
+    file_details,
+    add_tile_to_dict,
+    add_preprocessed_tile_to_dict,
+    get_preprocessed_tiles,
+)
 from pathlib import PurePath
 import logging
 import subprocess as sp
@@ -24,24 +30,49 @@ def combine_date_conf_pairs(pairs, **kwargs):
 
 @stage(workers=1)  # IMPORTANT to only use one (1) worker!
 def year_pairs(tiles, **kwargs):
-    missing_years = kwargs["missing_years"]
+    preprocessed_years = kwargs["preprocessed_years"]
 
     tile_pairs = dict()
     for tile in tiles:
         basedir = PurePath(tile).parent.parent.as_posix()
         year = PurePath(tile).parts[-2]
 
-        if basedir not in tile_pairs.keys():
-            tile_pairs[basedir] = dict()
+        tile_pairs = add_tile_to_dict(tile_pairs, basedir, year, tile)
 
-        tile_pairs[basedir][year] = tile
-
-        if len(tile_pairs[basedir]) == len(missing_years):
+        if len(tile_pairs[basedir]) == len(preprocessed_years):
             logging.info("Created pairs for: " + basedir)
             yield tile_pairs[basedir]
 
     for key, value in tile_pairs.items():
-        if len(value) < len(missing_years):
+        if len(value) < len(preprocessed_years):
+            logging.warning("Could not create pair for: " + key)
+
+
+@stage(workers=1)  # IMPORTANT to only use one (1) worker!
+def all_year_pairs(tiles, **kwargs):
+
+    root = kwargs["root"]
+    years = kwargs["years"]
+    preprocessed_years = kwargs["preprocessed_years"]
+    preprocessed_tiles = get_preprocessed_tiles(root, years, preprocessed_years)
+
+    tile_pairs = dict()
+    for tile in tiles:
+        basedir = PurePath(tile).parent.parent.as_posix()
+        year = PurePath(tile).parts[-2]
+
+        tile_pairs = add_tile_to_dict(tile_pairs, basedir, year, tile)
+
+        tile_pairs = add_preprocessed_tile_to_dict(
+            tile_pairs, basedir, preprocessed_tiles
+        )
+
+        if len(tile_pairs[basedir]) == len(years) + 1:
+            logging.info("Created pairs for: " + basedir)
+            yield tile_pairs[basedir]
+
+    for key, value in tile_pairs.items():
+        if len(value) < len(years) + 1:
             logging.warning("Could not create pair for: " + key)
 
 

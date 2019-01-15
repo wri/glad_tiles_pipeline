@@ -1,5 +1,5 @@
 from parallelpipe import stage
-from helpers.utils import output_tiles, file_details
+from helpers.utils import output_tiles, file_details, preprocessed_years_str
 import subprocess as sp
 import logging
 
@@ -45,9 +45,9 @@ def download_latest_tiles(tile_ids, **kwargs):
 @stage(workers=2)
 def download_preprocessed_tiles_years(tile_ids, **kwargs):
     root = kwargs["root"]
-    missing_years = kwargs["missing_years"]
+    preprocessed_years = kwargs["preprocessed_years"]
 
-    year_str = "_".join(str(year) for year in missing_years)
+    year_str = preprocessed_years_str(preprocessed_years)
 
     for tile_id in tile_ids:
 
@@ -69,12 +69,12 @@ def download_preprocessed_tiles_years(tile_ids, **kwargs):
 @stage(workers=2)
 def download_preprocessed_tiles_year(tile_ids, **kwargs):
     root = kwargs["root"]
-    missing_years = kwargs["missing_years"]
+    preprocessed_years = kwargs["preprocessed_years"]
 
     s3_url = "s3://gfw2-data/forest_change/umd_landsat_alerts/archive/tiles/{}/{}{}.tif"
 
     for tile_id in tile_ids:
-        for year in missing_years:
+        for year in preprocessed_years:
             for product in ["day", "conf"]:
                 output = output_tiles(
                     root, tile_id, "encode_date_conf", year, product + ".tif"

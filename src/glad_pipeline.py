@@ -102,12 +102,12 @@ def main():
     TILE_IDS = get_tile_ids_by_bbox(-50, -10, -40, 10)
     ROOT = "/home/thomas/projects/gfw-sync/glad_tiles_pipeline/data"
     YEARS = [2018, 2019]
-    MISSING_YEARS = range(2015, min(YEARS))
+    PREPROCESSED_YEARS = range(2015, min(YEARS))
 
     kwargs: Dict[str, Any] = {
         "years": YEARS,
         "root": ROOT,
-        "missing_years": MISSING_YEARS,
+        "preprocessed_years": PREPROCESSED_YEARS,
     }
 
     try:

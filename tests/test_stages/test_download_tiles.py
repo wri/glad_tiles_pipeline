@@ -16,17 +16,17 @@ def test_get_suffix():
 @mock.patch("stages.download_tiles.sp")
 def test_download_preprocessed_tiles_years(mock_sp):
 
-    missing_years = [2015, 2016, 2017]
+    preprocessed_years = [2015, 2016, 2017]
     tile_ids = ["050W_00N_040W_10N"]
     root = "/home/thomas/projects/gfw-sync/glad_tiles_pipeline/tests/data"
 
-    year_str = "_".join(str(year) for year in missing_years)
+    year_str = "_".join(str(year) for year in preprocessed_years)
     output = output_tiles(root, tile_ids[0], "date_conf", year_str, "day_conf.tif")
 
     mock_sp.check_call.return_value = sp.CalledProcessError
 
     r = download_preprocessed_tiles_years(
-        tile_ids=tile_ids, missing_years=missing_years, root=root
+        tile_ids=tile_ids, preprocessed_years=preprocessed_years, root=root
     )
 
     for x in r.results():
@@ -36,7 +36,7 @@ def test_download_preprocessed_tiles_years(mock_sp):
     mock_sp.check_call.return_value = True
 
     r = download_preprocessed_tiles_years(
-        tile_ids=tile_ids, missing_years=missing_years, root=root
+        tile_ids=tile_ids, preprocessed_years=preprocessed_years, root=root
     )
 
     out = False
