@@ -15,7 +15,7 @@ def change_pixel_depth(tiles, **kwargs):
     else:
 
         for tile in tiles:
-            f_name, tile_id, year = file_details(tile)
+            f_name, year, folder, tile_id = file_details(tile)
 
             output = output_tiles(root, tile_id, "pixel_depth", year, f_name)
 

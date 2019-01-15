@@ -12,6 +12,7 @@ from stages.merge_tiles import (
     merge_years,
     merge_all_years,
 )
+from stages.upload_tiles import backup_tiles
 
 from helpers.tiles import get_tile_ids_by_bbox
 import os
@@ -34,7 +35,7 @@ def str2bool(v):
 
 def get_logger(debug=True):
 
-    root = logging.getLogger(__name__)
+    root = logging.getLogger()
     if debug:
         root.setLevel(logging.DEBUG)
     else:
@@ -59,8 +60,8 @@ def preprocessed_tile_pipe(tile_ids, **kwargs):
         | date_conf_pairs()
         | combine_date_conf_pairs(**kwargs)
         | year_pairs(**kwargs)
-        # | merge_years(**kwargs)
-        # | backup_files(**kwargs)
+        | merge_years(**kwargs)
+        | backup_tiles()
     )
     return pipe
 
@@ -122,7 +123,7 @@ def main():
         pipe = preprocessed_tile_pipe(tile_ids=TILE_IDS, **kwargs)
 
         for output in pipe.results():
-            logging.info("Intermediate  output: " + str(output))
+            logging.debug("Intermediate  output: " + str(output))
 
     # pipe = latest_tile_pipe(tile_ids=TILE_IDS,**kwargs)
 

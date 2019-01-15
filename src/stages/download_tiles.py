@@ -49,11 +49,12 @@ def download_preprocessed_tiles_years(tile_ids, **kwargs):
 
     year_str = "_".join(str(year) for year in missing_years)
 
-    s3_url = "s3://gfw2-data/forest_change/umd_landsat_alerts/archive/pipeline/tiles/date_conf/{}/day_conf.tif".format(
-        year_str
-    )
-
     for tile_id in tile_ids:
+
+        s3_url = "s3://gfw2-data/forest_change/umd_landsat_alerts/archive/pipeline/tiles/{}/date_conf/{}/day_conf.tif".format(
+            tile_id, year_str
+        )
+
         output = output_tiles(root, tile_id, "date_conf", year_str, "day_conf.tif")
 
         try:

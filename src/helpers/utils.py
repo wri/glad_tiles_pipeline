@@ -12,7 +12,8 @@ def output_tiles(root, tile_id, stage, year, name):
 def file_details(f):
     p = PurePath(f)
     f_name = p.parts[-1]
-    tile_id = p.parts[-4]
     year = p.parts[-2]
+    folder = p.parts[-3]
+    tile_id = p.parts[-4]
 
-    return f_name, tile_id, year
+    return f_name, year, folder, tile_id

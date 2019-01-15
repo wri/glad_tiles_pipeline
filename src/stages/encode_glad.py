@@ -11,7 +11,7 @@ def encode_date_conf(tiles, **kwargs):
     root = kwargs["root"]
 
     for tile in tiles:
-        f_name, tile_id, year = file_details(tile)
+        f_name, year, folder, tile_id = file_details(tile)
 
         output = output_tiles(root, tile_id, "encode_date_conf", year, f_name)
 

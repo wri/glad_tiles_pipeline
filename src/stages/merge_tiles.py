@@ -9,7 +9,7 @@ import subprocess as sp
 def combine_date_conf_pairs(pairs, **kwargs):
     root = kwargs["root"]
     for pair in pairs:
-        f_name, tile_id, year = file_details(pair["day"])
+        f_name, year, folder, tile_id = file_details(pair["day"])
 
         output = output_tiles(root, tile_id, "date_conf", year, "day_conf.tif")
 
@@ -53,10 +53,10 @@ def merge_years(tile_pairs, **kwargs):
 
     for tile_pair in tile_pairs:
         logging.info(str(tile_pair))
-        f_name, tile_id, year = file_details(tile_pair[missing_years[0]])
+        f_name, year, folder, tile_id = file_details(tile_pair[str(missing_years[0])])
         output = output_tiles(root, tile_id, "date_conf", year_str, "day_conf.tif")
 
-        input = []
+        input = list()
 
         for year in sorted(list(tile_pair.keys())):
             input.append(tile_pair[year])
