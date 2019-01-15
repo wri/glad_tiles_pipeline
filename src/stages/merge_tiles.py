@@ -5,6 +5,7 @@ from helpers.utils import (
     add_tile_to_dict,
     add_preprocessed_tile_to_dict,
     get_preprocessed_tiles,
+    sort_dict,
 )
 from pathlib import PurePath
 import logging
@@ -14,15 +15,16 @@ import subprocess as sp
 @stage(workers=2)
 def combine_date_conf_pairs(pairs, **kwargs):
     root = kwargs["root"]
+    name = kwargs["name"]
     for pair in pairs:
         f_name, year, folder, tile_id = file_details(pair["day"])
 
-        output = output_tiles(root, tile_id, "date_conf", year, "day_conf.tif")
+        output = output_tiles(root, tile_id, name, year, "day_conf.tif")
 
         try:
             sp.check_call(["add2", pair["day"], pair["conf"], output])
         except sp.CalledProcessError:
-            logging.warning("Failed to compine files into: " + output)
+            logging.warning("Failed to combine files into: " + output)
         else:
             logging.info("Combined files into: " + output)
             yield output
@@ -32,18 +34,18 @@ def combine_date_conf_pairs(pairs, **kwargs):
 def year_pairs(tiles, **kwargs):
     preprocessed_years = kwargs["preprocessed_years"]
 
-    tile_pairs = dict()
+    tile_dicts = dict()
     for tile in tiles:
         basedir = PurePath(tile).parent.parent.as_posix()
         year = PurePath(tile).parts[-2]
 
-        tile_pairs = add_tile_to_dict(tile_pairs, basedir, year, tile)
+        tile_dicts = add_tile_to_dict(tile_dicts, basedir, year, tile)
 
-        if len(tile_pairs[basedir]) == len(preprocessed_years):
+        if len(tile_dicts[basedir]) == len(preprocessed_years):
             logging.info("Created pairs for: " + basedir)
-            yield tile_pairs[basedir]
+            yield tile_dicts[basedir]
 
-    for key, value in tile_pairs.items():
+    for key, value in tile_dicts.items():
         if len(value) < len(preprocessed_years):
             logging.warning("Could not create pair for: " + key)
 
@@ -56,41 +58,42 @@ def all_year_pairs(tiles, **kwargs):
     preprocessed_years = kwargs["preprocessed_years"]
     preprocessed_tiles = get_preprocessed_tiles(root, years, preprocessed_years)
 
-    tile_pairs = dict()
+    tile_dicts = dict()
     for tile in tiles:
         basedir = PurePath(tile).parent.parent.as_posix()
         year = PurePath(tile).parts[-2]
 
-        tile_pairs = add_tile_to_dict(tile_pairs, basedir, year, tile)
+        tile_dicts = add_tile_to_dict(tile_dicts, basedir, year, tile)
 
-        tile_pairs = add_preprocessed_tile_to_dict(
-            tile_pairs, basedir, preprocessed_tiles
+        tile_dicts = add_preprocessed_tile_to_dict(
+            tile_dicts, basedir, preprocessed_tiles
         )
 
-        if len(tile_pairs[basedir]) == len(years) + 1:
+        if len(tile_dicts[basedir]) == len(years) + 1:
             logging.info("Created pairs for: " + basedir)
-            yield tile_pairs[basedir]
+            yield tile_dicts[basedir]
 
-    for key, value in tile_pairs.items():
+    for key, value in tile_dicts.items():
         if len(value) < len(years) + 1:
             logging.warning("Could not create pair for: " + key)
 
 
 @stage(workers=2)
-def merge_years(tile_pairs, **kwargs):
+def merge_years(tile_dicts, **kwargs):
     root = kwargs["root"]
-    missing_years = kwargs["missing_years"]
-    year_str = "_".join(str(year) for year in missing_years)
+    name = kwargs["name"]
+    preprocessed_years = kwargs["preprocessed_years"]
+    year_str = "_".join(str(year) for year in preprocessed_years)
 
-    for tile_pair in tile_pairs:
-        logging.info(str(tile_pair))
-        f_name, year, folder, tile_id = file_details(tile_pair[str(missing_years[0])])
-        output = output_tiles(root, tile_id, "date_conf", year_str, "day_conf.tif")
+    for tile_dict in tile_dicts:
+        logging.info(str(tile_dict))
+        f_name, year, folder, tile_id = file_details(
+            # TODO: look into ways to make this more elegant
+            tile_dict[str(list(tile_dict.keys()[0]))]
+        )
+        output = output_tiles(root, tile_id, name, year_str, "day_conf.tif")
 
-        input = list()
-
-        for year in sorted(list(tile_pair.keys())):
-            input.append(tile_pair[year])
+        input = sort_dict(tile_dict)
 
         try:
             sp.check_call(["combine{}".format(len(input))] + input + [output])
@@ -99,8 +102,3 @@ def merge_years(tile_pairs, **kwargs):
         else:
             logging.info("Combined files: " + str(input))
             yield output
-
-
-@stage(workers=2)
-def merge_all_years(tile_pairs, **kwargs):
-    pass

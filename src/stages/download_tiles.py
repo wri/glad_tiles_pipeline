@@ -17,6 +17,8 @@ def download_latest_tiles(tile_ids, **kwargs):
     years = kwargs["years"]
     tile_date = kwargs["tile_date"]
     root = kwargs["root"]
+    name = kwargs["name"]
+
     url_pattern = "gs://earthenginepartners-hansen/GLADalert/{date}/alert{product}{year_dig}_{tile_id}.tif"
 
     for tile_id in tile_ids:
@@ -31,7 +33,7 @@ def download_latest_tiles(tile_ids, **kwargs):
                     tile_id=tile_id,
                     product=get_suffix(product),
                 )
-                output = output_tiles(root, tile_id, "download", year, product + ".tif")
+                output = output_tiles(root, tile_id, name, year, product + ".tif")
 
                 try:
                     sp.check_call(["gsutil", "cp", tif_url, output])
@@ -45,6 +47,7 @@ def download_latest_tiles(tile_ids, **kwargs):
 @stage(workers=2)
 def download_preprocessed_tiles_years(tile_ids, **kwargs):
     root = kwargs["root"]
+    name = kwargs["name"]
     preprocessed_years = kwargs["preprocessed_years"]
 
     year_str = preprocessed_years_str(preprocessed_years)
@@ -55,7 +58,7 @@ def download_preprocessed_tiles_years(tile_ids, **kwargs):
             tile_id, year_str
         )
 
-        output = output_tiles(root, tile_id, "date_conf", year_str, "day_conf.tif")
+        output = output_tiles(root, tile_id, name, year_str, "day_conf.tif")
 
         try:
             sp.check_call(["aws", "s3", "cp", s3_url, output])
@@ -69,6 +72,7 @@ def download_preprocessed_tiles_years(tile_ids, **kwargs):
 @stage(workers=2)
 def download_preprocessed_tiles_year(tile_ids, **kwargs):
     root = kwargs["root"]
+    name = kwargs["name"]
     preprocessed_years = kwargs["preprocessed_years"]
 
     s3_url = "s3://gfw2-data/forest_change/umd_landsat_alerts/archive/tiles/{}/{}{}.tif"
@@ -76,9 +80,7 @@ def download_preprocessed_tiles_year(tile_ids, **kwargs):
     for tile_id in tile_ids:
         for year in preprocessed_years:
             for product in ["day", "conf"]:
-                output = output_tiles(
-                    root, tile_id, "encode_date_conf", year, product + ".tif"
-                )
+                output = output_tiles(root, tile_id, name, year, product + ".tif")
 
                 try:
                     sp.check_call(

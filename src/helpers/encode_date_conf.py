@@ -2,7 +2,7 @@
 import numpy as np
 import argparse
 import gdal
-import utils.raster_utilities as ras_util
+import helpers.raster_utilities as ras_util
 
 
 def main():

@@ -10,7 +10,7 @@ from stages.merge_tiles import (
     combine_date_conf_pairs,
     year_pairs,
     merge_years,
-    merge_all_years,
+    all_year_pairs,
 )
 from stages.upload_tiles import backup_tiles
 
@@ -20,6 +20,7 @@ import shutil
 import logging
 import sys
 import argparse
+import pathlib
 
 from typing import Dict, Any, List
 
@@ -55,12 +56,12 @@ def preprocessed_tile_pipe(tile_ids, **kwargs):
 
     pipe = (
         tile_ids
-        | download_preprocessed_tiles_years(**kwargs)
-        | download_preprocessed_tiles_year(**kwargs)
+        | download_preprocessed_tiles_years(name="date_conf", **kwargs)
+        | download_preprocessed_tiles_year(name="encode_date_conf", **kwargs)
         | date_conf_pairs()
-        | combine_date_conf_pairs(**kwargs)
+        | combine_date_conf_pairs(name="date_conf", **kwargs)
         | year_pairs(**kwargs)
-        | merge_years(**kwargs)
+        | merge_years(name="date_conf", **kwargs)
         | backup_tiles()
     )
     return pipe
@@ -69,13 +70,13 @@ def preprocessed_tile_pipe(tile_ids, **kwargs):
 def latest_tile_pipe(tile_ids, **kwargs):
     pipe = (
         tile_ids
-        | download_latest_tiles(**kwargs)
-        | change_pixel_depth(**kwargs)
-        | encode_date_conf(**kwargs)
+        | download_latest_tiles(name="download", **kwargs)
+        | change_pixel_depth(name="pixel_depth", **kwargs)
+        | encode_date_conf(name="encode_date_conf", **kwargs)
         | date_conf_pairs()
-        | combine_date_conf_pairs(**kwargs)
-        | year_pairs(**kwargs)
-        | merge_all_years(**kwargs)
+        | combine_date_conf_pairs(name="date_conf", **kwargs)
+        | all_year_pairs(**kwargs)
+        | merge_years(name="final", **kwargs)
     )
     return pipe
 
@@ -93,42 +94,47 @@ def get_parser():
     return parser.parse_args()
 
 
+def get_data_root():
+    cwd = pathlib.Path.cwd()
+    return cwd.parent.joinpath("data").as_posix()
+
+
 def main():
 
     args = get_parser()
 
     get_logger(debug=args.debug)
 
-    TILE_IDS = get_tile_ids_by_bbox(-50, -10, -40, 10)
-    ROOT = "/home/thomas/projects/gfw-sync/glad_tiles_pipeline/data"
-    YEARS = [2018, 2019]
-    PREPROCESSED_YEARS = range(2015, min(YEARS))
+    tile_ids = get_tile_ids_by_bbox(-50, -10, -40, 10)
+    root = get_data_root()
+    years = [2018, 2019]
+    preprocessed_years = range(2015, min(years))
 
     kwargs: Dict[str, Any] = {
-        "years": YEARS,
-        "root": ROOT,
-        "preprocessed_years": PREPROCESSED_YEARS,
+        "years": years,
+        "root": root,
+        "preprocessed_years": preprocessed_years,
     }
 
     try:
-        kwargs["tile_date"] = get_most_recent_day(tile_ids=TILE_IDS, **kwargs)
+        kwargs["tile_date"] = get_most_recent_day(tile_ids=tile_ids, **kwargs)
     except ValueError:
         logging.error("Cannot find recently processes tiles. Aborting")
         pass
     else:
 
-        if os.path.exists(ROOT):
-            shutil.rmtree(ROOT)
+        if os.path.exists(root):
+            shutil.rmtree(root)
 
-        pipe = preprocessed_tile_pipe(tile_ids=TILE_IDS, **kwargs)
+        pipe = preprocessed_tile_pipe(tile_ids=tile_ids, **kwargs)
 
         for output in pipe.results():
             logging.debug("Intermediate  output: " + str(output))
 
-    # pipe = latest_tile_pipe(tile_ids=TILE_IDS,**kwargs)
+        pipe = latest_tile_pipe(tile_ids=tile_ids, **kwargs)
 
-    # for output in pipe.results():
-    #    logging.info("Final  output: " + str(output))
+        for output in pipe.results():
+            logging.info("Final  output: " + str(output))
 
     finally:
         pass

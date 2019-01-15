@@ -9,11 +9,12 @@ import logging
 def encode_date_conf(tiles, **kwargs):
 
     root = kwargs["root"]
+    name = kwargs["name"]
 
     for tile in tiles:
         f_name, year, folder, tile_id = file_details(tile)
 
-        output = output_tiles(root, tile_id, "encode_date_conf", year, f_name)
+        output = output_tiles(root, tile_id, name, year, f_name)
 
         cmd = ["encode_date_conf.py", "-i", tile, "-o", output, "-y", str(year)]
 
@@ -27,7 +28,7 @@ def encode_date_conf(tiles, **kwargs):
         except sp.CalledProcessError:
             logging.warning("Failed to encode file: " + tile)
         else:
-            logging.info("Encode file: " + tile)
+            logging.info("Encoded file: " + tile)
             yield output
 
 

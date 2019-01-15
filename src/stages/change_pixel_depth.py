@@ -8,8 +8,8 @@ import logging
 def change_pixel_depth(tiles, **kwargs):
 
     try:
-        # tiles = kwargs["tiles"]
         root = kwargs["root"]
+        name = kwargs["name"]
     except KeyError:
         logging.warning("Wrong number of arguments")
     else:
@@ -17,12 +17,9 @@ def change_pixel_depth(tiles, **kwargs):
         for tile in tiles:
             f_name, year, folder, tile_id = file_details(tile)
 
-            output = output_tiles(root, tile_id, "pixel_depth", year, f_name)
+            output = output_tiles(root, tile_id, name, year, f_name)
 
             try:
-                logging.debug(
-                    ["pixel_depth.py", "-i", tile, "-o", output, "-d", "UInt16"]
-                )
                 sp.check_call(
                     ["pixel_depth.py", "-i", tile, "-o", output, "-d", "UInt16"]
                 )

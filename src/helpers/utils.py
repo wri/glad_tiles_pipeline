@@ -24,21 +24,21 @@ def preprocessed_years_str(preprocessed_years):
     return "_".join(str(year) for year in preprocessed_years)
 
 
-def add_tile_to_dict(tile_pairs, basedir, year, tile):
-    if basedir not in tile_pairs.keys():
-        tile_pairs[basedir] = dict()
+def add_tile_to_dict(tile_dict, basedir, year, tile):
+    if basedir not in tile_dict.keys():
+        tile_dict[basedir] = dict()
 
-    tile_pairs[basedir][year] = tile
+    tile_dict[basedir][year] = tile
 
-    return tile_pairs
+    return tile_dict
 
 
-def add_preprocessed_tile_to_dict(tile_pairs, basedir, preprocessed_tiles):
+def add_preprocessed_tile_to_dict(tile_dict, basedir, preprocessed_tiles):
     for tile in preprocessed_tiles:
         year_str = PurePath(tile).parts[-2]
         if basedir == PurePath(tile).parent.parent.as_posix():
-            tile_pairs[basedir][year_str] = tile
-    return tile_pairs
+            tile_dict[basedir][year_str] = tile
+    return tile_dict
 
 
 def get_preprocessed_tiles(root, years, preprocessed_years):
@@ -55,3 +55,13 @@ def get_preprocessed_tiles(root, years, preprocessed_years):
             pass
 
     return preprocessed_tiles
+
+
+def sort_dict(tile_dict):
+
+    sorted_list = list()
+
+    for year in sorted(list(tile_dict.keys())):
+        sorted_list.append(tile_dict[year])
+
+    return sorted_list

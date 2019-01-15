@@ -3,6 +3,7 @@ from helpers.utils import (
     add_tile_to_dict,
     add_preprocessed_tile_to_dict,
     get_preprocessed_tiles,
+    sort_dict,
 )
 from unittest import mock
 
@@ -78,4 +79,21 @@ def test_get_preprocessed_tiles(mock_glob):
     assert preprocessed_tiles == [
         root + "/tiles/2015_2016_2017/day_conf.tif",
         root + "/othertiles/2018_2019/day_conf.tif",
+    ]
+
+
+def test_sort_dict():
+    root = "/my/root/dir"
+    tile_dict = {
+        "2019": root + "/tiles/2019/day_conf.tif",
+        "2018": root + "/tiles/2018/day_conf.tif",
+        "2015_2016_2017": root + "/tiles/2015_2016_2017/day_conf.tif",
+    }
+
+    sorted_tile_list = sort_dict(tile_dict)
+
+    assert sorted_tile_list == [
+        root + "/tiles/2015_2016_2017/day_conf.tif",
+        root + "/tiles/2018/day_conf.tif",
+        root + "/tiles/2019/day_conf.tif",
     ]
