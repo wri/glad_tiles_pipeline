@@ -12,6 +12,8 @@ from stages.merge_tiles import (
     merge_years,
     merge_all_years,
 )
+
+from helpers.tiles import get_tile_ids_by_bbox
 import os
 import shutil
 import logging
@@ -57,7 +59,7 @@ def preprocessed_tile_pipe(tile_ids, **kwargs):
         | date_conf_pairs()
         | combine_date_conf_pairs(**kwargs)
         | year_pairs(**kwargs)
-        | merge_years(**kwargs)
+        # | merge_years(**kwargs)
         # | backup_files(**kwargs)
     )
     return pipe
@@ -96,8 +98,8 @@ def main():
 
     get_logger(debug=args.debug)
 
-    TILE_IDS = ["050W_10S_040W_00N", "050W_00N_040W_10N"]
-    ROOT = ("/home/thomas/projects/gfw-sync/glad_tiles_pipeline/data",)
+    TILE_IDS = get_tile_ids_by_bbox(-50, -10, -40, 10)
+    ROOT = "/home/thomas/projects/gfw-sync/glad_tiles_pipeline/data"
     YEARS = [2018, 2019]
     MISSING_YEARS = range(2015, min(YEARS))
 
@@ -117,15 +119,15 @@ def main():
         if os.path.exists(ROOT):
             shutil.rmtree(ROOT)
 
-        pipe = preprocessed_tile_pipe(**kwargs)
+        pipe = preprocessed_tile_pipe(tile_ids=TILE_IDS, **kwargs)
 
         for output in pipe.results():
             logging.info("Intermediate  output: " + str(output))
 
-        pipe = latest_tile_pipe(**kwargs)
+    # pipe = latest_tile_pipe(tile_ids=TILE_IDS,**kwargs)
 
-        for output in pipe.results():
-            logging.info("Final  output: " + str(output))
+    # for output in pipe.results():
+    #    logging.info("Final  output: " + str(output))
 
     finally:
         pass
@@ -170,5 +172,5 @@ def test():
 
 
 if __name__ == "__main__":
-    # main()
-    test()
+    main()
+    # test()

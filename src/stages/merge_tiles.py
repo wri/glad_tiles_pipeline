@@ -1,5 +1,5 @@
 from parallelpipe import stage
-from utils.utils import output_tiles, file_details
+from helpers.utils import output_tiles, file_details
 from pathlib import PurePath
 import logging
 import subprocess as sp
@@ -52,7 +52,7 @@ def merge_years(tile_pairs, **kwargs):
     year_str = "_".join(str(year) for year in missing_years)
 
     for tile_pair in tile_pairs:
-
+        logging.info(str(tile_pair))
         f_name, tile_id, year = file_details(tile_pair[missing_years[0]])
         output = output_tiles(root, tile_id, "date_conf", year_str, "day_conf.tif")
 

@@ -1,5 +1,5 @@
 from parallelpipe import stage
-from utils.utils import output_tiles, file_details
+from helpers.utils import output_tiles, file_details
 import subprocess as sp
 import logging
 
