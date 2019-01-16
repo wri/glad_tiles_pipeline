@@ -34,6 +34,12 @@ def main():
 
 
 def get_year_offset(year, baseyear=2015):
+    """
+    Returns number of days between baseyear and year
+    :param year: current year (int)
+    :param baseyear: reference year (int)
+    :return: number of days between baseyear and year (int)
+    """
     return (year - baseyear) * 365 + sum(
         [int(not (y % 4)) for y in range(baseyear - 1, year)]
     )
@@ -44,9 +50,7 @@ def write_total_days_tif(date_tif, output_raster, year):
 
     # add a year_offset value to each julian_day pixel, so that when we add
     # all years together, we can see the progression from 2015-01-01 to present
-    year_offset = (year - 2015) * 365 + sum(
-        [int(not (y % 4)) for y in range(2015, year + 1)]
-    )
+    year_offset = get_year_offset(year)
 
     # Figure out what the nodata value will be for this raster
     # The source nodata value is 0; but we're adding a year offset, so need to apply that too
