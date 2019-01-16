@@ -1,7 +1,7 @@
 # from numba import jit
 import numpy as np
 import argparse
-import gdal
+from osgeo import gdal
 import helpers.raster_utilities as ras_util
 
 
@@ -33,12 +33,20 @@ def main():
         scale_confidence_values(args.input_raster, args.output_raster)
 
 
+def get_year_offset(year, baseyear=2015):
+    return (year - baseyear) * 365 + sum(
+        [int(not (y % 4)) for y in range(baseyear - 1, year)]
+    )
+
+
 # @jit(nopython=True)
 def write_total_days_tif(date_tif, output_raster, year):
 
     # add a year_offset value to each julian_day pixel, so that when we add
     # all years together, we can see the progression from 2015-01-01 to present
-    year_offset = (year - 2015) * 365
+    year_offset = (year - 2015) * 365 + sum(
+        [int(not (y % 4)) for y in range(2015, year + 1)]
+    )
 
     # Figure out what the nodata value will be for this raster
     # The source nodata value is 0; but we're adding a year offset, so need to apply that too
