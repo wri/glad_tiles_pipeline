@@ -6,7 +6,6 @@ import helpers.raster_utilities as ras_util
 
 
 def main():
-    # Parse commandline arguments
     parser = argparse.ArgumentParser(
         description="Get input raster, lookup table, and output."
     )
@@ -45,65 +44,95 @@ def get_year_offset(year, baseyear=2015):
     )
 
 
+# jit doesn't make this faster. In its current version the last numpy statement is not supported
+# also np.select() doesn't work. Excluding the statement from this function ended up being about 1 sec faster
+# For readability reasons i stuck with the current implementation
 # @jit(nopython=True)
+def encode_days(date_array, offset, nodata):
+    """
+    Build an array of total days for the year (i.e. if it's year 0, this array will be
+    all 0s (no day offset needed to get total days). If it's year 1, will be an array
+    of 365, year 2, 730, etc
+    Build total date_array by adding current date to year offset
+    Reset no data value
+
+    :param date_array: input array
+    :param year_offset: number to add to each day
+    :param date_nodata: inital
+    :return:
+    """
+
+    year_array = np.array([offset], np.uint16)
+    date_array += year_array
+    date_array[date_array == nodata + offset] = nodata
+
+    return date_array
+
+
+def encode_conf(array):
+    """
+    Multiplies all values of an array by 10000 and forces it to be UINT16
+    :param array: Input Array
+    :return: Output Array
+    """
+    array *= np.array([10000], dtype=np.uint16)
+
+    return array
+
+
 def write_total_days_tif(date_tif, output_raster, year):
+    """
+    Encodes GLAD date. Adds an offset of number of days between 2015 and current year
+    to annual GLAD dates.
+    :param date_tif: Input Raster
+    :param output_raster: Output Raster
+    :param year: Year of Raster
+    :return: Output Raster
+    """
 
-    # add a year_offset value to each julian_day pixel, so that when we add
-    # all years together, we can see the progression from 2015-01-01 to present
     year_offset = get_year_offset(year)
+    nodata = ras_util.get_no_data_vals(date_tif)[0]
 
-    # Figure out what the nodata value will be for this raster
-    # The source nodata value is 0; but we're adding a year offset, so need to apply that too
-    date_nodata = ras_util.get_no_data_vals(date_tif)[0] + year_offset
-
-    # Get a handle on our out_ras
     out_ras = ras_util.create_outfile(date_tif, output_raster, gdal.GDT_UInt16, 1)
     out_band = out_ras.GetRasterBand(1)
 
-    # Convert input raster to array
     date_array_generator = ras_util.raster2array_large(date_tif)
 
     for date_array, j, i in date_array_generator:
 
-        # Build an array of total days for the year (i.e. if it's year 0, this array will be
-        # all 0s (no day offset needed to get total days). If it's year 1, will be an array
-        # of 365, year 2, 730, etc
-        year_array = np.array([year_offset], np.uint16)
-
-        # Build total date_array by adding current date to year offset
-        date_array += year_array
-
-        # Set no data appropriately - should always be zero
-        date_array[date_array == date_nodata] = 0
+        date_array = encode_days(date_array, year_offset, nodata)
 
         out_ras.GetRasterBand(1).WriteArray(date_array, j, i)
 
-    out_band.SetNoDataValue(0)
+    out_band.SetNoDataValue(nodata)
     out_band.FlushCache()
 
     return output_raster
 
 
-# @jit(nopython=True)
 def scale_confidence_values(confidence_tif, output_raster):
+    """
+    Multiply all values by 10,000 so we can add them later to get unique date/conf values
+    this will gives us values of eithe 20000 or 30000, which we'll then add to our
+    0 - 9999 values from scaled julian_day + year_offset
+    :param confidence_tif: input Raster
+    :param output_raster: output Raster
+    :return: Output Raster
+    """
 
+    nodata = ras_util.get_no_data_vals(confidence_tif)[0]
     out_ras = ras_util.create_outfile(confidence_tif, output_raster, gdal.GDT_UInt16, 1)
     out_band = out_ras.GetRasterBand(1)
 
-    # Convert input raster to array
     conf_array_generator = ras_util.raster2array_large(confidence_tif)
 
     for conf_array, j, i in conf_array_generator:
 
-        # Multiply all values by 10,000 so we can add them later to get unique date/conf values
-        # this will gives us values of eithe 20000 or 30000, which we'll then add to our
-        # 0 - 9999 values from scaled julian_day + year_offset
-        conf_array *= np.array([10000], dtype=np.uint16)
+        conf_array = encode_conf(conf_array)
 
-        # Write to output raster
         out_ras.GetRasterBand(1).WriteArray(conf_array, j, i)
 
-    out_band.SetNoDataValue(0)
+    out_band.SetNoDataValue(nodata * 10000)
     out_band.FlushCache()
 
     return output_raster
