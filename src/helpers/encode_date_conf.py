@@ -66,6 +66,7 @@ def write_total_days_tif(date_tif, output_raster, year):
 
         out_ras.GetRasterBand(1).WriteArray(date_array, j, i)
 
+    out_band.SetNoDataValue(0)
     out_band.FlushCache()
 
     return output_raster
@@ -90,6 +91,7 @@ def scale_confidence_values(confidence_tif, output_raster):
         # Write to output raster
         out_ras.GetRasterBand(1).WriteArray(conf_array, j, i)
 
+    out_band.SetNoDataValue(0)
     out_band.FlushCache()
 
     return output_raster
