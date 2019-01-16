@@ -89,7 +89,7 @@ def merge_years(tile_dicts, **kwargs):
         logging.info(str(tile_dict))
         f_name, year, folder, tile_id = file_details(
             # TODO: look into ways to make this more elegant
-            tile_dict[str(list(tile_dict.keys()[0]))]
+            tile_dict[str(list(tile_dict.keys())[0])]
         )
         output = output_tiles(root, tile_id, name, year_str, "day_conf.tif")
 
