@@ -4,11 +4,22 @@ import re
 
 
 def _output_file_mkdir(*path):
+    """
+    Creates directory for the parent directory
+    :param path: List of path elements
+    :return: None
+    """
     output_dir = PurePath(*path[:-1])
     Path(output_dir).mkdir(parents=True, exist_ok=True)
 
 
 def output_file(*path):
+    """
+    Creates POSIX path from input list
+    and creates directory for the parent directory
+    :param path: List of path elements
+    :return: POSIX path
+    """
 
     path = [str(p) for p in path if p is not None]
     _output_file_mkdir()
@@ -27,11 +38,24 @@ def file_details(f):
 
 
 def get_file_name(f):
+    """
+    Extract the last element of a POSIX path
+    :param f: POSIX path
+    :return: File name
+    """
     p = PurePath(f)
     return p.parts[-1]
 
 
 def get_tile_id(f):
+    """
+    Finds and returns tile id in file name
+    Tile id must match the following pattern
+    050W_20S_030E_10N
+
+    :param f: File name
+    :return: Tile ID or None
+    """
     m = re.search("([0-9]{3}[EW]_[0-9]{2}[NS]_?){2}", f)
     if m:
         return m.group(0)
