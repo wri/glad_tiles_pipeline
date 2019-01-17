@@ -5,7 +5,12 @@ from stages.download_tiles import (
 )
 from stages.check_availablity import get_most_recent_day
 from stages.change_pixel_depth import change_pixel_depth
-from stages.encode_glad import encode_date_conf, date_conf_pairs, prep_intensity
+from stages.encode_glad import (
+    encode_date_conf,
+    date_conf_pairs,
+    prep_intensity,
+    unset_no_data_value,
+)
 from stages.merge_tiles import (
     combine_date_conf_pairs,
     year_pairs,
@@ -13,6 +18,7 @@ from stages.merge_tiles import (
     all_year_pairs,
 )
 from stages.upload_tiles import backup_tiles
+from stages.resample import resample
 
 from helpers.tiles import get_tile_ids_by_bbox
 import os
@@ -26,6 +32,11 @@ from typing import Dict, Any, List
 
 
 def str2bool(v):
+    """
+    Convert various strings to boolean
+    :param v: String
+    :return: Boolean
+    """
     if v.lower() in ("yes", "true", "t", "y", "1"):
         return True
     elif v.lower() in ("no", "false", "f", "n", "0"):
@@ -35,6 +46,11 @@ def str2bool(v):
 
 
 def get_logger(debug=True):
+    """
+    Build logger
+    :param debug: Set Log Level to Debug or Info
+    :return: logger
+    """
 
     root = logging.getLogger()
     if debug:
@@ -53,7 +69,12 @@ def get_logger(debug=True):
 
 
 def preprocessed_tile_pipe(tile_ids, **kwargs):
-
+    """
+    Pipeline to download/ process GLAD alerts of previous years
+    :param tile_ids: List of Tile IDs to process
+    :param kwargs: Dictonary with keyword arguments
+    :return: pipe
+    """
     pipe = (
         tile_ids
         | download_preprocessed_tiles_years(name="date_conf", **kwargs)
@@ -70,6 +91,12 @@ def preprocessed_tile_pipe(tile_ids, **kwargs):
 
 
 def latest_tile_pipe(tile_ids, **kwargs):
+    """
+    Pipeline to process latest GLAD alerts
+    :param tile_ids: List of Tile IDs to process
+    :param kwargs: Dictonary with keyword arguments
+    :return: pipe
+    """
     pipe = (
         tile_ids
         | download_latest_tiles(name="download", **kwargs)
@@ -79,12 +106,30 @@ def latest_tile_pipe(tile_ids, **kwargs):
         | combine_date_conf_pairs(name="date_conf", **kwargs)
         | all_year_pairs(**kwargs)
         | merge_years(name="final", **kwargs)
+        | resample(name="resample", resample_method="near", zoom=12, **kwargs)
+        | resample(name="resample", resample_method="mode", zoom=11, **kwargs)
+        | resample(name="resample", resample_method="mode", zoom=10, **kwargs)
+    )
+    return pipe
+
+
+def intensity_pipeline(tiles, **kwargs):
+    pipe = (
+        tiles
+        | unset_no_data_value()
         | prep_intensity(name="final", **kwargs)
+        | resample(name="resample", resample_method="near", zoom=12, **kwargs)
+        | resample(name="resample", resample_method="bilinear", zoom=11, **kwargs)
+        | resample(name="resample", resample_method="bilinear", zoom=10, **kwargs)
     )
     return pipe
 
 
 def get_parser():
+    """
+    Build parser for command line input
+    :return: Parser for command line input
+    """
     parser = argparse.ArgumentParser(description="Change the data type of a raster.")
     parser.add_argument(
         "--debug",
@@ -98,6 +143,10 @@ def get_parser():
 
 
 def get_data_root():
+    """
+    Get data root based on current working directory
+    :return: Data root path
+    """
     cwd = pathlib.Path.cwd()
     return cwd.parent.joinpath("data").as_posix()
 
@@ -143,44 +192,5 @@ def main():
         pass
 
 
-def test():
-
-    get_logger(debug=True)
-    input = [
-        {
-            "day": "/home/thomas/projects/gfw-sync/glad_tiles_pipeline/data/tiles/050W_00N_040W_10N/encode_date_conf/2019/day.tif",
-            "conf": "/home/thomas/projects/gfw-sync/glad_tiles_pipeline/data/tiles/050W_00N_040W_10N/encode_date_conf/2019/conf.tif",
-        },
-        {
-            "day": "/home/thomas/projects/gfw-sync/glad_tiles_pipeline/data/tiles/050W_10S_040W_00N/encode_date_conf/2019/day.tif",
-            "conf": "/home/thomas/projects/gfw-sync/glad_tiles_pipeline/data/tiles/050W_10S_040W_00N/encode_date_conf/2019/conf.tif",
-        },
-        {
-            "day": "/home/thomas/projects/gfw-sync/glad_tiles_pipeline/data/tiles/050W_10S_040W_00N/encode_date_conf/2018/day.tif",
-            "conf": "/home/thomas/projects/gfw-sync/glad_tiles_pipeline/data/tiles/050W_10S_040W_00N/encode_date_conf/2018/conf.tif",
-        },
-        {
-            "day": "/home/thomas/projects/gfw-sync/glad_tiles_pipeline/data/tiles/050W_00N_040W_10N/encode_date_conf/2018/day.tif",
-            "conf": "/home/thomas/projects/gfw-sync/glad_tiles_pipeline/data/tiles/050W_00N_040W_10N/encode_date_conf/2018/conf.tif",
-        },
-    ]
-
-    ROOT = ("/home/thomas/projects/gfw-sync/glad_tiles_pipeline/data",)
-    YEARS = [2018, 2019]
-    MISSING_YEARS = range(2015, min(YEARS))
-
-    kwargs: Dict[str, Any] = {
-        "years": YEARS,
-        "root": ROOT,
-        "missing_years": MISSING_YEARS,
-    }
-
-    pipe = input | combine_date_conf_pairs(**kwargs)
-
-    for tif in pipe.results():
-        logging.info("Final  output: " + str(tif))
-
-
 if __name__ == "__main__":
     main()
-    # test()
