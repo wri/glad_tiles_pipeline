@@ -5,7 +5,7 @@ from stages.download_tiles import (
 )
 from stages.check_availablity import get_most_recent_day
 from stages.change_pixel_depth import change_pixel_depth
-from stages.encode_glad import encode_date_conf, date_conf_pairs
+from stages.encode_glad import encode_date_conf, date_conf_pairs, prep_intensity
 from stages.merge_tiles import (
     combine_date_conf_pairs,
     year_pairs,
@@ -58,6 +58,8 @@ def preprocessed_tile_pipe(tile_ids, **kwargs):
         tile_ids
         | download_preprocessed_tiles_years(name="date_conf", **kwargs)
         | download_preprocessed_tiles_year(name="encode_date_conf", **kwargs)
+        | change_pixel_depth(name="pixel_depth", **kwargs)
+        | encode_date_conf(name="encode_date_conf", **kwargs)
         | date_conf_pairs()
         | combine_date_conf_pairs(name="date_conf", **kwargs)
         | year_pairs(**kwargs)
@@ -77,6 +79,7 @@ def latest_tile_pipe(tile_ids, **kwargs):
         | combine_date_conf_pairs(name="date_conf", **kwargs)
         | all_year_pairs(**kwargs)
         | merge_years(name="final", **kwargs)
+        | prep_intensity(name="final", **kwargs)
     )
     return pipe
 

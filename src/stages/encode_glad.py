@@ -55,3 +55,32 @@ def date_conf_pairs(tiles):
     for key, value in tile_pairs.items():
         if len(value) < 2:
             logging.warning("Could not create pair for: " + key)
+
+
+@stage(workers=2)
+def prep_intensity(tiles, **kwargs):
+    """
+    Reclassify our final year/date raster to 0 | 55
+    this will then be resampled at several levels to get our intensity input
+    :param tiles:
+    :return:
+    """
+
+    root = kwargs["root"]
+    name = kwargs["name"]
+    max_ras_value = 55
+
+    for tile in tiles:
+        f_name, year, folder, tile_id = file_details(tile)
+
+        output = output_tiles(root, tile_id, name, year, "source_intensity.tif")
+
+        cmd = ["reclass", tile, output, str(max_ras_value)]
+
+        try:
+            sp.check_call(cmd)
+        except sp.CalledProcessError:
+            logging.warning("Failed to encode file: " + tile)
+        else:
+            logging.info("Encoded file: " + tile)
+            yield output

@@ -6,6 +6,7 @@ from helpers.utils import (
     add_preprocessed_tile_to_dict,
     get_preprocessed_tiles,
     sort_dict,
+    preprocessed_years_str,
 )
 from pathlib import PurePath
 import logging
@@ -82,15 +83,13 @@ def all_year_pairs(tiles, **kwargs):
 def merge_years(tile_dicts, **kwargs):
     root = kwargs["root"]
     name = kwargs["name"]
-    preprocessed_years = kwargs["preprocessed_years"]
-    year_str = "_".join(str(year) for year in preprocessed_years)
 
     for tile_dict in tile_dicts:
         logging.info(str(tile_dict))
-        f_name, year, folder, tile_id = file_details(
-            # TODO: look into ways to make this more elegant
-            tile_dict[str(list(tile_dict.keys())[0])]
-        )
+        f_name, year, folder, tile_id = file_details(list(tile_dict.values())[0])
+
+        year_str = preprocessed_years_str(sorted(tile_dict.keys()))
+
         output = output_tiles(root, tile_id, name, year_str, "day_conf.tif")
 
         input = sort_dict(tile_dict)
