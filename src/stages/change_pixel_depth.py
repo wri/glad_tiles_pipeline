@@ -1,4 +1,4 @@
-from helpers.utils import output_tiles, file_details
+from helpers.utils import output_file, file_details
 from parallelpipe import stage
 import subprocess as sp
 import logging
@@ -17,7 +17,7 @@ def change_pixel_depth(tiles, **kwargs):
         for tile in tiles:
             f_name, year, folder, tile_id = file_details(tile)
 
-            output = output_tiles(root, tile_id, name, year, f_name)
+            output = output_file(root, "tiles", tile_id, name, year, f_name)
 
             try:
                 sp.check_call(

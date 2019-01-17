@@ -1,5 +1,5 @@
 from parallelpipe import stage
-from helpers.utils import output_tiles, file_details, preprocessed_years_str
+from helpers.utils import output_file, preprocessed_years_str
 import subprocess as sp
 import logging
 
@@ -33,7 +33,9 @@ def download_latest_tiles(tile_ids, **kwargs):
                     tile_id=tile_id,
                     product=get_suffix(product),
                 )
-                output = output_tiles(root, tile_id, name, year, product + ".tif")
+                output = output_file(
+                    root, "tiles", tile_id, name, year, product + ".tif"
+                )
 
                 try:
                     sp.check_call(["gsutil", "cp", tif_url, output])
@@ -58,7 +60,7 @@ def download_preprocessed_tiles_years(tile_ids, **kwargs):
             tile_id, year_str
         )
 
-        output = output_tiles(root, tile_id, name, year_str, "day_conf.tif")
+        output = output_file(root, "tiles", tile_id, name, year_str, "day_conf.tif")
 
         try:
             sp.check_call(["aws", "s3", "cp", s3_url, output])
@@ -80,7 +82,9 @@ def download_preprocessed_tiles_year(tile_ids, **kwargs):
     for tile_id in tile_ids:
         for year in preprocessed_years:
             for product in ["day", "conf"]:
-                output = output_tiles(root, tile_id, name, year, product + ".tif")
+                output = output_file(
+                    root, "tiles", tile_id, name, year, product + ".tif"
+                )
 
                 try:
                     sp.check_call(

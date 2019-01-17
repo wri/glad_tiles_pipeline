@@ -1,4 +1,4 @@
-from helpers.utils import output_tiles, file_details
+from helpers.utils import output_file, file_details
 from parallelpipe import stage
 from pathlib import PurePath
 import subprocess as sp
@@ -20,7 +20,7 @@ def encode_date_conf(tiles, **kwargs):
     for tile in tiles:
         f_name, year, folder, tile_id = file_details(tile)
 
-        output = output_tiles(root, tile_id, name, year, f_name)
+        output = output_file(root, "tiles", tile_id, name, year, f_name)
 
         cmd = ["encode_date_conf.py", "-i", tile, "-o", output, "-y", str(year)]
 
@@ -84,7 +84,7 @@ def prep_intensity(tiles, **kwargs):
     for tile in tiles:
         f_name, year, folder, tile_id = file_details(tile)
 
-        output = output_tiles(root, tile_id, name, year, "source_intensity.tif")
+        output = output_file(root, "tiles", tile_id, name, year, "source_intensity.tif")
 
         cmd = ["reclass", tile, output, str(max_ras_value)]
 

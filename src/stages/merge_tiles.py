@@ -1,6 +1,6 @@
 from parallelpipe import stage
 from helpers.utils import (
-    output_tiles,
+    output_file,
     file_details,
     add_tile_to_dict,
     add_preprocessed_tile_to_dict,
@@ -20,7 +20,7 @@ def combine_date_conf_pairs(pairs, **kwargs):
     for pair in pairs:
         f_name, year, folder, tile_id = file_details(pair["day"])
 
-        output = output_tiles(root, tile_id, name, year, "day_conf.tif")
+        output = output_file(root, "tiles", tile_id, name, year, "day_conf.tif")
 
         try:
             sp.check_call(["add2", pair["day"], pair["conf"], output])
@@ -90,7 +90,7 @@ def merge_years(tile_dicts, **kwargs):
 
         year_str = preprocessed_years_str(sorted(tile_dict.keys()))
 
-        output = output_tiles(root, tile_id, name, year_str, "day_conf.tif")
+        output = output_file(root, "tiles", tile_id, name, year_str, "day_conf.tif")
 
         input = sort_dict(tile_dict)
 

@@ -2,12 +2,17 @@ from pathlib import Path, PurePath
 import glob
 
 
-def output_tiles(root, tile_id, stage, year, name):
-    output_dir = PurePath(root, "tiles", tile_id, stage, str(year))
+def _output_file_mkdir(*path):
+    output_dir = PurePath(*path[:-1])
     Path(output_dir).mkdir(parents=True, exist_ok=True)
-    output_file = PurePath(output_dir.as_posix(), name)
 
-    return output_file.as_posix()
+
+def output_file(*path):
+
+    path = [str(p) for p in path]
+    _output_file_mkdir()
+
+    return PurePath(*path).as_posix()
 
 
 def file_details(f):

@@ -4,6 +4,7 @@ from helpers.utils import (
     add_preprocessed_tile_to_dict,
     get_preprocessed_tiles,
     sort_dict,
+    output_file,
 )
 from unittest import mock
 
@@ -97,3 +98,18 @@ def test_sort_dict():
         root + "/tiles/2018/day_conf.tif",
         root + "/tiles/2019/day_conf.tif",
     ]
+
+
+@mock.patch("helpers.utils.Path")
+def test_output_file(mock_path):
+    path = ["home", "user", "data", "myfile.txt"]
+    mock_path.mkdir.return_value = "home/user/data"
+    output = output_file(*path)
+
+    assert output == "home/user/data/myfile.txt"
+
+
+def test__output_file_mkdir():
+    # could try to make dir, check if it exists and then delete it
+    # skipping for now
+    pass
