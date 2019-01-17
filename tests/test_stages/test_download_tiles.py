@@ -1,8 +1,4 @@
-from stages.download_tiles import (
-    get_suffix,
-    download_latest_tiles,
-    download_preprocessed_tiles_years,
-)
+from stages.download_tiles import get_suffix, download_preprocessed_tiles_years
 from helpers.utils import output_file
 import subprocess as sp
 from unittest import mock

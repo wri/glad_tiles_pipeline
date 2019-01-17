@@ -5,6 +5,8 @@ from helpers.utils import (
     get_preprocessed_tiles,
     sort_dict,
     output_file,
+    get_tile_id,
+    get_file_name,
 )
 from unittest import mock
 
@@ -108,8 +110,33 @@ def test_output_file(mock_path):
 
     assert output == "home/user/data/myfile.txt"
 
+    path = ["home", None, "data", "myfile.txt"]
+    mock_path.mkdir.return_value = "home/user/data"
+    output = output_file(*path)
+
+    assert output == "home/data/myfile.txt"
+
 
 def test__output_file_mkdir():
     # could try to make dir, check if it exists and then delete it
     # skipping for now
     pass
+
+
+def test_get_tile_id():
+    fname = "/data/050W_20S_030E_10N/myfile.txt"
+    assert get_tile_id(fname) == "050W_20S_030E_10N"
+
+    fname = "/data/name/000E_20N_130W_01S/myfile.txt"
+    assert get_tile_id(fname) == "000E_20N_130W_01S"
+
+    fname = "/data/name/zoom_12.txt"
+    assert get_tile_id(fname) is None
+
+    fname = "/data/000E_20N/zoom_12.txt"
+    assert get_tile_id(fname) is None
+
+
+def test_get_file_name():
+    fname = "/data/050W_20S_030E_10N/myfile.txt"
+    assert get_file_name(fname) == "myfile.txt"

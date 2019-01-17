@@ -18,7 +18,7 @@ from stages.merge_tiles import (
     all_year_pairs,
 )
 from stages.upload_tiles import backup_tiles
-from stages.resample import resample
+from stages.resample import resample, build_vrt
 
 from helpers.tiles import get_tile_ids_by_bbox
 import os
@@ -106,9 +106,20 @@ def latest_tile_pipe(tile_ids, **kwargs):
         | combine_date_conf_pairs(name="date_conf", **kwargs)
         | all_year_pairs(**kwargs)
         | merge_years(name="final", **kwargs)
-        | resample(name="resample", resample_method="near", zoom=12, **kwargs)
-        | resample(name="resample", resample_method="mode", zoom=11, **kwargs)
-        | resample(name="resample", resample_method="mode", zoom=10, **kwargs)
+        | resample(name="day_conf", resample_method="near", zoom=12, **kwargs)
+        | resample(name="day_conf", resample_method="mode", zoom=11, **kwargs)
+        | resample(name="day_conf", resample_method="mode", zoom=10, **kwargs)
+        | build_vrt(name="day_conf", zoom=10, **kwargs)
+        | resample(name="day_conf", resample_method="mode", zoom=9, **kwargs)
+        | resample(name="day_conf", resample_method="mode", zoom=8, **kwargs)
+        | resample(name="day_conf", resample_method="mode", zoom=7, **kwargs)
+        | resample(name="day_conf", resample_method="mode", zoom=6, **kwargs)
+        | resample(name="day_conf", resample_method="mode", zoom=5, **kwargs)
+        | resample(name="day_conf", resample_method="mode", zoom=4, **kwargs)
+        | resample(name="day_conf", resample_method="mode", zoom=3, **kwargs)
+        | resample(name="day_conf", resample_method="mode", zoom=2, **kwargs)
+        | resample(name="day_conf", resample_method="mode", zoom=1, **kwargs)
+        | resample(name="day_conf", resample_method="mode", zoom=0, **kwargs)
     )
     return pipe
 
@@ -118,9 +129,20 @@ def intensity_pipeline(tiles, **kwargs):
         tiles
         | unset_no_data_value()
         | prep_intensity(name="final", **kwargs)
-        | resample(name="resample", resample_method="near", zoom=12, **kwargs)
-        | resample(name="resample", resample_method="bilinear", zoom=11, **kwargs)
-        | resample(name="resample", resample_method="bilinear", zoom=10, **kwargs)
+        | resample(name="intensity", resample_method="near", zoom=12, **kwargs)
+        | resample(name="intensity", resample_method="bilinear", zoom=11, **kwargs)
+        | resample(name="intensity", resample_method="bilinear", zoom=10, **kwargs)
+        | build_vrt(name="intensity", zoom=10, **kwargs)
+        | resample(name="intensity", resample_method="bilinear", zoom=9, **kwargs)
+        | resample(name="intensity", resample_method="bilinear", zoom=8, **kwargs)
+        | resample(name="intensity", resample_method="bilinear", zoom=7, **kwargs)
+        | resample(name="intensity", resample_method="bilinear", zoom=6, **kwargs)
+        | resample(name="intensity", resample_method="bilinear", zoom=5, **kwargs)
+        | resample(name="intensity", resample_method="bilinear", zoom=4, **kwargs)
+        | resample(name="intensity", resample_method="bilinear", zoom=3, **kwargs)
+        | resample(name="intensity", resample_method="bilinear", zoom=2, **kwargs)
+        | resample(name="intensity", resample_method="bilinear", zoom=1, **kwargs)
+        | resample(name="intensity", resample_method="bilinear", zoom=0, **kwargs)
     )
     return pipe
 

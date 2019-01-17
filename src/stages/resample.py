@@ -1,5 +1,5 @@
 from parallelpipe import stage
-from helpers.utils import output_file, file_details
+from helpers.utils import output_file, file_details, get_tile_id
 import helpers.raster_utilities as ras_util
 import subprocess as sp
 import logging
@@ -15,9 +15,11 @@ def resample(tiles, **kwargs):
 
     for tile in tiles:
 
-        f_name, year, folder, tile_id = file_details(tile)
-        # TODO: review naming - might need to remove year and add datatype instead!
-        output = output_file(root, "tiles", tile_id, name, "zoom_{}.tif".format(zoom))
+        tile_id = get_tile_id(tile)
+
+        output = output_file(
+            root, "tiles", tile_id, "resample", "{}_zoom_{}.tif".format(name, zoom)
+        )
 
         cell_size = str(ras_util.get_cell_size(zoom, "degrees"))
         # mem_pct = ras_util.get_mem_pct()
@@ -35,6 +37,7 @@ def resample(tiles, **kwargs):
             "-co",
             "TILED=YES",
         ]
+        # TODO: figure out how to best manage memory
         # cmd += ['--config', 'GDAL_CACHEMAX', mem_pct]
 
         try:

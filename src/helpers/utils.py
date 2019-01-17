@@ -1,5 +1,6 @@
 from pathlib import Path, PurePath
 import glob
+import re
 
 
 def _output_file_mkdir(*path):
@@ -9,7 +10,7 @@ def _output_file_mkdir(*path):
 
 def output_file(*path):
 
-    path = [str(p) for p in path]
+    path = [str(p) for p in path if p is not None]
     _output_file_mkdir()
 
     return PurePath(*path).as_posix()
@@ -23,6 +24,19 @@ def file_details(f):
     tile_id = p.parts[-4]
 
     return f_name, year, folder, tile_id
+
+
+def get_file_name(f):
+    p = PurePath(f)
+    return p.parts[-1]
+
+
+def get_tile_id(f):
+    m = re.search("([0-9]{3}[EW]_[0-9]{2}[NS]_?){2}", f)
+    if m:
+        return m.group(0)
+    else:
+        return None
 
 
 def preprocessed_years_str(preprocessed_years):
