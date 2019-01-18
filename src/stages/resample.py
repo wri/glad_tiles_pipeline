@@ -17,7 +17,12 @@ def resample(tiles, **kwargs):
         tile_id = get_tile_id(tile)
 
         output = output_file(
-            root, "tiles", tile_id, "resample", "{}_zoom_{}.tif".format(name, zoom)
+            root,
+            "tiles",
+            tile_id,
+            "resample",
+            "zoom_{}".format(zoom),
+            "{}.tif".format(name),
         )
 
         cell_size = str(ras_util.get_cell_size(zoom, "degrees"))
