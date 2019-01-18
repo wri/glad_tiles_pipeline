@@ -11,6 +11,8 @@ from stages.encode_glad import (
     date_conf_pairs,
     prep_intensity,
     unset_no_data_value,
+    encode_rgb,
+    project,
 )
 from stages.merge_tiles import (
     combine_date_conf_pairs,
@@ -20,6 +22,7 @@ from stages.merge_tiles import (
 )
 from stages.upload_tiles import backup_tiles
 from stages.resample import resample, build_vrt
+from stages.collectors import collect_resampled_tiles
 
 from helpers.tiles import get_tile_ids_by_bbox
 import os
@@ -208,6 +211,14 @@ def intensity_pipe(tiles, **kwargs):
     return pipe
 
 
+def rgb_pipeline(**kwargs):
+    root = kwargs["root"]
+
+    pipe = collect_resampled_tiles(root) | encode_rgb | project
+
+    return pipe
+
+
 def get_parser():
     """
     Build parser for command line input
@@ -305,7 +316,7 @@ def test():
         "root": root,
         "preprocessed_years": preprocessed_years,
     }
-
+    """
     date_conf_tiles = [
         "/home/thomas/projects/gfw-sync/glad_tiles_pipeline/data/tiles/050W_00N_040W_10N/day_conf/2015_2016_2017_2018_2019/day_conf.tif",
         "/home/thomas/projects/gfw-sync/glad_tiles_pipeline/data/tiles/050W_10S_040W_00N/day_conf/2015_2016_2017_2018_2019/day_conf.tif",
@@ -320,6 +331,12 @@ def test():
     for output in pipe.results():
         logging.debug("Intensity output: " + str(output))
     logging.info("Intensity - Done")
+
+    """
+    tiles = collect_resampled_tiles(kwargs["root"])
+
+    for tile in tiles:
+        print(tile)
 
 
 if __name__ == "__main__":

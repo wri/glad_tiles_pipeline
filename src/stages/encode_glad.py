@@ -117,3 +117,26 @@ def unset_no_data_value(tiles):
         else:
             logging.info("Set nodata value for file: " + tile)
             yield output
+
+
+def encode_rgb(tile_pairs):
+
+    for tile_pair in tile_pairs:
+        day_conf = tile_pair[0]
+        intensity = tile_pair[1]
+
+        output = output_file(PurePath(day_conf).parent.as_posix(), "rgb.tif")
+
+        cmd = ["build_rgb", day_conf, intensity, output]
+
+        try:
+            sp.check_call(cmd)
+        except sp.CalledProcessError:
+            logging.warning("Failed to build RGB for: " + tile_pair)
+        else:
+            logging.info("Built RGB for: " + tile_pair)
+            yield output
+
+
+def project(tiles):
+    pass
