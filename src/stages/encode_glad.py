@@ -1,4 +1,5 @@
 from helpers.utils import output_file, file_details
+import helpers.raster_utilities as ras_util
 from parallelpipe import stage
 from pathlib import PurePath
 import subprocess as sp
@@ -139,4 +140,53 @@ def encode_rgb(tile_pairs):
 
 
 def project(tiles):
-    pass
+    for tile in tiles:
+
+        output = output_file(PurePath(tile).parent.as_posix(), "rgb_wm.tif")
+        zoom = int(PurePath(tile)[-2].split("_")[1])
+
+        cell_size = str(ras_util.get_cell_size(zoom, "meters"))
+
+        # custom project str to prevent wrapping around 180 degree dateline
+        # source: https://gis.stackexchange.com/questions/34117
+        proj_str = (
+            "+proj=merc "
+            "+a=6378137 "
+            "+b=6378137 "
+            "+lat_ts=0.0 "
+            "+lon_0=0.0 "
+            "+x_0=0.0 "
+            "+y_0=0 "
+            "+k=1.0 "
+            "+units=m "
+            "+nadgrids=@null "
+            "+wktext "
+            "+no_defs "
+            "+over"
+        )
+
+        # DEFLATE compression and tiled data required to (partially) meet COG standard
+        # only thing missing is the overviews, but not required as we're generating one tif for each zoom level
+        cmd = [
+            "gdalwarp",
+            "-r",
+            "near",
+            "-t_srs",
+            proj_str,
+            "-tap",
+            "-co",
+            "COMPRESS=DEFLATE",
+            "-co",
+            "TILED=YES",
+        ]
+        # TODO: Figure out best memory allocation
+        # cmd += ['--config', 'GDAL_CACHEMAX', ras_util.get_mem_pct(), '-wm', ras_util.get_mem_pct()]
+        cmd += ["-tr", cell_size, cell_size, tile, output]
+
+        try:
+            sp.check_call(cmd)
+        except sp.CalledProcessError:
+            logging.warning("Failed to project file: " + tile)
+        else:
+            logging.info("Projected file: " + tile)
+            yield output
