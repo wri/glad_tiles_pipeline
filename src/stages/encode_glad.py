@@ -94,7 +94,7 @@ def prep_intensity(tiles, **kwargs):
             logging.warning("Failed to prepare intensity for file: " + tile)
         else:
             logging.info("Prepared intensity for file: " + tile)
-            yield tile  # !! Note: return input tile, not output b/c we need input in next step
+            yield output
 
 
 @stage(workers=2)

@@ -5,7 +5,6 @@ import subprocess as sp
 import logging
 
 
-@stage(workers=2)
 def resample(tiles, **kwargs):
 
     root = kwargs["root"]
@@ -27,6 +26,7 @@ def resample(tiles, **kwargs):
         cmd = [
             "gdal_translate",
             tile,
+            output,
             "-co",
             "COMPRESS=DEFLATE",
             "-r",
@@ -41,11 +41,12 @@ def resample(tiles, **kwargs):
         # cmd += ['--config', 'GDAL_CACHEMAX', mem_pct]
 
         try:
+            logging.debug(cmd)
             sp.check_call(cmd)
         except sp.CalledProcessError:
-            logging.warning("Failed to set nodata value for file: " + tile)
+            logging.warning("Failed to resample file: " + tile)
         else:
-            logging.info("Set nodata value for file: " + tile)
+            logging.info("Resampled file: " + tile)
             yield output
 
 

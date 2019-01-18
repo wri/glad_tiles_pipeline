@@ -18,11 +18,10 @@ def change_pixel_depth(tiles, **kwargs):
             f_name, year, folder, tile_id = file_details(tile)
 
             output = output_file(root, "tiles", tile_id, name, year, f_name)
-
+            cmd = ["pixel_depth.py", "-i", tile, "-o", output, "-d", "UInt16"]
             try:
-                sp.check_call(
-                    ["pixel_depth.py", "-i", tile, "-o", output, "-d", "UInt16"]
-                )
+                logging.debug(cmd)
+                sp.check_call(cmd)
             except sp.CalledProcessError:
                 logging.warning("Failed to change pixel depth for file: " + tile)
             else:

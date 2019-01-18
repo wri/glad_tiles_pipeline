@@ -22,7 +22,7 @@ def output_file(*path):
     """
 
     path = [str(p) for p in path if p is not None]
-    _output_file_mkdir()
+    _output_file_mkdir(*path)
 
     return PurePath(*path).as_posix()
 

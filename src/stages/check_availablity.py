@@ -1,12 +1,20 @@
 from google.cloud import storage
+from google.auth.exceptions import TransportError
 import datetime
+import time
 import logging
 
 
 def _check_tifs_exist(process_date, tile_ids, years):
 
-    client = storage.Client()
-    bucket = client.bucket("earthenginepartners-hansen")
+    try:
+        client = storage.Client()
+        bucket = client.bucket("earthenginepartners-hansen")
+    except TransportError:
+        logging.debug("Cannot connect, retry in 10 sec")
+        time.sleep(10)
+        client = storage.Client()
+        bucket = client.bucket("earthenginepartners-hansen")
 
     name_list = [
         blob.name

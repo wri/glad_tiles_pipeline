@@ -1,3 +1,4 @@
+from parallelpipe import Stage
 from stages.download_tiles import (
     download_latest_tiles,
     download_preprocessed_tiles_years,
@@ -90,7 +91,7 @@ def preprocessed_tile_pipe(tile_ids, **kwargs):
     return pipe
 
 
-def latest_tile_pipe(tile_ids, **kwargs):
+def date_conf_pipe(tile_ids, **kwargs):
     """
     Pipeline to process latest GLAD alerts
     :param tile_ids: List of Tile IDs to process
@@ -106,43 +107,95 @@ def latest_tile_pipe(tile_ids, **kwargs):
         | combine_date_conf_pairs(name="date_conf", **kwargs)
         | all_year_pairs(**kwargs)
         | merge_years(name="final", **kwargs)
-        | resample(name="day_conf", resample_method="near", zoom=12, **kwargs)
-        | resample(name="day_conf", resample_method="mode", zoom=11, **kwargs)
-        | resample(name="day_conf", resample_method="mode", zoom=10, **kwargs)
+        | Stage(
+            resample, name="day_conf", resample_method="near", zoom=12, **kwargs
+        ).setup(workers=2)
+        | Stage(
+            resample, name="day_conf", resample_method="mode", zoom=11, **kwargs
+        ).setup(workers=2)
+        | Stage(
+            resample, name="day_conf", resample_method="mode", zoom=10, **kwargs
+        ).setup(workers=2)
         | build_vrt(name="day_conf", zoom=10, **kwargs)
-        | resample(name="day_conf", resample_method="mode", zoom=9, **kwargs)
-        | resample(name="day_conf", resample_method="mode", zoom=8, **kwargs)
-        | resample(name="day_conf", resample_method="mode", zoom=7, **kwargs)
-        | resample(name="day_conf", resample_method="mode", zoom=6, **kwargs)
-        | resample(name="day_conf", resample_method="mode", zoom=5, **kwargs)
-        | resample(name="day_conf", resample_method="mode", zoom=4, **kwargs)
-        | resample(name="day_conf", resample_method="mode", zoom=3, **kwargs)
-        | resample(name="day_conf", resample_method="mode", zoom=2, **kwargs)
-        | resample(name="day_conf", resample_method="mode", zoom=1, **kwargs)
-        | resample(name="day_conf", resample_method="mode", zoom=0, **kwargs)
+        | Stage(
+            resample, name="day_conf", resample_method="mode", zoom=9, **kwargs
+        ).setup(workers=2)
+        | Stage(
+            resample, name="day_conf", resample_method="mode", zoom=8, **kwargs
+        ).setup(workers=2)
+        | Stage(
+            resample, name="day_conf", resample_method="mode", zoom=7, **kwargs
+        ).setup(workers=2)
+        | Stage(
+            resample, name="day_conf", resample_method="mode", zoom=6, **kwargs
+        ).setup(workers=2)
+        | Stage(
+            resample, name="day_conf", resample_method="mode", zoom=5, **kwargs
+        ).setup(workers=2)
+        | Stage(
+            resample, name="day_conf", resample_method="mode", zoom=4, **kwargs
+        ).setup(workers=2)
+        | Stage(
+            resample, name="day_conf", resample_method="mode", zoom=3, **kwargs
+        ).setup(workers=2)
+        | Stage(
+            resample, name="day_conf", resample_method="mode", zoom=2, **kwargs
+        ).setup(workers=2)
+        | Stage(
+            resample, name="day_conf", resample_method="mode", zoom=1, **kwargs
+        ).setup(workers=2)
+        | Stage(
+            resample, name="day_conf", resample_method="mode", zoom=0, **kwargs
+        ).setup(workers=2)
     )
     return pipe
 
 
-def intensity_pipeline(tiles, **kwargs):
+def intensity_pipe(tiles, **kwargs):
     pipe = (
         tiles
         | unset_no_data_value()
         | prep_intensity(name="final", **kwargs)
-        | resample(name="intensity", resample_method="near", zoom=12, **kwargs)
-        | resample(name="intensity", resample_method="bilinear", zoom=11, **kwargs)
-        | resample(name="intensity", resample_method="bilinear", zoom=10, **kwargs)
+        | Stage(
+            resample, name="intensity", resample_method="near", zoom=12, **kwargs
+        ).setup(workers=2)
+        | Stage(
+            resample, name="intensity", resample_method="bilinear", zoom=11, **kwargs
+        ).setup(workers=2)
+        | Stage(
+            resample, name="intensity", resample_method="bilinear", zoom=10, **kwargs
+        ).setup(workers=2)
         | build_vrt(name="intensity", zoom=10, **kwargs)
-        | resample(name="intensity", resample_method="bilinear", zoom=9, **kwargs)
-        | resample(name="intensity", resample_method="bilinear", zoom=8, **kwargs)
-        | resample(name="intensity", resample_method="bilinear", zoom=7, **kwargs)
-        | resample(name="intensity", resample_method="bilinear", zoom=6, **kwargs)
-        | resample(name="intensity", resample_method="bilinear", zoom=5, **kwargs)
-        | resample(name="intensity", resample_method="bilinear", zoom=4, **kwargs)
-        | resample(name="intensity", resample_method="bilinear", zoom=3, **kwargs)
-        | resample(name="intensity", resample_method="bilinear", zoom=2, **kwargs)
-        | resample(name="intensity", resample_method="bilinear", zoom=1, **kwargs)
-        | resample(name="intensity", resample_method="bilinear", zoom=0, **kwargs)
+        | Stage(
+            resample, name="intensity", resample_method="bilinear", zoom=9, **kwargs
+        ).setup(workers=2)
+        | Stage(
+            resample, name="intensity", resample_method="bilinear", zoom=8, **kwargs
+        ).setup(workers=2)
+        | Stage(
+            resample, name="intensity", resample_method="bilinear", zoom=7, **kwargs
+        ).setup(workers=2)
+        | Stage(
+            resample, name="intensity", resample_method="bilinear", zoom=6, **kwargs
+        ).setup(workers=2)
+        | Stage(
+            resample, name="intensity", resample_method="bilinear", zoom=5, **kwargs
+        ).setup(workers=2)
+        | Stage(
+            resample, name="intensity", resample_method="bilinear", zoom=4, **kwargs
+        ).setup(workers=2)
+        | Stage(
+            resample, name="intensity", resample_method="bilinear", zoom=3, **kwargs
+        ).setup(workers=2)
+        | Stage(
+            resample, name="intensity", resample_method="bilinear", zoom=2, **kwargs
+        ).setup(workers=2)
+        | Stage(
+            resample, name="intensity", resample_method="bilinear", zoom=1, **kwargs
+        ).setup(workers=2)
+        | Stage(
+            resample, name="intensity", resample_method="bilinear", zoom=0, **kwargs
+        ).setup(workers=2)
     )
     return pipe
 
@@ -180,7 +233,7 @@ def main():
     get_logger(debug=args.debug)
 
     tile_ids = get_tile_ids_by_bbox(-50, -10, -40, 10)
-    root = get_data_root()
+    root = get_data_root()  # "/home/thomas/shared-drives/glad-pipeline"
     years = [2018, 2019]
     preprocessed_years = range(2015, min(years))
 
@@ -202,17 +255,98 @@ def main():
 
         pipe = preprocessed_tile_pipe(tile_ids=tile_ids, **kwargs)
 
-        for output in pipe.results():
-            logging.debug("Intermediate  output: " + str(output))
+        if args.debug:
+            for output in pipe.results():
+                logging.debug("Preprocess output: " + str(output))
+        logging.info("Preprocess - Done")
 
-        pipe = latest_tile_pipe(tile_ids=tile_ids, **kwargs)
+        pipe = date_conf_pipe(tile_ids=tile_ids, **kwargs)
 
-        for output in pipe.results():
-            logging.info("Final  output: " + str(output))
+        if args.debug:
+            for output in pipe.results():
+                logging.debug("Date Conf  output: " + str(output))
+        logging.info("Date Conf - Done")
+
+        pipe = intensity_pipe(tile_ids=tile_ids, **kwargs)
+
+        if args.debug:
+            for output in pipe.results():
+                logging.debug("Intensity  output: " + str(output))
+        logging.info("Intensity - Done")
 
     finally:
         pass
 
 
+def test():
+    # args = get_parser()
+
+    get_logger(debug=True)
+
+    # tile_ids = get_tile_ids_by_bbox(-50, -10, -40, 10)
+    root = get_data_root()  # "/home/thomas/shared-drives/glad-pipeline"
+    years = [2018, 2019]
+    preprocessed_years = range(2015, min(years))
+
+    kwargs: Dict[str, Any] = {
+        "years": years,
+        "root": root,
+        "preprocessed_years": preprocessed_years,
+    }
+
+    tiles = [
+        "/home/thomas/projects/gfw-sync/glad_tiles_pipeline/data/tiles/050W_00N_040W_10N/final/2015_2016_2017_2018_2019/day_conf.tif",
+        "/home/thomas/projects/gfw-sync/glad_tiles_pipeline/data/tiles/050W_10S_040W_00N/final/2015_2016_2017_2018_2019/day_conf.tif",
+    ]
+    pipe = (
+        tiles
+        | Stage(
+            resample, name="day_conf", resample_method="near", zoom=12, **kwargs
+        ).setup(workers=2)
+        | Stage(
+            resample, name="day_conf", resample_method="mode", zoom=11, **kwargs
+        ).setup(workers=2)
+        | Stage(
+            resample, name="day_conf", resample_method="mode", zoom=10, **kwargs
+        ).setup(workers=2)
+        | build_vrt(name="day_conf", zoom=10, **kwargs)
+        | Stage(
+            resample, name="day_conf", resample_method="mode", zoom=9, **kwargs
+        ).setup(workers=2)
+        | Stage(
+            resample, name="day_conf", resample_method="mode", zoom=8, **kwargs
+        ).setup(workers=2)
+        | Stage(
+            resample, name="day_conf", resample_method="mode", zoom=7, **kwargs
+        ).setup(workers=2)
+        | Stage(
+            resample, name="day_conf", resample_method="mode", zoom=6, **kwargs
+        ).setup(workers=2)
+        | Stage(
+            resample, name="day_conf", resample_method="mode", zoom=5, **kwargs
+        ).setup(workers=2)
+        | Stage(
+            resample, name="day_conf", resample_method="mode", zoom=4, **kwargs
+        ).setup(workers=2)
+        | Stage(
+            resample, name="day_conf", resample_method="mode", zoom=3, **kwargs
+        ).setup(workers=2)
+        | Stage(
+            resample, name="day_conf", resample_method="mode", zoom=2, **kwargs
+        ).setup(workers=2)
+        | Stage(
+            resample, name="day_conf", resample_method="mode", zoom=1, **kwargs
+        ).setup(workers=2)
+        | Stage(
+            resample, name="day_conf", resample_method="mode", zoom=0, **kwargs
+        ).setup(workers=2)
+    )
+
+    for output in pipe.results():
+        logging.debug("Output: " + str(output))
+    logging.info("Test - Done")
+
+
 if __name__ == "__main__":
     main()
+    # test()

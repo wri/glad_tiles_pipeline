@@ -38,11 +38,13 @@ def download_latest_tiles(tile_ids, **kwargs):
                 )
 
                 try:
+                    logging.debug("Attempt to download " + tif_url)
                     sp.check_call(["gsutil", "cp", tif_url, output])
                 except sp.CalledProcessError:
                     logging.warning("Failed to download file: " + tif_url)
                 else:
                     logging.info("Downloaded file: " + tif_url)
+                    logging.debug(output)
                     yield output
 
 
