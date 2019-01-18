@@ -211,10 +211,13 @@ def intensity_pipe(tiles, **kwargs):
     return pipe
 
 
-def rgb_pipeline(**kwargs):
+def rgb_pipe(**kwargs):
     root = kwargs["root"]
 
-    pipe = collect_resampled_tiles(root) | encode_rgb | project
+    tile_pairs = list()
+    for pair in collect_resampled_tiles(root):
+        tile_pairs.append(pair)
+    pipe = tile_pairs | encode_rgb | project
 
     return pipe
 
@@ -333,10 +336,11 @@ def test():
     logging.info("Intensity - Done")
 
     """
-    tiles = collect_resampled_tiles(kwargs["root"])
+    pipe = rgb_pipe(**kwargs)
 
-    for tile in tiles:
-        print(tile)
+    for output in pipe.results():
+        logging.debug("Output: " + str(output))
+    logging.info("RGB - Done")
 
 
 if __name__ == "__main__":

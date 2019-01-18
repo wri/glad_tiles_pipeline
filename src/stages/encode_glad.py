@@ -120,6 +120,7 @@ def unset_no_data_value(tiles):
             yield output
 
 
+@stage(workers=2)
 def encode_rgb(tile_pairs):
 
     for tile_pair in tile_pairs:
@@ -133,17 +134,18 @@ def encode_rgb(tile_pairs):
         try:
             sp.check_call(cmd)
         except sp.CalledProcessError:
-            logging.warning("Failed to build RGB for: " + tile_pair)
+            logging.warning("Failed to build RGB for: " + str(tile_pair))
         else:
-            logging.info("Built RGB for: " + tile_pair)
+            logging.info("Built RGB for: " + str(tile_pair))
             yield output
 
 
+@stage(workers=2)
 def project(tiles):
     for tile in tiles:
 
         output = output_file(PurePath(tile).parent.as_posix(), "rgb_wm.tif")
-        zoom = int(PurePath(tile)[-2].split("_")[1])
+        zoom = int(PurePath(tile).parts[-2].split("_")[1])
 
         cell_size = str(ras_util.get_cell_size(zoom, "meters"))
 
