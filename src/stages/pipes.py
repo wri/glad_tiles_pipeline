@@ -21,7 +21,12 @@ from stages.merge_tiles import (
 )
 from stages.upload_tiles import backup_tiles
 from stages.resample import resample, build_vrt
-from stages.collectors import collect_resampled_tiles
+from stages.tiles import generate_tile_list
+from stages.collectors import (
+    collect_resampled_tiles,
+    collect_rgb_tiles,
+    collect_rgb_tile_ids,
+)
 import logging
 
 
@@ -148,5 +153,24 @@ def rgb_pipe(**kwargs):
     for output in pipe.results():
         logging.debug("RGB output: " + str(output))
     logging.info("RGB - Done")
+
+    return
+
+
+def tilecache_pipe(**kwargs):
+
+    root = kwargs["root"]
+
+    zoom_tiles = list()
+    for pair in collect_rgb_tiles(root):
+        zoom_tiles.append(pair)
+
+    tile_ids = collect_rgb_tile_ids(zoom_tiles)
+
+    pipe = zoom_tiles | generate_tile_list(tile_ids=tile_ids)
+
+    for output in pipe.results():
+        logging.debug("Tilecache output: " + str(output))
+    logging.info("Tilecache - Done")
 
     return

@@ -39,3 +39,29 @@ def collect_resampled_tiles(root):
     for key, value in resampled_tiles.items():
         if len(value) < 2:
             logging.warning("Could not create pair for: " + str(key))
+
+
+def collect_rgb_tiles(root):
+    rgb_tiles = dict()
+
+    for tile in glob.iglob(root + "/tiles/**/resample/*/rgb_wm.tif", recursive=True):
+
+        zoom = int(PurePath(tile).parts[-2].split("_")[1])
+
+        if zoom not in rgb_tiles.keys():
+            rgb_tiles[zoom] = list()
+        rgb_tiles[zoom].append(tile)
+
+    for key, value in rgb_tiles.items():
+        logging.info("Collect RGB tiles for zoom: " + str(key))
+        yield key, value
+
+
+def collect_rgb_tile_ids(zoom_tiles):
+    tile_list = None
+    for tile in zoom_tiles:
+        if tile[0] == 12:
+            tile_list = tile[1]
+            break
+    tile_ids = [get_tile_id(tile) for tile in tile_list]
+    return tile_ids

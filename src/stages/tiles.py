@@ -1,4 +1,4 @@
-from helpers.utils import output_file, output_mkdir
+from helpers.utils import output_file, output_mkdir, split_list
 from helpers.tiles import get_bbox_by_tile_id
 from collections import OrderedDict
 import xmltodict as xd
@@ -6,36 +6,31 @@ import subprocess as sp
 import logging
 
 
-def split_list(l, n):
-    """Yield successive n-sized chunks from l."""
-    for i in range(0, len(l), n):
-        yield l[i : i + n]
+def generate_tile_list(zoom_tiles, tile_ids):
 
+    for zoom_tile in zoom_tiles:
+        zoom = zoom_tile[0]
+        if zoom < 10:
+            tile_set = set()
+            for tile_id in tile_ids:
+                bbox = get_bbox_by_tile_id(tile_id)
+                cmd = [
+                    "tilestache-list",
+                    "-b",
+                    bbox[0],
+                    bbox[1],
+                    bbox[2],
+                    bbox[3],
+                    "-p",
+                    "1",
+                    str(zoom),
+                ]
 
-def generate_tile_list(tile_ids):
+                tile_str = sp.check_output(cmd)
+                for t in tile_str.split():
+                    tile_set.add(t)
 
-    for zoom in range(0, 9):
-
-        tile_set = set()
-        for tile_id in tile_ids:
-            bbox = get_bbox_by_tile_id(tile_id)
-            cmd = [
-                "tilestache-list",
-                "-b",
-                bbox[0],
-                bbox[1],
-                bbox[2],
-                bbox[3],
-                "-p",
-                "1",
-                str(zoom),
-            ]
-
-            tile_str = sp.check_output(cmd)
-            for t in tile_str.split():
-                tile_set.add(t)
-
-        yield zoom, list(tile_set)
+            yield zoom, list(tile_set)
 
 
 def split_tiles(tile_lists, **kwargs):

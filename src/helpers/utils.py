@@ -175,3 +175,9 @@ def get_logger(debug=True):
 
     root.addHandler(handler)
     return root
+
+
+def split_list(l, n):
+    """Yield successive n-sized chunks from l."""
+    for i in range(0, len(l), n):
+        yield l[i : i + n]
