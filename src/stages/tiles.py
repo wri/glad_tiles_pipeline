@@ -1,5 +1,7 @@
 from helpers.utils import output_file, output_mkdir
 from helpers.tiles import get_bbox_by_tile_id
+from collections import OrderedDict
+import xmltodict as xd
 import subprocess as sp
 import logging
 
@@ -79,3 +81,166 @@ def generate_tiles(tile_lists, **kwargs):
         else:
             logging.info("Seeded tiles for : " + t_list)
             yield output_dir
+
+
+def tilecache_mapfile(image_file, zoom):
+
+    output = ""
+    mapfile = OrderedDict(
+        [
+            (
+                "Map",
+                OrderedDict(
+                    [
+                        (
+                            "@srs",
+                            "+proj=merc "
+                            "+a=6378137 "
+                            "+b=6378137 "
+                            "+lat_ts=0.0 "
+                            "+lon_0=0.0 "
+                            "+x_0=0.0 +y_0=0.0 "
+                            "+k=1.0 "
+                            "+units=m "
+                            "+nadgrids=@null "
+                            "+wktext "
+                            "+no_defs "
+                            "+over",
+                        ),
+                        (
+                            "@maximum-extent",
+                            "-20037508.34,-20037508.34,20037508.34,20037508.34",
+                        ),
+                        (
+                            "Parameters",
+                            OrderedDict(
+                                [
+                                    (
+                                        "Parameter",
+                                        [
+                                            OrderedDict(
+                                                [
+                                                    ("@name", "bounds"),
+                                                    (
+                                                        "#text",
+                                                        "-180,"
+                                                        "-85.05112877980659,"
+                                                        "180,"
+                                                        "85.05112877980659",
+                                                    ),
+                                                ]
+                                            ),
+                                            OrderedDict(
+                                                [
+                                                    ("@name", "center"),
+                                                    ("#text", "0,0,2"),
+                                                ]
+                                            ),
+                                            OrderedDict(
+                                                [("@name", "format"), ("#text", "png")]
+                                            ),
+                                            OrderedDict(
+                                                [("@name", "minzoom"), ("#text", "0")]
+                                            ),
+                                            OrderedDict(
+                                                [("@name", "maxzoom"), ("#text", "22")]
+                                            ),
+                                        ],
+                                    )
+                                ]
+                            ),
+                        ),
+                        (
+                            "Style",
+                            OrderedDict(
+                                [
+                                    ("@name", "z{}".format(zoom)),
+                                    ("@filter-mode", "first"),
+                                    (
+                                        "Rule",
+                                        OrderedDict(
+                                            [
+                                                ("MinScaleDenominator", "500000000"),
+                                                (
+                                                    "RasterSymbolizer",
+                                                    OrderedDict([("@opacity", "1")]),
+                                                ),
+                                            ]
+                                        ),
+                                    ),
+                                ]
+                            ),
+                        ),
+                        (
+                            "Layer",
+                            OrderedDict(
+                                [
+                                    ("@name", "z{}".format(zoom)),
+                                    (
+                                        "@srs",
+                                        "+proj=merc "
+                                        "+a=6378137 "
+                                        "+b=6378137 "
+                                        "+lat_ts=0.0 "
+                                        "+lon_0=0.0 "
+                                        "+x_0=0.0 "
+                                        "+y_0=0.0 "
+                                        "+k=1.0 "
+                                        "+units=m "
+                                        "+nadgrids=@null "
+                                        "+wktext "
+                                        "+no_defs "
+                                        "+over",
+                                    ),
+                                    ("StyleName", "z{}".format(zoom)),
+                                    (
+                                        "Datasource",
+                                        OrderedDict(
+                                            [
+                                                (
+                                                    "Parameter",
+                                                    [
+                                                        OrderedDict(
+                                                            [
+                                                                ("@name", "file"),
+                                                                ("#text", image_file),
+                                                            ]
+                                                        ),
+                                                        OrderedDict(
+                                                            [
+                                                                ("@name", "type"),
+                                                                ("#text", "gdal"),
+                                                            ]
+                                                        ),
+                                                    ],
+                                                )
+                                            ]
+                                        ),
+                                    ),
+                                ]
+                            ),
+                        ),
+                    ]
+                ),
+            )
+        ]
+    )
+
+    with open(output, "w") as f:
+        f.write(xd.unparse(mapfile))
+
+
+def tilecache_config():
+    tilecache_path = ""
+    mapfile = ""
+    config = {
+        "cache": {
+            "name": "Disk",
+            "path": tilecache_path,
+            "umask": "0000",
+            "dirs": "portable",
+        },
+        "layers": {"tiles": {"provider": {"name": "mapnik", "mapfile": mapfile}}},
+    }
+
+    return config

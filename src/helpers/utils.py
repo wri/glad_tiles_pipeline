@@ -1,6 +1,9 @@
 from pathlib import Path, PurePath
 import glob
 import re
+import argparse
+import logging
+import sys
 
 
 def output_mkdir(*path):
@@ -109,3 +112,66 @@ def sort_dict(tile_dict):
         sorted_list.append(tile_dict[year])
 
     return sorted_list
+
+
+def str2bool(v):
+    """
+    Convert various strings to boolean
+    :param v: String
+    :return: Boolean
+    """
+    if v.lower() in ("yes", "true", "t", "y", "1"):
+        return True
+    elif v.lower() in ("no", "false", "f", "n", "0"):
+        return False
+    else:
+        raise argparse.ArgumentTypeError("Boolean value expected.")
+
+
+def get_data_root():
+    """
+    Get data root based on current working directory
+    :return: Data root path
+    """
+    cwd = Path.cwd()
+    return cwd.parent.joinpath("data").as_posix()
+
+
+def get_parser():
+    """
+    Build parser for command line input
+    :return: Parser for command line input
+    """
+    parser = argparse.ArgumentParser(description="Change the data type of a raster.")
+    parser.add_argument(
+        "--debug",
+        type=str2bool,
+        nargs="?",
+        const=True,
+        default=False,
+        help="Activate debug mode.",
+    )
+    return parser.parse_args()
+
+
+def get_logger(debug=True):
+    """
+    Build logger
+    :param debug: Set Log Level to Debug or Info
+    :return: logger
+    """
+
+    root = logging.getLogger()
+    if debug:
+        root.setLevel(logging.DEBUG)
+    else:
+        root.setLevel(logging.INFO)
+
+    handler = logging.StreamHandler(sys.stdout)
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
+    handler.setFormatter(formatter)
+
+    root.addHandler(handler)
+    return root
