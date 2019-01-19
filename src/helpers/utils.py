@@ -3,14 +3,15 @@ import glob
 import re
 
 
-def _output_file_mkdir(*path):
+def output_mkdir(*path):
     """
     Creates directory for the parent directory
     :param path: List of path elements
     :return: None
     """
-    output_dir = PurePath(*path[:-1])
+    output_dir = PurePath(*path)
     Path(output_dir).mkdir(parents=True, exist_ok=True)
+    return Path(output_dir).as_posix()
 
 
 def output_file(*path):
@@ -22,7 +23,7 @@ def output_file(*path):
     """
 
     path = [str(p) for p in path if p is not None]
-    _output_file_mkdir(*path)
+    output_mkdir(*path[:-1])
 
     return PurePath(*path).as_posix()
 

@@ -47,3 +47,22 @@ def get_tile_ids_by_bbox(left, bottom, right, top):
 
     logging.debug("Tile IDS: " + str(tile_ids))
     return tile_ids
+
+
+def format_lat_lon(coord):
+    if coord[-1:] == "E" or coord[-1:] == "N":
+        return int(coord[:-1])
+    else:
+        return int(coord[:-1]) * -1
+
+
+def get_bbox_by_tile_id(tile_id):
+
+    left, bottom, right, top = tile_id.split("_")
+
+    left = format_lat_lon(left)
+    bottom = format_lat_lon(bottom)
+    right = format_lat_lon(right)
+    top = format_lat_lon(top)
+
+    return left, bottom, right, top

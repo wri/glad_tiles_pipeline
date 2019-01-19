@@ -117,7 +117,7 @@ def test_output_file(mock_path):
     assert output == "home/data/myfile.txt"
 
 
-def test__output_file_mkdir():
+def test_output_mkdir():
     # could try to make dir, check if it exists and then delete it
     # skipping for now
     pass

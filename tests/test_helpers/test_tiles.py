@@ -4,6 +4,8 @@ from helpers.tiles import (
     get_longitude,
     get_latitude,
     get_tile_ids_by_bbox,
+    format_lat_lon,
+    get_bbox_by_tile_id,
 )
 
 
@@ -53,3 +55,20 @@ def test_get_tile_ids_by_bbox():
 
     assert get_tile_ids_by_bbox(-11, -4, 1, 4) == result1
     assert get_tile_ids_by_bbox(1, 1, 10, 10) == result2
+
+
+def test_format_lat_lon():
+    assert format_lat_lon("030E") == 30
+    assert format_lat_lon("130E") == 130
+    assert format_lat_lon("030W") == -30
+    assert format_lat_lon("130W") == -130
+
+    assert format_lat_lon("01N") == 1
+    assert format_lat_lon("90N") == 90
+    assert format_lat_lon("01S") == -1
+    assert format_lat_lon("90S") == -90
+
+
+def test_get_bbox_by_tile_id():
+    assert get_bbox_by_tile_id("020W_10S_010W_00N") == (-20, -10, -10, 0)
+    assert get_bbox_by_tile_id("000E_00N_010E_10N") == (0, 0, 10, 10)
