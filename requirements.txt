@@ -3,4 +3,5 @@ google-cloud-storage
 parallelpipe
 gdal
 numba
-numpy"
+numpy
+xmltodict

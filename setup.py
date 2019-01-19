@@ -9,7 +9,13 @@ setup(
     packages=["stages", "helpers"],
     author="thomas.maschler",
     license="MIT",
-    install_requires=["google-cloud-storage", "parallelpipe", "gdal", "numba", "numpy"],
+    install_requires=[
+        "google-cloud-storage",
+        "parallelpipe",
+        "gdal",
+        "numba",
+        "numpy, xmltodict",
+    ],
     # entry_points={"console_scripts": ["pixel_depth=utils.pixel_depth:main"]},
     scripts=["src/helpers/pixel_depth.py", "src/helpers/encode_date_conf.py"],
     # ext_modules=[Extension("add", ["src/utils/cpp/add2.exe.cpp"],)]
