@@ -4,6 +4,7 @@ from stages.pipes import (
     resample_date_conf_pipe,
     intensity_pipe,
     rgb_pipe,
+    tilecache_pipe,
 )
 from stages.check_availablity import get_most_recent_day
 from helpers.tiles import get_tile_ids_by_bbox
@@ -26,9 +27,9 @@ def main():
     preprocessed_years = range(2015, min(years))
 
     max_zoom = 12
-    min_zoom = 0
-    max_tile_zoom = 10
+    min_tile_zoom = 10
     max_tilecache_zoom = 8
+    min_zoom = 0
 
     kwargs: Dict[str, Any] = {
         "years": years,
@@ -36,7 +37,7 @@ def main():
         "preprocessed_years": preprocessed_years,
         "max_zoom": max_zoom,
         "min_zoom": min_zoom,
-        "max_tile_zoom": max_tile_zoom,
+        "min_tile_zoom": min_tile_zoom,
         "max_tilecache_zoom": max_tilecache_zoom,
     }
 
@@ -66,14 +67,23 @@ def test():
     get_logger(debug=True)
 
     # tile_ids = get_tile_ids_by_bbox(-50, -10, -40, 10)
-    root = get_data_root()  # "/home/thomas/shared-drives/glad-pipeline"
-    years = [2018, 2019]
+    root = get_data_root()
+    years = get_current_years()
     preprocessed_years = range(2015, min(years))
+
+    max_zoom = 12
+    min_tile_zoom = 10
+    max_tilecache_zoom = 8
+    min_zoom = 0
 
     kwargs: Dict[str, Any] = {
         "years": years,
         "root": root,
         "preprocessed_years": preprocessed_years,
+        "max_zoom": max_zoom,
+        "min_zoom": min_zoom,
+        "min_tile_zoom": min_tile_zoom,
+        "max_tilecache_zoom": max_tilecache_zoom,
     }
     """
     date_conf_tiles = [
@@ -92,11 +102,11 @@ def test():
     logging.info("Intensity - Done")
 
     """
-    pipe = rgb_pipe(**kwargs)
+    pipe = tilecache_pipe(**kwargs)
 
     for output in pipe.results():
         logging.debug("Output: " + str(output))
-    logging.info("RGB - Done")
+    logging.info("Tilecache - Done")
 
 
 if __name__ == "__main__":

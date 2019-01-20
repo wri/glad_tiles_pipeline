@@ -21,7 +21,14 @@ from stages.merge_tiles import (
 )
 from stages.upload_tiles import backup_tiles
 from stages.resample import resample, build_vrt
-from stages.tiles import generate_tile_list
+from stages.tiles import (
+    generate_tile_list,
+    save_tile_lists,
+    generate_vrt,
+    generate_tilecache_mapfile,
+    generate_tilecache_config,
+    generate_tiles,
+)
 from stages.collectors import (
     collect_resampled_tiles,
     collect_rgb_tiles,
@@ -161,13 +168,22 @@ def tilecache_pipe(**kwargs):
 
     root = kwargs["root"]
 
+    # TODO condider moving this to the rbg pipe
     zoom_tiles = list()
     for pair in collect_rgb_tiles(root):
         zoom_tiles.append(pair)
 
     tile_ids = collect_rgb_tile_ids(zoom_tiles)
 
-    pipe = zoom_tiles | generate_tile_list(tile_ids=tile_ids, **kwargs)
+    pipe = (
+        zoom_tiles
+        | generate_vrt(**kwargs)
+        | generate_tilecache_mapfile(**kwargs)
+        | generate_tilecache_config(**kwargs)
+        | generate_tile_list(tile_ids=tile_ids, **kwargs)
+        | save_tile_lists(**kwargs)
+        | generate_tiles(**kwargs)
+    )
 
     for output in pipe.results():
         logging.debug("Tilecache output: " + str(output))
