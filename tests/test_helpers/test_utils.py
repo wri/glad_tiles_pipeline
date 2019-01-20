@@ -7,8 +7,10 @@ from helpers.utils import (
     output_file,
     get_tile_id,
     get_file_name,
+    get_current_years,
 )
 from unittest import mock
+from datetime import datetime
 
 
 def test_preprocessed_years_str():
@@ -140,3 +142,14 @@ def test_get_tile_id():
 def test_get_file_name():
     fname = "/data/050W_20S_030E_10N/myfile.txt"
     assert get_file_name(fname) == "myfile.txt"
+
+
+def test_get_current_years():
+    now = datetime.now()
+    year = now.year
+    month = now.month
+
+    if month < 7:
+        assert get_current_years() == [year - 1, year]
+    else:
+        assert get_current_years() == [year]

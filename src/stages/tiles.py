@@ -6,11 +6,13 @@ import subprocess as sp
 import logging
 
 
-def generate_tile_list(zoom_tiles, tile_ids):
+def generate_tile_list(zoom_tiles, tile_ids, **kwargs):
+
+    max_tilecache_zoom = kwargs["max_tilecache_zoom"]
 
     for zoom_tile in zoom_tiles:
         zoom = zoom_tile[0]
-        if zoom < 10:
+        if zoom <= max_tilecache_zoom:
             tile_set = set()
             for tile_id in tile_ids:
                 bbox = get_bbox_by_tile_id(tile_id)

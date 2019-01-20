@@ -1,4 +1,5 @@
 from pathlib import Path, PurePath
+from datetime import datetime
 import glob
 import re
 import argparse
@@ -181,3 +182,14 @@ def split_list(l, n):
     """Yield successive n-sized chunks from l."""
     for i in range(0, len(l), n):
         yield l[i : i + n]
+
+
+def get_current_years():
+    now = datetime.now()
+    year = now.year
+    month = now.month
+
+    if month < 7:
+        return [year - 1, year]
+    else:
+        return [year]

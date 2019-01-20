@@ -167,7 +167,7 @@ def tilecache_pipe(**kwargs):
 
     tile_ids = collect_rgb_tile_ids(zoom_tiles)
 
-    pipe = zoom_tiles | generate_tile_list(tile_ids=tile_ids)
+    pipe = zoom_tiles | generate_tile_list(tile_ids=tile_ids, **kwargs)
 
     for output in pipe.results():
         logging.debug("Tilecache output: " + str(output))

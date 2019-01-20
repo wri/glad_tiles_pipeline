@@ -7,7 +7,7 @@ from stages.pipes import (
 )
 from stages.check_availablity import get_most_recent_day
 from helpers.tiles import get_tile_ids_by_bbox
-from helpers.utils import get_data_root, get_parser, get_logger
+from helpers.utils import get_data_root, get_parser, get_logger, get_current_years
 from typing import Dict, Any
 import os
 import shutil
@@ -21,14 +21,23 @@ def main():
     get_logger(debug=args.debug)
 
     tile_ids = get_tile_ids_by_bbox(-50, -10, -40, 10)
-    root = get_data_root()  # "/home/thomas/shared-drives/glad-pipeline"
-    years = [2018, 2019]
+    root = get_data_root()
+    years = get_current_years()
     preprocessed_years = range(2015, min(years))
+
+    max_zoom = 12
+    min_zoom = 0
+    max_tile_zoom = 10
+    max_tilecache_zoom = 8
 
     kwargs: Dict[str, Any] = {
         "years": years,
         "root": root,
         "preprocessed_years": preprocessed_years,
+        "max_zoom": max_zoom,
+        "min_zoom": min_zoom,
+        "max_tile_zoom": max_tile_zoom,
+        "max_tilecache_zoom": max_tilecache_zoom,
     }
 
     try:
