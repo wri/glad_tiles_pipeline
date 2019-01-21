@@ -4,7 +4,20 @@ MAINTAINER Thomas Maschler thomas.maschler@wri.org
 ENV NAME gfw-glad-pipeline
 ENV USER gfw
 
-RUN apt-get -y update && apt-get -y install curl g++
+RUN apt-get -y update && apt-get -y install curl g++ \
+    gcc libfreetype6-dev libglib2.0-dev libcairo2-dev \
+    libboost-all-dev git gdal-bin python-gdal python3-gdal
+
+# install Harfbuzz
+RUN curl https://www.freedesktop.org/software/harfbuzz/release/harfbuzz-2.3.0.tar.bz2 | tar -xj && \
+    cd harfbuzz-2.3.0 && ./configure && make && make install
+
+# install mapnik - should move up to apt once v3 packages are available
+RUN git clone https://github.com/mapnik/mapnik.git && \
+    cd mapnik && \
+    git checkout v3.0.21 && \
+    git submodule update --init && \
+    ./configure && make && make install
 
 RUN addgroup $USER # \
     #&& adduser --shell /bin/bash --disabled-password --gecos -ingroup $USER $USER
@@ -24,8 +37,6 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
 
 COPY requirements.txt /home/docker/code/
 COPY src /home/docker/code/src
-
-
 
 RUN python3 -m venv . && \
     pip install -r /home/docker/code/requirements.txt && \

@@ -1,15 +1,14 @@
 from parallelpipe import stage
 from helpers.utils import output_file, output_mkdir, split_list
 from helpers.tiles import get_bbox_by_tile_id
-from collections import OrderedDict
-from pathlib import PurePath
+from pathlib import Path, PurePath
 import xmltodict as xd
 import subprocess as sp
 import logging
 import json
 
 
-@stage(workers=2)
+@stage(workers=1)
 def generate_vrt(zoom_tiles, **kwargs):
     # root = kwargs["root"]
     min_tile_zoom = kwargs["min_tile_zoom"]
@@ -22,7 +21,7 @@ def generate_vrt(zoom_tiles, **kwargs):
                 # TODO generate VRT function
                 output = "vrt"
             else:
-                output = zoom_tile[1]
+                output = zoom_tile[1][0]
 
             yield zoom, output
 
@@ -50,6 +49,7 @@ def generate_tile_list(zoom_tiles, tile_ids, **kwargs):
                     str(zoom),
                 ]
 
+                logging.debug(cmd)
                 tile_str = sp.check_output(cmd)
                 for t in tile_str.split():
                     tile_set.add(t)
@@ -118,166 +118,27 @@ def generate_tilecache_mapfile(zoom_images, **kwargs):
         zoom = zoom_image[0]
         image = zoom_image[1]
 
+        curr_dir = Path(__file__).parent
+        mapfile_path = PurePath(curr_dir, "fixures", "mapfile.xml").as_posix()
+        with open(mapfile_path) as f:
+            mapfile = xd.parse(f.read())
+
+        mapfile["Map"]["Style"]["@name"] = "z{}".format(zoom)
+        mapfile["Map"]["Layer"]["@name"] = "z{}".format(zoom)
+        mapfile["Map"]["Layer"]["StyleName"] = "z{}".format(zoom)
+        mapfile["Map"]["Layer"]["Datasource"]["Parameter"][0]["#text"] = image
+
         output = output_file(root, "tilecache", "config", "z{}.xml".format(zoom))
 
-        mapfile = OrderedDict(
-            [
-                (
-                    "Map",
-                    OrderedDict(
-                        [
-                            (
-                                "@srs",
-                                "+proj=merc "
-                                "+a=6378137 "
-                                "+b=6378137 "
-                                "+lat_ts=0.0 "
-                                "+lon_0=0.0 "
-                                "+x_0=0.0 +y_0=0.0 "
-                                "+k=1.0 "
-                                "+units=m "
-                                "+nadgrids=@null "
-                                "+wktext "
-                                "+no_defs "
-                                "+over",
-                            ),
-                            (
-                                "@maximum-extent",
-                                "-20037508.34,-20037508.34,20037508.34,20037508.34",
-                            ),
-                            (
-                                "Parameters",
-                                OrderedDict(
-                                    [
-                                        (
-                                            "Parameter",
-                                            [
-                                                OrderedDict(
-                                                    [
-                                                        ("@name", "bounds"),
-                                                        (
-                                                            "#text",
-                                                            "-180,"
-                                                            "-85.05112877980659,"
-                                                            "180,"
-                                                            "85.05112877980659",
-                                                        ),
-                                                    ]
-                                                ),
-                                                OrderedDict(
-                                                    [
-                                                        ("@name", "center"),
-                                                        ("#text", "0,0,2"),
-                                                    ]
-                                                ),
-                                                OrderedDict(
-                                                    [
-                                                        ("@name", "format"),
-                                                        ("#text", "png"),
-                                                    ]
-                                                ),
-                                                OrderedDict(
-                                                    [
-                                                        ("@name", "minzoom"),
-                                                        ("#text", "0"),
-                                                    ]
-                                                ),
-                                                OrderedDict(
-                                                    [
-                                                        ("@name", "maxzoom"),
-                                                        ("#text", "22"),
-                                                    ]
-                                                ),
-                                            ],
-                                        )
-                                    ]
-                                ),
-                            ),
-                            (
-                                "Style",
-                                OrderedDict(
-                                    [
-                                        ("@name", "z{}".format(zoom)),
-                                        ("@filter-mode", "first"),
-                                        (
-                                            "Rule",
-                                            OrderedDict(
-                                                [
-                                                    (
-                                                        "MinScaleDenominator",
-                                                        "500000000",
-                                                    ),
-                                                    (
-                                                        "RasterSymbolizer",
-                                                        OrderedDict(
-                                                            [("@opacity", "1")]
-                                                        ),
-                                                    ),
-                                                ]
-                                            ),
-                                        ),
-                                    ]
-                                ),
-                            ),
-                            (
-                                "Layer",
-                                OrderedDict(
-                                    [
-                                        ("@name", "z{}".format(zoom)),
-                                        (
-                                            "@srs",
-                                            "+proj=merc "
-                                            "+a=6378137 "
-                                            "+b=6378137 "
-                                            "+lat_ts=0.0 "
-                                            "+lon_0=0.0 "
-                                            "+x_0=0.0 "
-                                            "+y_0=0.0 "
-                                            "+k=1.0 "
-                                            "+units=m "
-                                            "+nadgrids=@null "
-                                            "+wktext "
-                                            "+no_defs "
-                                            "+over",
-                                        ),
-                                        ("StyleName", "z{}".format(zoom)),
-                                        (
-                                            "Datasource",
-                                            OrderedDict(
-                                                [
-                                                    (
-                                                        "Parameter",
-                                                        [
-                                                            OrderedDict(
-                                                                [
-                                                                    ("@name", "file"),
-                                                                    ("#text", image),
-                                                                ]
-                                                            ),
-                                                            OrderedDict(
-                                                                [
-                                                                    ("@name", "type"),
-                                                                    ("#text", "gdal"),
-                                                                ]
-                                                            ),
-                                                        ],
-                                                    )
-                                                ]
-                                            ),
-                                        ),
-                                    ]
-                                ),
-                            ),
-                        ]
-                    ),
-                )
-            ]
-        )
-
-        with open(output, "w") as f:
-            f.write(xd.unparse(mapfile))
-
-        yield zoom, output
+        try:
+            logging.info("Generating Mapfile " + output)
+            with open(output, "w") as f:
+                f.write(xd.unparse(mapfile, pretty=True))
+            yield zoom, output
+        except Exception as e:
+            logging.error("Could not generate mapfile " + output)
+            logging.error(e)
+            raise e
 
 
 @stage(workers=2)
@@ -288,21 +149,20 @@ def generate_tilecache_config(zoom_mapfiles, **kwargs):
 
     for zoom_mapfile in zoom_mapfiles:
         zoom = zoom_mapfile[0]
-        mapfile = zoom_mapfiles[1]
+        mapfile = zoom_mapfile[1]
+
+        curr_dir = Path(__file__).parent
+        config_path = PurePath(curr_dir, "fixures", "tilecache.cfg").as_posix()
+        with open(config_path) as f:
+            config = json.load(f)
 
         output = output_file(root, "tilecache", "config", "z{}.cgf".format(zoom))
 
-        config = {
-            "cache": {
-                "name": "Disk",
-                "path": tilecache_path,
-                "umask": "0000",
-                "dirs": "portable",
-            },
-            "layers": {"tiles": {"provider": {"name": "mapnik", "mapfile": mapfile}}},
-        }
+        config["cache"]["path"] = tilecache_path
+        config["layers"]["tiles"]["provider"]["mapfile"] = mapfile
 
+        logging.info("Generating tilecache config file " + output)
         with open(output, "w") as f:
-            f.write(json.dumps(config), indent=4)
+            f.write(json.dumps(config, indent=4))
 
         yield zoom, output

@@ -5,3 +5,10 @@ gdal
 numba
 numpy
 xmltodict
+pillow
+modestmaps
+simplejson
+werkzeug
+uuid
+mapbox-vector-tile
+TileStache
