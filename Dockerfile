@@ -12,7 +12,7 @@ RUN apt-get -y update && apt-get -y install curl git g++ gcc \
     libcairo2 libcairo2-dev python-cairo python-cairo-dev \
     ttf-unifont ttf-dejavu ttf-dejavu-core ttf-dejavu-extra build-essential \
     libsqlite3-dev python-nose python3-setuptools python3-pip python3-wheel \
-    postgresql-10 postgresql-server-dev-10 postgresql-contrib-10 postgresql-10-postgis-2
+    postgresql-10 postgresql-server-dev-10 postgresql-contrib-10 postgresql-10-postgis-2.4
     # gdal-bin python-gdal python3-gdal python-dev
 
  #  build-essential sudo software-properties-common curl \
@@ -31,18 +31,17 @@ RUN curl https://www.freedesktop.org/software/harfbuzz/release/harfbuzz-2.3.0.ta
     cd harfbuzz-2.3.0 && ./configure && make && make install && ldconfig
 
 # install mapnik
-# NOTE extract to /tmp -> -C /tmp/
-# ENV MAPNIK_VERSION 3.0.21
-# RUN curl -s https://mapnik.s3.amazonaws.com/dist/v${MAPNIK_VERSION}/mapnik-v${MAPNIK_VERSION}.tar.bz2 | tar -xj -C /tmp/
-# RUN cd /tmp/mapnik-v${MAPNIK_VERSION} && python scons/scons.py configure
-# RUN cd /tmp/mapnik-v${MAPNIK_VERSION} && make JOBS=4 && make install JOBS=4
-RUN git clone https://github.com/mapnik/mapnik.git && \
-    cd mapnik && \
-    git checkout v3.0.21 && \
-    git submodule update --init && \
-    ./configure && make && make install
-
-RUN apt-get install -y python3-setuptools python3-pip python3-wheel python3-dev
+RUN apt-get install -y wget
+ENV MAPNIK_VERSION 3.0.21
+RUN wget https://github.com/mapnik/mapnik/releases/download/v3.0.21/mapnik-v3.0.21.tar.bz2 -P /tmp/
+RUN tar xvjf /tmp/mapnik-v3.0.21.tar.bz2 -C /tmp/
+RUN cd /tmp/mapnik-v3.0.21 && python scons/scons.py configure
+RUN cd /tmp/mapnik-v${MAPNIK_VERSION} && make JOBS=4 && make install JOBS=4
+# RUN git clone https://github.com/mapnik/mapnik.git && \
+ #   cd mapnik && \
+ #   git checkout v3.0.21 && \
+ #   git submodule update --init && \
+ #   ./configure && make && make install
 
 # Python Bindings
 RUN mkdir -p /opt/python-mapnik && curl -L https://github.com/mapnik/python-mapnik/tarball/v3.0.x | tar xz -C /opt/python-mapnik --strip-components=1
