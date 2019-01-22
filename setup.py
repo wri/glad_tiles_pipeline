@@ -14,9 +14,14 @@ setup(
         "parallelpipe",
         "gdal",
         "numba",
-        "numpy, xmltodict",
+        "numpy",
+        "xmltodict",
     ],
     # entry_points={"console_scripts": ["pixel_depth=utils.pixel_depth:main"]},
-    scripts=["src/helpers/pixel_depth.py", "src/helpers/encode_date_conf.py"],
+    scripts=[
+        "src/helpers/pixel_depth.py",
+        "src/helpers/encode_date_conf.py",
+        "src/helpers/download_glad_tiles.py",
+    ],
     # ext_modules=[Extension("add", ["src/utils/cpp/add2.exe.cpp"],)]
 )

@@ -19,7 +19,7 @@ def download_latest_tiles(tile_ids, **kwargs):
     root = kwargs["root"]
     name = kwargs["name"]
 
-    url_pattern = "gs://earthenginepartners-hansen/GLADalert/{date}/alert{product}{year_dig}_{tile_id}.tif"
+    url_pattern = "GLADalert/{date}/alert{product}{year_dig}_{tile_id}.tif"
 
     for tile_id in tile_ids:
         for year in years:
@@ -39,7 +39,9 @@ def download_latest_tiles(tile_ids, **kwargs):
 
                 try:
                     logging.debug("Attempt to download " + tif_url)
-                    sp.check_call(["gsutil", "cp", tif_url, output])
+                    sp.check_call(
+                        ["download_glad_tiles.py", "-r", tif_url, "-o", output]
+                    )
                 except sp.CalledProcessError:
                     logging.warning("Failed to download file: " + tif_url)
                 else:

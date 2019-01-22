@@ -66,7 +66,7 @@ def test():
 
     get_logger(debug=True)
 
-    # tile_ids = get_tile_ids_by_bbox(-50, -10, -40, 10)
+    tile_ids = get_tile_ids_by_bbox(-50, -10, -40, 10)
     root = get_data_root()
     years = get_current_years()
     preprocessed_years = range(2015, min(years))
@@ -85,6 +85,19 @@ def test():
         "min_tile_zoom": min_tile_zoom,
         "max_tilecache_zoom": max_tilecache_zoom,
     }
+
+    try:
+        kwargs["tile_date"] = get_most_recent_day(tile_ids=tile_ids, **kwargs)
+    except ValueError:
+        logging.error("Cannot find recently processes tiles. Aborting")
+        pass
+    else:
+
+        if os.path.exists(root):
+            shutil.rmtree(root)
+
+        date_conf_pipe(tile_ids, **kwargs)
+
     """
     date_conf_tiles = [
         "/home/thomas/projects/gfw-sync/glad_tiles_pipeline/data/tiles/050W_00N_040W_10N/day_conf/2015_2016_2017_2018_2019/day_conf.tif",
@@ -102,10 +115,8 @@ def test():
     logging.info("Intensity - Done")
 
     """
-    pipe = tilecache_pipe(**kwargs)
+    # pipe = tilecache_pipe(**kwargs)
 
-    for output in pipe.results():
-        logging.debug("Output: " + str(output))
     logging.info("Tilecache - Done")
 
 

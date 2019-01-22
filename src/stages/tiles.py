@@ -38,12 +38,12 @@ def generate_tile_list(zoom_tiles, tile_ids, **kwargs):
             for tile_id in tile_ids:
                 bbox = get_bbox_by_tile_id(tile_id)
                 cmd = [
-                    "tilestache-list",
+                    "tilestache-list.py",
                     "-b",
-                    bbox[0],
-                    bbox[1],
-                    bbox[2],
-                    bbox[3],
+                    str(bbox[0]),
+                    str(bbox[1]),
+                    str(bbox[2]),
+                    str(bbox[3]),
                     "-p",
                     "1",
                     str(zoom),
@@ -72,9 +72,9 @@ def save_tile_lists(zoom_tilelists, **kwargs):
                 root, "tilecache", "config", "z_{0}_{1}.txt".format(zoom, i)
             )
 
-            with open(output, "wb") as f:
+            with open(output, "w") as f:
                 for tile_coords in tiles:
-                    f.write(tile_coords + "\n")
+                    f.write((tile_coords.decode("utf-8") + "\n"))
 
             i += 1
             yield zoom, output
@@ -96,7 +96,7 @@ def generate_tiles(zoom_tilelists, **kwargs):
         ).as_posix()
         output_dir = output_mkdir(root, "tilecache", "tiles")
 
-        cmd = ["tilestache-seed", str(zoom), "-c", config, "-q", "-x", "-l", "tiles"]
+        cmd = ["tilestache-seed.py", str(zoom), "-c", config, "-q", "-x", "-l", "tiles"]
         cmd += ["--output-directory", output_dir]
         cmd += ["--tile-list", tilelist]
 
@@ -156,7 +156,7 @@ def generate_tilecache_config(zoom_mapfiles, **kwargs):
         with open(config_path) as f:
             config = json.load(f)
 
-        output = output_file(root, "tilecache", "config", "z{}.cgf".format(zoom))
+        output = output_file(root, "tilecache", "config", "z{}.cfg".format(zoom))
 
         config["cache"]["path"] = tilecache_path
         config["layers"]["tiles"]["provider"]["mapfile"] = mapfile

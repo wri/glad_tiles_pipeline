@@ -181,8 +181,8 @@ def tilecache_pipe(**kwargs):
         | generate_tilecache_mapfile(**kwargs)
         | generate_tilecache_config(**kwargs)
         | generate_tile_list(tile_ids=tile_ids, **kwargs)
-        #   | save_tile_lists(**kwargs)
-        #   | generate_tiles(**kwargs)
+        | save_tile_lists(**kwargs)
+        | generate_tiles(**kwargs)
     )
 
     for output in pipe.results():
