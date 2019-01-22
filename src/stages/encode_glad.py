@@ -39,36 +39,6 @@ def encode_date_conf(tiles, **kwargs):
             yield output
 
 
-@stage(workers=1)  # IMPORTANT to only use one (1) worker!
-def date_conf_pairs(tiles):
-    """
-
-    :param tiles:
-    :return:
-    """
-    tile_pairs = dict()
-    for tile in tiles:
-
-        basedir = PurePath(tile).parent.as_posix()
-        f_name = PurePath(tile).name
-
-        if basedir not in tile_pairs.keys():
-            tile_pairs[basedir] = dict()
-
-        if f_name == "day.tif":
-            tile_pairs[basedir]["day"] = tile
-        else:
-            tile_pairs[basedir]["conf"] = tile
-
-        if len(tile_pairs[basedir]) == 2:
-            logging.info("Created pairs for: " + basedir)
-            yield tile_pairs[basedir]
-
-    for key, value in tile_pairs.items():
-        if len(value) < 2:
-            logging.warning("Could not create pair for: " + key)
-
-
 @stage(workers=2)
 def prep_intensity(tiles, **kwargs):
     """
@@ -114,9 +84,9 @@ def unset_no_data_value(tiles):
         try:
             sp.check_call(cmd)
         except sp.CalledProcessError:
-            logging.warning("Failed to set nodata value for file: " + tile)
+            logging.warning("Failed to unset nodata value for file: " + tile)
         else:
-            logging.info("Set nodata value for file: " + tile)
+            logging.info("Unset nodata value for file: " + tile)
             yield output
 
 

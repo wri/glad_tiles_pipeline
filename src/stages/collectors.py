@@ -1,5 +1,7 @@
+from parallelpipe import stage
 from helpers.utils import get_tile_id
 from pathlib import PurePath
+from helpers.utils import add_tile_to_dict, add_preprocessed_tile_to_dict
 import glob
 import logging
 
@@ -65,3 +67,95 @@ def collect_rgb_tile_ids(zoom_tiles):
             break
     tile_ids = [get_tile_id(tile) for tile in tile_list]
     return tile_ids
+
+
+@stage(workers=1)  # IMPORTANT to only use one (1) worker!
+def collect_day_conf_pairs(tiles):
+    """
+    Collect pairs of day and conf TIFF for each tile
+    :param tiles:
+    :return:
+    """
+    tile_pairs = dict()
+    for tile in tiles:
+
+        basedir = PurePath(tile).parent.as_posix()
+        f_name = PurePath(tile).name
+
+        if basedir not in tile_pairs.keys():
+            tile_pairs[basedir] = dict()
+
+        if f_name == "day.tif":
+            tile_pairs[basedir]["day"] = tile
+        else:
+            tile_pairs[basedir]["conf"] = tile
+
+        if len(tile_pairs[basedir]) == 2:
+            logging.info("Created pairs for: " + basedir)
+            yield tile_pairs[basedir]
+
+    for key, value in tile_pairs.items():
+        if len(value) < 2:
+            logging.warning("Could not create pair for: " + key)
+
+
+@stage(workers=1)  # IMPORTANT to only use one (1) worker!
+def collect_day_conf(tiles, **kwargs):
+    """
+    collect day_conf tiles for preprocessed years
+    :param tiles:
+    :param kwargs:
+    :return:
+    """
+
+    preprocessed_years = kwargs["preprocessed_years"]
+
+    tile_dicts = dict()
+    for tile in tiles:
+        basedir = PurePath(tile).parent.parent.as_posix()
+        year = PurePath(tile).parts[-2]
+
+        tile_dicts = add_tile_to_dict(tile_dicts, basedir, year, tile)
+
+        if len(tile_dicts[basedir]) == len(preprocessed_years):
+            logging.info("Created pairs for: " + basedir)
+            yield tile_dicts[basedir]
+
+    for key, value in tile_dicts.items():
+        if len(value) < len(preprocessed_years):
+            logging.warning("Could not create pair for: " + key)
+
+
+@stage(workers=1)  # IMPORTANT to only use one (1) worker!
+def collect_day_conf_all_years(tiles, **kwargs):
+    """
+    Collect all day_conf tiles of current and preprocessed years
+    ie 2019, 2018, 2015_2016_2017
+    :param tiles:
+    :param kwargs:
+    :return:
+    """
+
+    root = kwargs["root"]
+    years = kwargs["years"]
+    preprocessed_years = kwargs["preprocessed_years"]
+    preprocessed_tiles = get_preprocessed_tiles(root, years, preprocessed_years)
+
+    tile_dicts = dict()
+    for tile in tiles:
+        basedir = PurePath(tile).parent.parent.as_posix()
+        year = PurePath(tile).parts[-2]
+
+        tile_dicts = add_tile_to_dict(tile_dicts, basedir, year, tile)
+
+        tile_dicts = add_preprocessed_tile_to_dict(
+            tile_dicts, basedir, preprocessed_tiles
+        )
+
+        if len(tile_dicts[basedir]) == len(years) + 1:
+            logging.info("Created pairs for: " + basedir)
+            yield tile_dicts[basedir]
+
+    for key, value in tile_dicts.items():
+        if len(value) < len(years) + 1:
+            logging.warning("Could not create pair for: " + key)

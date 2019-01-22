@@ -1,14 +1,7 @@
 from parallelpipe import stage
-from helpers.utils import output_file, preprocessed_years_str
+from helpers.utils import output_file, preprocessed_years_str, get_suffix, get_gs_bucket
 import subprocess as sp
 import logging
-
-
-def get_suffix(product):
-    if product == "day":
-        return "Date"
-    else:
-        return ""
 
 
 @stage(workers=2)
@@ -20,6 +13,8 @@ def download_latest_tiles(tile_ids, **kwargs):
     name = kwargs["name"]
 
     url_pattern = "GLADalert/{date}/alert{product}{year_dig}_{tile_id}.tif"
+
+    bucket = get_gs_bucket()
 
     for tile_id in tile_ids:
         for year in years:
@@ -39,9 +34,8 @@ def download_latest_tiles(tile_ids, **kwargs):
 
                 try:
                     logging.debug("Attempt to download " + tif_url)
-                    sp.check_call(
-                        ["download_glad_tiles.py", "-r", tif_url, "-o", output]
-                    )
+                    blob = bucket.blob(tif_url)
+                    blob.download_to_filename(output)
                 except sp.CalledProcessError:
                     logging.warning("Failed to download file: " + tif_url)
                 else:

@@ -7,18 +7,12 @@ from stages.download_tiles import (
 from stages.change_pixel_depth import change_pixel_depth
 from stages.encode_glad import (
     encode_date_conf,
-    date_conf_pairs,
     prep_intensity,
     unset_no_data_value,
     encode_rgb,
     project,
 )
-from stages.merge_tiles import (
-    combine_date_conf_pairs,
-    year_pairs,
-    merge_years,
-    all_year_pairs,
-)
+from stages.merge_tiles import combine_date_conf_pairs, merge_years
 from stages.upload_tiles import backup_tiles
 from stages.resample import resample, build_vrt
 from stages.tiles import (
@@ -33,6 +27,9 @@ from stages.collectors import (
     collect_resampled_tiles,
     collect_rgb_tiles,
     collect_rgb_tile_ids,
+    collect_day_conf,
+    collect_day_conf_all_years,
+    collect_day_conf_pairs,
 )
 import logging
 
@@ -46,13 +43,13 @@ def preprocessed_tile_pipe(tile_ids, **kwargs):
     """
     pipe = (
         tile_ids
-        | download_preprocessed_tiles_years(name="date_conf", **kwargs)
+        | download_preprocessed_tiles_years(name="day_conf", **kwargs)
         | download_preprocessed_tiles_year(name="download", **kwargs)
         | change_pixel_depth(name="pixel_depth", **kwargs)
         | encode_date_conf(name="encode_day_conf", **kwargs)
-        | date_conf_pairs()
+        | collect_day_conf_pairs()
         | combine_date_conf_pairs(name="day_conf", **kwargs)
-        | year_pairs(**kwargs)
+        | collect_day_conf(**kwargs)
         | merge_years(name="day_conf", **kwargs)
         | backup_tiles()
     )
@@ -76,9 +73,9 @@ def date_conf_pipe(tile_ids, **kwargs):
         | download_latest_tiles(name="download", **kwargs)
         | change_pixel_depth(name="pixel_depth", **kwargs)
         | encode_date_conf(name="encode_day_conf", **kwargs)
-        | date_conf_pairs()
+        | collect_day_conf_pairs()
         | combine_date_conf_pairs(name="day_conf", **kwargs)
-        | all_year_pairs(**kwargs)
+        | collect_day_conf_all_years(**kwargs)
         | merge_years(name="day_conf", **kwargs)
     )
 

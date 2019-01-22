@@ -5,15 +5,15 @@ ENV NAME gfw-glad-pipeline
 ENV USER gfw
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get -y update && apt-get -y install curl g++ \
-    gcc libfreetype6-dev libglib2.0-dev libcairo2-dev \
-    libboost-all-dev git gdal-bin python-gdal python3-gdal \
-    libicu-dev  python-dev libxml2 libxml2-dev libfreetype6 \
+RUN apt-get -y update && apt-get -y install curl git g++ gcc \
+    libfreetype6-dev libglib2.0-dev libcairo2-dev \
+    libboost-all-dev libicu-dev libxml2 libfreetype6 \
     libfreetype6-dev libjpeg-dev libpng-dev libproj-dev libtiff-dev \
     libcairo2 libcairo2-dev python-cairo python-cairo-dev \
     ttf-unifont ttf-dejavu ttf-dejavu-core ttf-dejavu-extra build-essential \
-    python-nose libsqlite3-dev \
-    postgresql-10 postgresql-server-dev-10 postgresql-contrib-10 postgresql-10-postgis-2.4
+    libsqlite3-dev python-nose python3-setuptools python3-pip python3-wheel \
+    postgresql-10 postgresql-server-dev-10 postgresql-contrib-10 postgresql-10-postgis-2
+    # gdal-bin python-gdal python3-gdal python-dev
 
  #  build-essential sudo software-properties-common curl \
  #   libboost-dev libboost-filesystem-dev libboost-program-options-dev \

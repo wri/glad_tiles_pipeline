@@ -8,7 +8,7 @@ import logging
 import json
 
 
-@stage(workers=1)
+@stage(workers=2)
 def generate_vrt(zoom_tiles, **kwargs):
     # root = kwargs["root"]
     min_tile_zoom = kwargs["min_tile_zoom"]
@@ -94,7 +94,7 @@ def generate_tiles(zoom_tilelists, **kwargs):
         config = PurePath(
             root, "tilecache", "config", "z{}.cfg".format(zoom)
         ).as_posix()
-        output_dir = output_mkdir(root, "tilecache", "tiles")
+        output_dir = output_mkdir(root, "tilecache")
 
         cmd = ["tilestache-seed.py", str(zoom), "-c", config, "-q", "-x", "-l", "tiles"]
         cmd += ["--output-directory", output_dir]
@@ -145,7 +145,7 @@ def generate_tilecache_mapfile(zoom_images, **kwargs):
 def generate_tilecache_config(zoom_mapfiles, **kwargs):
 
     root = kwargs["root"]
-    tilecache_path = output_mkdir(root, "tilecache", "tiles")
+    tilecache_path = output_mkdir(root, "tilecache")
 
     for zoom_mapfile in zoom_mapfiles:
         zoom = zoom_mapfile[0]

@@ -5,17 +5,23 @@ import argparse
 
 
 def download_file(remote_file, output):
-    try:
-        client = storage.Client()
-        bucket = client.bucket("earthenginepartners-hansen")
-    except TransportError:
-        time.sleep(10)
-        client = storage.Client()
-        bucket = client.bucket("earthenginepartners-hansen")
-    finally:
 
-        blob = bucket.blob(remote_file)
-        blob.download_to_filename(output)
+    tries = 0
+    success = False
+    while tries < 10 or not success:
+        try:
+            client = storage.Client()
+            bucket = client.bucket("earthenginepartners-hansen")
+        except TransportError as e:
+            time.sleep(10)
+            tries += 1
+            if tries == 10:
+                raise e
+        else:
+            success = True
+
+    blob = bucket.blob(remote_file)
+    blob.download_to_filename(output)
 
 
 def main():
