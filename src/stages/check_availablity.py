@@ -13,12 +13,14 @@ def _check_tifs_exist(process_date, tile_ids, years):
     ]
 
     logging.debug("Available TIFFS: " + str(name_list))
-    tif_count = list()
+    available_tiles = list()
 
-    for year in years:
+    for tile_id in tile_ids:
         c = 0
-        year_dig = str(year)[2:]
-        for tile_id in tile_ids:
+        for year in years:
+
+            year_dig = str(year)[2:]
+
             conf_str = "GLADalert/{0}/alert{1}_{2}.tif".format(
                 process_date, year_dig, tile_id
             )
@@ -35,15 +37,17 @@ def _check_tifs_exist(process_date, tile_ids, years):
             # if both alert and conf rasters exist, tile is ready to download
             if len(filtered_names) == 2:
                 c += 1
-        tif_count.append(c)
 
-        logging.info(
-            "Day {} has {} out of {} tiles for year {}".format(
-                process_date, c, len(tile_ids), year
-            )
+        if c == len(years):
+            available_tiles.append(tile_id)
+
+    logging.info(
+        "Day {} has {} tiles for years {}".format(
+            process_date, len(available_tiles), years
         )
+    )
 
-    return sum(tif_count) == len(tile_ids) * len(years)
+    return available_tiles
 
 
 def get_most_recent_day(**kwargs):
@@ -59,8 +63,9 @@ def get_most_recent_day(**kwargs):
             "%Y/%m_%d"
         )
 
-        if _check_tifs_exist(process_date, tile_ids, years):
-            return process_date
+        available_tiles = _check_tifs_exist(process_date, tile_ids, years)
+        if available_tiles:
+            return process_date, available_tiles
 
     logging.error("Checked GCS for last 10 days - none had all tiled TIFs")
     raise ValueError("Checked GCS for last 10 days - none had all tiled TIFs")
