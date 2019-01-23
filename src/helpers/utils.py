@@ -8,6 +8,7 @@ import argparse
 import logging
 import sys
 import time
+import multiprocessing
 
 
 def output_mkdir(*path):
@@ -147,6 +148,33 @@ def get_parser():
     :return: Parser for command line input
     """
     parser = argparse.ArgumentParser(description="Change the data type of a raster.")
+
+    parser.add_argument(
+        "--workers",
+        "-w",
+        type=int,
+        default=multiprocessing.cpu_count(),
+        help="Maximum number of workers per stage",
+    )
+    parser.add_argument(
+        "--bbox",
+        "-b",
+        type=int,
+        nargs="4",
+        default=[-180, -45, 180, 45],
+        help="Bounding box for area to process (left, bottom, right, top)",
+    )
+    parser.add_argument(
+        "--years", "-y", nargs="+", default=get_current_years(), help="Years to process"
+    )
+    parser.add_argument(
+        "--ignore_missing_years",
+        type=str2bool,
+        nargs="?",
+        default=False,
+        const=True,
+        help="Ignore preprocessed years prior to years to process",
+    )
     parser.add_argument(
         "--debug",
         type=str2bool,
@@ -155,6 +183,22 @@ def get_parser():
         default=False,
         help="Activate debug mode.",
     )
+
+    parser.add_argument("--max_zoom", type=int, default=12, help="Maximum zoom level")
+    parser.add_argument(
+        "--min_tile_zoom",
+        type=int,
+        default=10,
+        help="Minimum zoom level for 10x10 degree tiles",
+    )
+    parser.add_argument(
+        "--max_tilecache_zoom",
+        type=int,
+        default=8,
+        help="Maximum zoom level for building tilecache",
+    )
+    parser.add_argument("--min_zoom", type=int, default=0, help="Minimum zoom level")
+
     return parser.parse_args()
 
 

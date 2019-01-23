@@ -21,24 +21,25 @@ def main():
 
     get_logger(debug=args.debug)
 
-    tile_ids = get_tile_ids_by_bbox(-50, -10, -40, 10)
-    root = get_data_root()
-    years = get_current_years()
-    preprocessed_years = range(2015, min(years))
+    if not args.ignore_preprocessed_years:
+        preprocessed_years = range(2015, min(args.years))
+    else:
+        preprocessed_years = list()
 
-    max_zoom = 12
-    min_tile_zoom = 10
-    max_tilecache_zoom = 8
-    min_zoom = 0
+    tile_ids = get_tile_ids_by_bbox(
+        args.bbox[0], args.bbox[1], args.bbox[2], args.bbox[3]
+    )
+    root = get_data_root()
 
     kwargs: Dict[str, Any] = {
-        "years": years,
+        "workers": args.workers,
+        "years": args.years,
         "root": root,
         "preprocessed_years": preprocessed_years,
-        "max_zoom": max_zoom,
-        "min_zoom": min_zoom,
-        "min_tile_zoom": min_tile_zoom,
-        "max_tilecache_zoom": max_tilecache_zoom,
+        "max_zoom": args.max_zoom,
+        "min_zoom": args.min_zoom,
+        "min_tile_zoom": args.min_tile_zoom,
+        "max_tilecache_zoom": args.max_tilecache_zoom,
     }
 
     try:

@@ -47,16 +47,23 @@ RUN cd /tmp/mapnik-v${MAPNIK_VERSION} && make JOBS=4 && make install JOBS=4
 RUN mkdir -p /opt/python-mapnik && curl -L https://github.com/mapnik/python-mapnik/tarball/v3.0.x | tar xz -C /opt/python-mapnik --strip-components=1
 RUN cd /opt/python-mapnik && python3 setup.py install && rm -r /opt/python-mapnik/build
 
-RUN addgroup $USER # \
+RUN addgroup $USER
     #&& adduser --shell /bin/bash --disabled-password --gecos -ingroup $USER $USER
 
-COPY .google .google
-COPY requirements.txt /home/docker/code/
-COPY src /home/docker/code/src
+COPY .google /home/$USER/.google
+ENV GOOGLE_APPLICATION_CREDENTIALS /home/$USER/.google/earthenginepartners-hansen.json
 
-RUN python3 -m venv . && \
-    pip install -r /home/docker/code/requirements.txt && \
-    pip install -e src && \
+COPY .aws /home/$USER/.aws
+
+COPY requirements.txt /home/$USER/code/
+COPY setup.py /home/$USER/code
+COPY src /home/$USER/code/src
+
+RUN apt-get install -y python3-venv
+RUN cd /usr/local/include && ln -s ./ gdal
+RUN cd /home/$USER/code && python3 -m venv . && \
+    pip3 install -r /home/$USER/code/requirements.txt && \
+    pip3 install -e . && \
     g++ src/cpp/add2.cpp -o /usr/bin/add2 -lgdal && \
     g++ src/cpp/build_rgb.cpp -o /usr/bin/build_rgb -lgdal && \
     g++ src/cpp/combine2.cpp -o /usr/bin/combine2 -lgdal && \
