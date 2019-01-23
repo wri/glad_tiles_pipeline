@@ -160,7 +160,7 @@ def get_parser():
         "--bbox",
         "-b",
         type=int,
-        nargs="4",
+        nargs="+",
         default=[-180, -45, 180, 45],
         help="Bounding box for area to process (left, bottom, right, top)",
     )
@@ -168,7 +168,7 @@ def get_parser():
         "--years", "-y", nargs="+", default=get_current_years(), help="Years to process"
     )
     parser.add_argument(
-        "--ignore_missing_years",
+        "--ignore_preprocessed_years",
         type=str2bool,
         nargs="?",
         default=False,
