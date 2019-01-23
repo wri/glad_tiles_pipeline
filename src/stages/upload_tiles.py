@@ -1,10 +1,8 @@
 from helpers.utils import file_details
-from parallelpipe import stage
 import subprocess as sp
 import logging
 
 
-@stage(workers=2)
 def backup_tiles(tiles):
 
     for tile in tiles:

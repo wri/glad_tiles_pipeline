@@ -1,10 +1,8 @@
-from parallelpipe import stage
 from helpers.utils import output_file, preprocessed_years_str, get_suffix, get_gs_bucket
 import subprocess as sp
 import logging
 
 
-@stage(workers=2)
 def download_latest_tiles(tile_ids, **kwargs):
 
     years = kwargs["years"]
@@ -44,7 +42,6 @@ def download_latest_tiles(tile_ids, **kwargs):
                     yield output
 
 
-@stage(workers=2)
 def download_preprocessed_tiles_years(tile_ids, **kwargs):
     root = kwargs["root"]
     name = kwargs["name"]
@@ -69,7 +66,6 @@ def download_preprocessed_tiles_years(tile_ids, **kwargs):
             logging.info("Downloaded file: " + s3_url)
 
 
-@stage(workers=2)
 def download_preprocessed_tiles_year(tile_ids, **kwargs):
     root = kwargs["root"]
     name = kwargs["name"]

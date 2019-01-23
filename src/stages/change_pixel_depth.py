@@ -1,10 +1,8 @@
 from helpers.utils import output_file, file_details
-from parallelpipe import stage
 import subprocess as sp
 import logging
 
 
-@stage(workers=2)
 def change_pixel_depth(tiles, **kwargs):
 
     try:

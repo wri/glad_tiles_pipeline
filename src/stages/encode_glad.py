@@ -1,12 +1,10 @@
 from helpers.utils import output_file, file_details
 import helpers.raster_utilities as ras_util
-from parallelpipe import stage
 from pathlib import PurePath
 import subprocess as sp
 import logging
 
 
-@stage(workers=2)
 def encode_date_conf(tiles, **kwargs):
     """
 
@@ -39,7 +37,6 @@ def encode_date_conf(tiles, **kwargs):
             yield output
 
 
-@stage(workers=2)
 def prep_intensity(tiles, **kwargs):
     """
     Reclassify our final year/date raster to 0 | 55
@@ -68,7 +65,6 @@ def prep_intensity(tiles, **kwargs):
             yield output
 
 
-@stage(workers=2)
 def unset_no_data_value(tiles):
     """
     Set no data value to 0 for given dataset
@@ -90,7 +86,6 @@ def unset_no_data_value(tiles):
             yield output
 
 
-@stage(workers=2)
 def encode_rgb(tile_pairs):
 
     for tile_pair in tile_pairs:
@@ -110,7 +105,6 @@ def encode_rgb(tile_pairs):
             yield output
 
 
-@stage(workers=2)
 def project(tiles):
     for tile in tiles:
 

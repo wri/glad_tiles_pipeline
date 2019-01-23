@@ -41,17 +41,26 @@ def preprocessed_tile_pipe(tile_ids, **kwargs):
     :param kwargs: Dictonary with keyword arguments
     :return: pipe
     """
+    workers = kwargs["workers"]
     pipe = (
         tile_ids
-        | download_preprocessed_tiles_years(name="day_conf", **kwargs)
-        | download_preprocessed_tiles_year(name="download", **kwargs)
-        | change_pixel_depth(name="pixel_depth", **kwargs)
-        | encode_date_conf(name="encode_day_conf", **kwargs)
-        | collect_day_conf_pairs()
-        | combine_date_conf_pairs(name="day_conf", **kwargs)
-        | collect_day_conf(**kwargs)
-        | merge_years(name="day_conf", **kwargs)
-        | backup_tiles()
+        | Stage(download_preprocessed_tiles_years, name="day_conf", **kwargs).setup(
+            workers=workers
+        )
+        | Stage(download_preprocessed_tiles_year, name="download", **kwargs).setup(
+            workers=workers
+        )
+        | Stage(change_pixel_depth, name="pixel_depth", **kwargs).setup(workers=workers)
+        | Stage(encode_date_conf, name="encode_day_conf", **kwargs).setup(
+            workers=workers
+        )
+        | Stage(collect_day_conf_pairs).setup(workers=1)  # !Important
+        | Stage(combine_date_conf_pairs, name="day_conf", **kwargs).setup(
+            workers=workers
+        )
+        | Stage(collect_day_conf, **kwargs).setup(workers=1)  # Important
+        | Stage(merge_years, name="day_conf", **kwargs).setup(workers=workers)
+        | Stage(backup_tiles).setup(workers=workers)
     )
 
     for output in pipe.results():
@@ -68,15 +77,20 @@ def date_conf_pipe(tile_ids, **kwargs):
     :param kwargs: Dictonary with keyword arguments
     :return: pipe
     """
+    workers = kwargs["workers"]
     pipe = (
         tile_ids
-        | download_latest_tiles(name="download", **kwargs)
-        | change_pixel_depth(name="pixel_depth", **kwargs)
-        | encode_date_conf(name="encode_day_conf", **kwargs)
-        | collect_day_conf_pairs()
-        | combine_date_conf_pairs(name="day_conf", **kwargs)
-        | collect_day_conf_all_years(**kwargs)
-        | merge_years(name="day_conf", **kwargs)
+        | Stage(download_latest_tiles, name="download", **kwargs).setup(workers=workers)
+        | Stage(change_pixel_depth, name="pixel_depth", **kwargs).setup(workers=workers)
+        | Stage(encode_date_conf, name="encode_day_conf", **kwargs).setup(
+            workers=workers
+        )
+        | Stage(collect_day_conf_pairs).setup(workers=1)  # Important!
+        | Stage(combine_date_conf_pairs, name="day_conf", **kwargs).setup(
+            workers=workers
+        )
+        | Stage(collect_day_conf_all_years, **kwargs).setup(workers=1)  # Important!
+        | Stage(merge_years, name="day_conf", **kwargs).setup(workers=workers)
     )
 
     date_conf_tiles = list()
@@ -90,24 +104,27 @@ def date_conf_pipe(tile_ids, **kwargs):
 
 def resample_date_conf_pipe(tiles, **kwargs):
 
+    workers = kwargs["workers"]
     pipe = (
         tiles
         | Stage(
             resample, name="day_conf", resample_method="near", zoom=12, **kwargs
-        ).setup(workers=2)
+        ).setup(workers=workers)
         | Stage(
             resample, name="day_conf", resample_method="mode", zoom=11, **kwargs
-        ).setup(workers=2)
+        ).setup(workers=workers)
         | Stage(
             resample, name="day_conf", resample_method="mode", zoom=10, **kwargs
-        ).setup(workers=2)
-        | build_vrt(name="day_conf", zoom=10, **kwargs)
+        ).setup(workers=workers)
+        | Stage(build_vrt, name="day_conf", zoom=10, **kwargs).setup(
+            workers=1
+        )  # Important
     )
 
     for i in range(9, -1, -1):
         pipe = pipe | Stage(
             resample, name="day_conf", resample_method="mode", zoom=i, **kwargs
-        ).setup(workers=2)
+        ).setup(workers=workers)
 
     for output in pipe.results():
         logging.debug("Resample Day Conf output: " + str(output))
@@ -117,25 +134,28 @@ def resample_date_conf_pipe(tiles, **kwargs):
 
 
 def intensity_pipe(tiles, **kwargs):
+    workers = kwargs["workers"]
     pipe = (
         tiles
-        | unset_no_data_value()
-        | prep_intensity(name="day_conf", **kwargs)
+        | Stage(unset_no_data_value).setup(workers=workers)
+        | Stage(prep_intensity, name="day_conf", **kwargs).setup(workers=workers)
         | Stage(
             resample, name="intensity", resample_method="near", zoom=12, **kwargs
-        ).setup(workers=2)
+        ).setup(workers=workers)
         | Stage(
             resample, name="intensity", resample_method="bilinear", zoom=11, **kwargs
-        ).setup(workers=2)
+        ).setup(workers=workers)
         | Stage(
             resample, name="intensity", resample_method="bilinear", zoom=10, **kwargs
-        ).setup(workers=2)
-        | build_vrt(name="intensity", zoom=10, **kwargs)
+        ).setup(workers=workers)
+        | Stage(build_vrt, name="intensity", zoom=10, **kwargs).setup(
+            workers=1
+        )  # Important
     )
     for i in range(9, -1, -1):
         pipe = pipe | Stage(
             resample, name="intensity", resample_method="bilinear", zoom=i, **kwargs
-        ).setup(workers=2)
+        ).setup(workers=workers)
 
     for output in pipe.results():
         logging.debug("Intensity output: " + str(output))
@@ -147,13 +167,17 @@ def intensity_pipe(tiles, **kwargs):
 def rgb_pipe(**kwargs):
 
     root = kwargs["root"]
+    workers = kwargs["workers"]
 
     tile_pairs = list()
     for pair in collect_resampled_tiles(root):
         tile_pairs.append(pair)
 
-    pipe = tile_pairs | encode_rgb | project
-
+    pipe = (
+        Stage(tile_pairs).setup(workers=workers)
+        | Stage(encode_rgb).setup(workers=workers)
+        | Stage(project).setup(workers=workers)
+    )
     for output in pipe.results():
         logging.debug("RGB output: " + str(output))
     logging.info("RGB - Done")
@@ -164,6 +188,7 @@ def rgb_pipe(**kwargs):
 def tilecache_pipe(**kwargs):
 
     root = kwargs["root"]
+    workers = kwargs["workers"]
 
     # TODO condider moving this to the rbg pipe
     zoom_tiles = list()
@@ -174,12 +199,12 @@ def tilecache_pipe(**kwargs):
 
     pipe = (
         zoom_tiles
-        | generate_vrt(**kwargs)
-        | generate_tilecache_mapfile(**kwargs)
-        | generate_tilecache_config(**kwargs)
-        | generate_tile_list(tile_ids=tile_ids, **kwargs)
-        | save_tile_lists(**kwargs)
-        | generate_tiles(**kwargs)
+        | Stage(generate_vrt, **kwargs).setup(workers=workers)
+        | Stage(generate_tilecache_mapfile, **kwargs).setup(workers=workers)
+        | Stage(generate_tilecache_config, **kwargs).setup(workers=workers)
+        | Stage(generate_tile_list, tile_ids=tile_ids, **kwargs).setup(workers=workers)
+        | Stage(save_tile_lists, **kwargs).setup(workers=workers)
+        | Stage(generate_tiles, **kwargs).setup(workers=workers)
     )
 
     for output in pipe.results():

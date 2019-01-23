@@ -1,5 +1,4 @@
-from parallelpipe import stage
-from helpers.utils import output_file, file_details, get_tile_id
+from helpers.utils import output_file, get_tile_id
 import helpers.raster_utilities as ras_util
 import subprocess as sp
 import logging
@@ -55,7 +54,7 @@ def resample(tiles, **kwargs):
             yield output
 
 
-@stage(workers=1)  # IMPORTANT to only use one (1) worker!
+# IMPORTANT to only use one (1) worker!
 def build_vrt(tiles, **kwargs):
 
     root = kwargs["root"]

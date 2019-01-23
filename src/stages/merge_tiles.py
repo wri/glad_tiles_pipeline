@@ -1,10 +1,8 @@
-from parallelpipe import stage
 from helpers.utils import output_file, file_details, sort_dict, preprocessed_years_str
 import logging
 import subprocess as sp
 
 
-@stage(workers=2)
 def combine_date_conf_pairs(pairs, **kwargs):
     root = kwargs["root"]
     name = kwargs["name"]
@@ -22,7 +20,6 @@ def combine_date_conf_pairs(pairs, **kwargs):
             yield output
 
 
-@stage(workers=2)
 def merge_years(tile_dicts, **kwargs):
     root = kwargs["root"]
     name = kwargs["name"]

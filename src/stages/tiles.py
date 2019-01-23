@@ -1,4 +1,3 @@
-from parallelpipe import stage
 from helpers.utils import output_file, output_mkdir, split_list
 from helpers.tiles import get_bbox_by_tile_id
 from pathlib import Path, PurePath
@@ -8,7 +7,6 @@ import logging
 import json
 
 
-@stage(workers=2)
 def generate_vrt(zoom_tiles, **kwargs):
     # root = kwargs["root"]
     min_tile_zoom = kwargs["min_tile_zoom"]
@@ -26,7 +24,6 @@ def generate_vrt(zoom_tiles, **kwargs):
             yield zoom, output
 
 
-@stage(workers=2)
 def generate_tile_list(zoom_tiles, tile_ids, **kwargs):
 
     max_tilecache_zoom = kwargs["max_tilecache_zoom"]
@@ -57,7 +54,6 @@ def generate_tile_list(zoom_tiles, tile_ids, **kwargs):
             yield zoom, list(tile_set)
 
 
-@stage(workers=2)
 def save_tile_lists(zoom_tilelists, **kwargs):
 
     root = kwargs["root"]
@@ -80,7 +76,6 @@ def save_tile_lists(zoom_tilelists, **kwargs):
             yield zoom, output
 
 
-@stage(workers=2)
 def generate_tiles(zoom_tilelists, **kwargs):
 
     root = kwargs["root"]
@@ -109,7 +104,6 @@ def generate_tiles(zoom_tilelists, **kwargs):
             yield zoom, output_dir
 
 
-@stage(workers=2)
 def generate_tilecache_mapfile(zoom_images, **kwargs):
 
     root = kwargs["root"]
@@ -141,7 +135,6 @@ def generate_tilecache_mapfile(zoom_images, **kwargs):
             raise e
 
 
-@stage(workers=2)
 def generate_tilecache_config(zoom_mapfiles, **kwargs):
 
     root = kwargs["root"]
