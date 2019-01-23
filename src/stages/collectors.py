@@ -6,6 +6,7 @@ import glob
 import logging
 
 
+# IMPORTANT to only use one (1) worker!
 def get_preprocessed_tiles(root, years, preprocessed_years):
     preprocessed_tiles = list()
 
@@ -22,6 +23,7 @@ def get_preprocessed_tiles(root, years, preprocessed_years):
     return preprocessed_tiles
 
 
+# IMPORTANT to only use one (1) worker!
 def collect_resampled_tiles(root):
     resampled_tiles = dict()
 
@@ -43,6 +45,7 @@ def collect_resampled_tiles(root):
             logging.warning("Could not create pair for: " + str(key))
 
 
+# IMPORTANT to only use one (1) worker!
 def collect_rgb_tiles(root):
     rgb_tiles = dict()
 
@@ -59,6 +62,7 @@ def collect_rgb_tiles(root):
         yield key, value
 
 
+# IMPORTANT to only use one (1) worker!
 def collect_rgb_tile_ids(zoom_tiles):
     tile_list = None
     for tile in zoom_tiles:
@@ -69,7 +73,7 @@ def collect_rgb_tile_ids(zoom_tiles):
     return tile_ids
 
 
-@stage(workers=1)  # IMPORTANT to only use one (1) worker!
+# IMPORTANT to only use one (1) worker!
 def collect_day_conf_pairs(tiles):
     """
     Collect pairs of day and conf TIFF for each tile
@@ -99,7 +103,7 @@ def collect_day_conf_pairs(tiles):
             logging.warning("Could not create pair for: " + key)
 
 
-@stage(workers=1)  # IMPORTANT to only use one (1) worker!
+# IMPORTANT to only use one (1) worker!
 def collect_day_conf(tiles, **kwargs):
     """
     collect day_conf tiles for preprocessed years
@@ -126,7 +130,7 @@ def collect_day_conf(tiles, **kwargs):
             logging.warning("Could not create pair for: " + key)
 
 
-@stage(workers=1)  # IMPORTANT to only use one (1) worker!
+# IMPORTANT to only use one (1) worker!
 def collect_day_conf_all_years(tiles, **kwargs):
     """
     Collect all day_conf tiles of current and preprocessed years
