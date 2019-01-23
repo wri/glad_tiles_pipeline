@@ -1,9 +1,9 @@
 awscli
 google-cloud-storage
 parallelpipe
+numpy
 gdal
 numba
-numpy
 xmltodict
 pillow
 modestmaps

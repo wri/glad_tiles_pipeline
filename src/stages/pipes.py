@@ -174,7 +174,7 @@ def rgb_pipe(**kwargs):
         tile_pairs.append(pair)
 
     pipe = (
-        Stage(tile_pairs).setup(workers=workers)
+        tile_pairs
         | Stage(encode_rgb).setup(workers=workers)
         | Stage(project).setup(workers=workers)
     )
@@ -190,7 +190,7 @@ def tilecache_pipe(**kwargs):
     root = kwargs["root"]
     workers = kwargs["workers"]
 
-    # TODO condider moving this to the rbg pipe
+    # TODO consider moving this to the rbg pipe
     zoom_tiles = list()
     for pair in collect_rgb_tiles(root):
         zoom_tiles.append(pair)
