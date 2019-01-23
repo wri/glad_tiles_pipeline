@@ -43,15 +43,18 @@ def main():
     }
 
     try:
+        # TODO
+        #  add some logic to skip this step in case we don't deal with current years
         kwargs["tile_date"] = get_most_recent_day(tile_ids=tile_ids, **kwargs)
     except ValueError:
         logging.error("Cannot find recently processes tiles. Aborting")
-        pass
     else:
 
         if os.path.exists(root):
             shutil.rmtree(root)
 
+        # TODO
+        #  add some logic to skip preprocssing step incase igonore_preprocessed_tiles is true
         preprocessed_tile_pipe(tile_ids=tile_ids, **kwargs)
         date_conf_tiles = date_conf_pipe(tile_ids, **kwargs)
         resample_date_conf_pipe(date_conf_tiles, **kwargs)
@@ -60,6 +63,9 @@ def main():
         tilecache_pipe(**kwargs)
 
     finally:
+        # TODO
+        #  copy all files to S3, including log files
+        #  Shut down server
         pass
 
 
