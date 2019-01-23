@@ -25,6 +25,8 @@ def generate_vrt(zoom_tiles, **kwargs):
 
 
 def generate_tile_list(zoom_tiles, tile_ids, **kwargs):
+    # tilestache wants BBOX formated this way: south, west, north, east
+    # we store BBOX internally this way: west, south, east, north
 
     max_tilecache_zoom = kwargs["max_tilecache_zoom"]
 
@@ -37,10 +39,10 @@ def generate_tile_list(zoom_tiles, tile_ids, **kwargs):
                 cmd = [
                     "tilestache-list.py",
                     "-b",
-                    str(bbox[0]),
                     str(bbox[1]),
-                    str(bbox[2]),
+                    str(bbox[0]),
                     str(bbox[3]),
+                    str(bbox[2]),
                     "-p",
                     "1",
                     str(zoom),
