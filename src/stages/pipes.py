@@ -116,9 +116,9 @@ def resample_date_conf_pipe(tiles, **kwargs):
         | Stage(
             resample, name="day_conf", resample_method="mode", zoom=10, **kwargs
         ).setup(workers=workers)
-        | Stage(build_vrt, name="day_conf", zoom=10, **kwargs).setup(
-            workers=1
-        )  # Important
+        # | Stage(build_vrt, name="day_conf", zoom=10, **kwargs).setup(
+        #    workers=1
+        # )  # Important
     )
 
     for i in range(9, -1, -1):
@@ -148,9 +148,9 @@ def intensity_pipe(tiles, **kwargs):
         | Stage(
             resample, name="intensity", resample_method="bilinear", zoom=10, **kwargs
         ).setup(workers=workers)
-        | Stage(build_vrt, name="intensity", zoom=10, **kwargs).setup(
-            workers=1
-        )  # Important
+        # | Stage(build_vrt, name="intensity", zoom=10, **kwargs).setup(
+        #     workers=1
+        # )  # Important
     )
     for i in range(9, -1, -1):
         pipe = pipe | Stage(

@@ -40,6 +40,7 @@ def main():
         "min_zoom": args.min_zoom,
         "min_tile_zoom": args.min_tile_zoom,
         "max_tilecache_zoom": args.max_tilecache_zoom,
+        "num_tiles": args.num_tiles,
     }
 
     try:
@@ -51,7 +52,10 @@ def main():
     else:
 
         if os.path.exists(root):
-            shutil.rmtree(root)
+            # ignore_errors true will allow us to mount the data directory as a docker volume.
+            # If not set, this will though an IOError b/c it won't be able to delete mounted volume
+            # Data inside the directory/ volume - if any - will still be removed
+            shutil.rmtree(root, ignore_errors=True)
 
         # TODO
         #  add some logic to skip preprocssing step incase igonore_preprocessed_tiles is true

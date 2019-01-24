@@ -153,7 +153,7 @@ def get_parser():
         "--workers",
         "-w",
         type=int,
-        default=multiprocessing.cpu_count(),
+        default=multiprocessing.cpu_count() / 2,
         help="Maximum number of workers per stage",
     )
     parser.add_argument(
@@ -198,6 +198,9 @@ def get_parser():
         help="Maximum zoom level for building tilecache",
     )
     parser.add_argument("--min_zoom", type=int, default=0, help="Minimum zoom level")
+    parser.add_argument(
+        "--num_tiles", type=int, default=116, help="Number of expected input tiles"
+    )
 
     return parser.parse_args()
 

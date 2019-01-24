@@ -54,7 +54,7 @@ def get_most_recent_day(**kwargs):
 
     tile_ids = kwargs["tile_ids"]
     years = kwargs["years"]
-
+    num_tiles = kwargs["num_tiles"]
     today = datetime.datetime.today()
 
     # check for most recent day of GLAD data
@@ -64,7 +64,7 @@ def get_most_recent_day(**kwargs):
         )
 
         available_tiles = _check_tifs_exist(process_date, tile_ids, years)
-        if available_tiles:
+        if len(available_tiles) == num_tiles:
             return process_date, available_tiles
 
     logging.error("Checked GCS for last 10 days - none had all tiled TIFs")

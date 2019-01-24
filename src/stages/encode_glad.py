@@ -144,6 +144,8 @@ def project(tiles):
             "COMPRESS=DEFLATE",
             "-co",
             "TILED=YES",
+            "-dstnodata",
+            "0",  # Set nodata value to 0 to avoid blackstrips between tiles
         ]
         # TODO: Figure out best memory allocation
         # cmd += ['--config', 'GDAL_CACHEMAX', ras_util.get_mem_pct(), '-wm', ras_util.get_mem_pct()]
