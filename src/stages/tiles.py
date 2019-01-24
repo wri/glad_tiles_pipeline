@@ -24,7 +24,7 @@ def generate_vrt(zoom_tiles, **kwargs):
                 "-a_srs",
                 "EPSG:3857",
                 "-vrtnodata",
-                "0",
+                "None",
                 output,
             ] + tiles
 
