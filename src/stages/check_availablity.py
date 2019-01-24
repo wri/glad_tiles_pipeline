@@ -67,5 +67,9 @@ def get_most_recent_day(**kwargs):
         if len(available_tiles) == num_tiles:
             return process_date, available_tiles
 
-    logging.error("Checked GCS for last 10 days - none had all tiled TIFs")
-    raise ValueError("Checked GCS for last 10 days - none had all tiled TIFs")
+    msg = (
+        "Checked GCS for last 10 days - none had all {} tiled TIFs. "
+        "You may want to verify the argument value for --num_tiles".format(num_tiles)
+    )
+    logging.error(msg)
+    raise ValueError(msg)

@@ -153,7 +153,7 @@ def get_parser():
         "--workers",
         "-w",
         type=int,
-        default=multiprocessing.cpu_count() / 2,
+        default=int(multiprocessing.cpu_count() / 2),
         help="Maximum number of workers per stage",
     )
     parser.add_argument(

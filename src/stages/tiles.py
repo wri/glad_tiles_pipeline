@@ -19,7 +19,14 @@ def generate_vrt(zoom_tiles, **kwargs):
 
         if zoom <= max_tilecache_zoom:
             output = output_file(root, "vrt", name, "zoom_{}.vrt".format(zoom))
-            cmd = ["gdalbuildvrt", output] + tiles
+            cmd = [
+                "gdalbuildvrt",
+                "-a_srs",
+                "EPSG:3857",
+                "-vrtnodata",
+                "0",
+                output,
+            ] + tiles
 
             try:
                 sp.check_call(cmd)

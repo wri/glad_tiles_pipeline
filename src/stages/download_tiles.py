@@ -51,7 +51,7 @@ def download_preprocessed_tiles_years(tile_ids, **kwargs):
 
     for tile_id in tile_ids:
 
-        s3_url = "s3://gfw2-data/forest_change/umd_landsat_alerts/archive/pipeline/tiles/{}/date_conf/{}/day_conf.tif".format(
+        s3_url = "s3://gfw2-data/forest_change/umd_landsat_alerts/archive/pipeline/tiles/{}/day_conf/{}/day_conf.tif".format(
             tile_id, year_str
         )
 
