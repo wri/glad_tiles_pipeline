@@ -199,7 +199,7 @@ def tilecache_pipe(**kwargs):
 
     pipe = (
         zoom_tiles
-        | Stage(generate_vrt, **kwargs).setup(workers=workers)
+        | Stage(generate_vrt, name="rgb_wm", **kwargs).setup(workers=workers)
         | Stage(generate_tilecache_mapfile, **kwargs).setup(workers=workers)
         | Stage(generate_tilecache_config, **kwargs).setup(workers=workers)
         | Stage(generate_tile_list, tile_ids=tile_ids, **kwargs).setup(workers=workers)

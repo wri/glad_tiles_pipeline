@@ -199,7 +199,11 @@ def get_parser():
     )
     parser.add_argument("--min_zoom", type=int, default=0, help="Minimum zoom level")
     parser.add_argument(
-        "--num_tiles", type=int, default=116, help="Number of expected input tiles"
+        "--num_tiles",
+        "-n",
+        type=int,
+        default=116,
+        help="Number of expected input tiles",
     )
 
     return parser.parse_args()

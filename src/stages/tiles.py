@@ -8,20 +8,26 @@ import json
 
 
 def generate_vrt(zoom_tiles, **kwargs):
-    # root = kwargs["root"]
-    min_tile_zoom = kwargs["min_tile_zoom"]
+    root = kwargs["root"]
+    name = kwargs["name"]
+
     max_tilecache_zoom = kwargs["max_tilecache_zoom"]
 
     for zoom_tile in zoom_tiles:
         zoom = zoom_tile[0]
-        if zoom <= max_tilecache_zoom:
-            if zoom >= min_tile_zoom:
-                # TODO generate VRT function
-                output = "vrt"
-            else:
-                output = zoom_tile[1][0]
+        tiles = zoom_tile[1]
 
-            yield zoom, output
+        if zoom <= max_tilecache_zoom:
+            output = output_file(root, "vrt", name, "zoom_{}.vrt".format(zoom))
+            cmd = ["gdalbuildvrt", output] + tiles
+
+            try:
+                sp.check_call(cmd)
+            except sp.CalledProcessError:
+                logging.warning("Failed to build VRT: " + output)
+            else:
+                logging.info("Built VRT: " + output)
+                yield zoom, output
 
 
 def generate_tile_list(zoom_tiles, tile_ids, **kwargs):
