@@ -161,7 +161,7 @@ def get_parser():
         "-b",
         type=int,
         nargs="+",
-        default=[-180, -45, 180, 45],
+        default=[-120, -40, 180, 30],
         help="Bounding box for area to process (left, bottom, right, top)",
     )
     parser.add_argument(
@@ -177,6 +177,15 @@ def get_parser():
     )
     parser.add_argument(
         "--debug",
+        type=str2bool,
+        nargs="?",
+        const=True,
+        default=False,
+        help="Activate debug mode.",
+    )
+
+    parser.add_argument(
+        "--include_russia",
         type=str2bool,
         nargs="?",
         const=True,

@@ -29,6 +29,10 @@ def main():
     tile_ids = get_tile_ids_by_bbox(
         args.bbox[0], args.bbox[1], args.bbox[2], args.bbox[3]
     )
+
+    if args.include_russia:
+        tile_ids.append("130E_42N_142E_53N")
+
     root = get_data_root()
 
     kwargs: Dict[str, Any] = {
