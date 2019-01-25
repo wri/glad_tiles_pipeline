@@ -211,7 +211,7 @@ def get_parser():
         "--num_tiles",
         "-n",
         type=int,
-        default=116,
+        default=115,
         help="Number of expected input tiles",
     )
 

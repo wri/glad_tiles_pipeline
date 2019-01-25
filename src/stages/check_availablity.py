@@ -38,7 +38,9 @@ def _check_tifs_exist(process_date, tile_ids, years):
             if len(filtered_names) == 2:
                 c += 1
 
-        if c == len(years):
+        # Need to see if it's better to check for == or >=
+        # currently checking for >= b/c it add some more flexibility incase new tiles were added
+        if c >= len(years):
             available_tiles.append(tile_id)
 
     logging.info(
