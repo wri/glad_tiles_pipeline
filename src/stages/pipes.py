@@ -91,6 +91,8 @@ def date_conf_pipe(tile_ids, **kwargs):
         )
         | Stage(collect_day_conf_all_years, **kwargs).setup(workers=1)  # Important!
         | Stage(merge_years, name="day_conf", **kwargs).setup(workers=workers)
+        # TODO: copy data to s3://palm-risk-poc/data/glad/analysis-staging
+        # TODO: copy data to s3://gfwpro-raster-data
     )
 
     date_conf_tiles = list()
@@ -185,7 +187,7 @@ def rgb_pipe(**kwargs):
     return
 
 
-def tilecache_pipe(**kwargs):
+def copy_vrt_s3_pipe(**kwargs):
 
     root = kwargs["root"]
     workers = kwargs["workers"]
@@ -195,16 +197,43 @@ def tilecache_pipe(**kwargs):
     for pair in collect_rgb_tiles(root):
         zoom_tiles.append(pair)
 
+    pipe = (
+        zoom_tiles
+        | Stage(
+            generate_vrt, kwargs["min_tile_zoom"], kwargs["max_zoom"], **kwargs
+        ).setup(workers=workers)
+        # TODO: copy VRT and tiles to S3
+        #  s3://palm-risk-poc/data/glad/rgb z_9.vrt, z_10.vrt, z_11.vrt, z_12.vrt
+    )
+
+    for output in pipe.results():
+        logging.debug("Copy VRT to S3 output: " + str(output))
+    logging.info("opy VRT to S3 - Done")
+
+
+def tilecache_pipe(**kwargs):
+
+    root = kwargs["root"]
+    workers = kwargs["workers"]
+
+    zoom_tiles = list()
+    for pair in collect_rgb_tiles(root):
+        zoom_tiles.append(pair)
+
     tile_ids = collect_rgb_tile_ids(zoom_tiles)
 
     pipe = (
         zoom_tiles
-        | Stage(generate_vrt, name="rgb_wm", **kwargs).setup(workers=workers)
+        | Stage(
+            generate_vrt, kwargs["min_zoom"], kwargs["max_tilecache_zoom"], **kwargs
+        ).setup(workers=workers)
         | Stage(generate_tilecache_mapfile, **kwargs).setup(workers=workers)
         | Stage(generate_tilecache_config, **kwargs).setup(workers=workers)
         | Stage(generate_tile_list, tile_ids=tile_ids, **kwargs).setup(workers=workers)
         | Stage(save_tile_lists, **kwargs).setup(workers=workers)
         | Stage(generate_tiles, **kwargs).setup(workers=workers)
+        # TODO: copy tilecache to S3
+        #  s3://wri-tiles/glad_{}/tiles/'.format(prod | stage)
     )
 
     for output in pipe.results():

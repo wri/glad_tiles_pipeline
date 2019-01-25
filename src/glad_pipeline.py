@@ -4,6 +4,7 @@ from stages.pipes import (
     resample_date_conf_pipe,
     intensity_pipe,
     rgb_pipe,
+    copy_vrt_s3_pipe,
     tilecache_pipe,
 )
 from stages.check_availablity import get_most_recent_day
@@ -68,6 +69,7 @@ def main():
         resample_date_conf_pipe(date_conf_tiles, **kwargs)
         intensity_pipe(date_conf_tiles, **kwargs)
         rgb_pipe(**kwargs)
+        copy_vrt_s3_pipe(**kwargs)
         tilecache_pipe(**kwargs)
 
     finally:

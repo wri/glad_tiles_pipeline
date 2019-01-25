@@ -19,3 +19,4 @@ RUN cd /home/$USER/code && \
     g++ src/cpp/combine2.cpp -o /usr/bin/combine2 -lgdal && \
     g++ src/cpp/combine3.cpp -o /usr/bin/combine3 -lgdal && \
     g++ src/cpp/reclass.cpp -o /usr/bin/reclass -lgdal
+

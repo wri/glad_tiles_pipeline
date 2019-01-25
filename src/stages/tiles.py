@@ -8,18 +8,15 @@ import logging
 import json
 
 
-def generate_vrt(zoom_tiles, **kwargs):
+def generate_vrt(zoom_tiles, min_zoom, max_zoom, **kwargs):
     root = kwargs["root"]
-    name = kwargs["name"]
-
-    max_tilecache_zoom = kwargs["max_tilecache_zoom"]
 
     for zoom_tile in zoom_tiles:
         zoom = zoom_tile[0]
         tiles = zoom_tile[1]
 
-        if zoom <= max_tilecache_zoom:
-            output = output_file(root, "vrt", name, "zoom_{}.vrt".format(zoom))
+        if min_zoom >= zoom <= max_zoom:
+            output = output_file(root, "tiles", "z_{}.vrt".format(zoom))
             cmd = [
                 "gdalbuildvrt",
                 "-a_srs",
