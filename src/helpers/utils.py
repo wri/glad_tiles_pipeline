@@ -2,6 +2,7 @@ from pathlib import Path, PurePath
 from datetime import datetime
 from google.cloud import storage
 from google.auth.exceptions import TransportError
+import subprocess as sp
 import glob
 import re
 import argparse
@@ -193,6 +194,15 @@ def get_parser():
         help="Activate debug mode.",
     )
 
+    parser.add_argument(
+        "--test",
+        type=str2bool,
+        nargs="?",
+        const=True,
+        default=False,
+        help="Tun as test - will not copy any data to S3.",
+    )
+
     parser.add_argument("--max_zoom", type=int, default=12, help="Maximum zoom level")
     parser.add_argument(
         "--min_tile_zoom",
@@ -280,3 +290,22 @@ def get_gs_bucket():
         else:
             success = True
             return bucket
+
+
+def get_pro_tiles():
+    out = sp.check_output(
+        [
+            "aws",
+            "s3",
+            "ls",
+            "s3://gfwpro-raster-data",
+            "--profile",
+            "GFWPro_gfwpro-raster-data_remote",
+        ]
+    )
+    obj_list = out.split(b"\n")
+
+    pro_tiles = {
+        obj.split("-glad_")[1].strip(): obj.strip() for obj in obj_list if "glad" in obj
+    }
+    return pro_tiles

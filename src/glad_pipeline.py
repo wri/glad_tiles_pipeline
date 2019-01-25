@@ -46,6 +46,7 @@ def main():
         "min_tile_zoom": args.min_tile_zoom,
         "max_tilecache_zoom": args.max_tilecache_zoom,
         "num_tiles": args.num_tiles,
+        "test": args.test,
     }
 
     try:

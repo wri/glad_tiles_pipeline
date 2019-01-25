@@ -13,8 +13,12 @@ from stages.encode_glad import (
     project,
 )
 from stages.merge_tiles import combine_date_conf_pairs, merge_years
-from stages.upload_tiles import backup_tiles
-from stages.resample import resample, build_vrt
+from stages.upload_tiles import (
+    upload_preprocessed_tiles_s3,
+    upload_day_conf_s3,
+    upload_day_conf_s3_gfw_pro,
+)
+from stages.resample import resample
 from stages.tiles import (
     generate_tile_list,
     save_tile_lists,
@@ -31,6 +35,9 @@ from stages.collectors import (
     collect_day_conf_all_years,
     collect_day_conf_pairs,
 )
+
+from helpers.utils import get_pro_tiles
+
 import logging
 
 
@@ -60,7 +67,7 @@ def preprocessed_tile_pipe(tile_ids, **kwargs):
         )
         | Stage(collect_day_conf, **kwargs).setup(workers=1)  # Important
         | Stage(merge_years, name="day_conf", **kwargs).setup(workers=workers)
-        | Stage(backup_tiles).setup(workers=workers)
+        | Stage(upload_preprocessed_tiles_s3, **kwargs).setup(workers=workers)
     )
 
     for output in pipe.results():
@@ -78,6 +85,9 @@ def date_conf_pipe(tile_ids, **kwargs):
     :return: pipe
     """
     workers = kwargs["workers"]
+
+    # pro_tiles = get_pro_tiles()
+
     pipe = (
         tile_ids
         | Stage(download_latest_tiles, name="download", **kwargs).setup(workers=workers)
@@ -91,8 +101,8 @@ def date_conf_pipe(tile_ids, **kwargs):
         )
         | Stage(collect_day_conf_all_years, **kwargs).setup(workers=1)  # Important!
         | Stage(merge_years, name="day_conf", **kwargs).setup(workers=workers)
-        # TODO: copy data to s3://palm-risk-poc/data/glad/analysis-staging
-        # TODO: copy data to s3://gfwpro-raster-data
+        | Stage(upload_day_conf_s3, **kwargs).setup(workers=workers)
+        # | Stage(upload_day_conf_s3_gfw_pro, pro_tiles, **kwargs).setup(workers=workers)
     )
 
     date_conf_tiles = list()
