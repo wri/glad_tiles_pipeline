@@ -1,4 +1,5 @@
 from helpers.utils import output_file, output_mkdir, split_list
+from helpers.raster_utilities import get_scale_denominators
 from helpers.tiles import get_bbox_by_tile_id
 from pathlib import Path, PurePath
 import xmltodict as xd
@@ -132,7 +133,18 @@ def generate_tilecache_mapfile(zoom_images, **kwargs):
         with open(mapfile_path) as f:
             mapfile = xd.parse(f.read())
 
+        scale_denominators = get_scale_denominators(zoom)
+
         mapfile["Map"]["Style"]["@name"] = "z{}".format(zoom)
+        if not scale_denominators["max"]:
+            del mapfile["Map"]["Style"]["Rule"]["MaxScaleDenominator"]
+        else:
+            mapfile["Map"]["Style"]["Rule"]["MaxScaleDenominator"] = scale_denominators[
+                "max"
+            ]
+        mapfile["Map"]["Style"]["Rule"]["MinScaleDenominator"] = scale_denominators[
+            "min"
+        ]
         mapfile["Map"]["Layer"]["@name"] = "z{}".format(zoom)
         mapfile["Map"]["Layer"]["StyleName"] = "z{}".format(zoom)
         mapfile["Map"]["Layer"]["Datasource"]["Parameter"][0]["#text"] = image

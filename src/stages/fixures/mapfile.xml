@@ -12,6 +12,7 @@
 
 <Style name="z0" filter-mode="first" >
   <Rule>
+    <MaxScaleDenominator>3000000</MaxScaleDenominator>
     <MinScaleDenominator>500000000</MinScaleDenominator>
     <RasterSymbolizer opacity="1" />
   </Rule>

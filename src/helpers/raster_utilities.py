@@ -139,7 +139,23 @@ def get_cell_size(zoom_level, measurement):
     return zoom_level_dict[zoom_level][measurement]
 
 
-# @jit
+def get_scale_denominators(zoom):
+
+    scale_denominators = {
+        0: {"min": 500000000, "max": None},
+        1: {"min": 200000000, "max": 500000000},
+        2: {"min": 100000000, "max": 200000000},
+        3: {"min": 50000000, "max": 100000000},
+        4: {"min": 25000000, "max": 50000000},
+        5: {"min": 12500000, "max": 25000000},
+        6: {"min": 6500000, "max": 12500000},
+        7: {"min": 3000000, "max": 6500000},
+        8: {"min": 1500000, "max": 3000000},
+    }
+
+    return scale_denominators[zoom]
+
+
 def get_mem_pct():
 
     num_cores = multiprocessing.cpu_count()
