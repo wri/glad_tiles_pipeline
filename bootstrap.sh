@@ -12,4 +12,4 @@ cd glad_tiles_pipeline
 sudo service docker start
 sudo docker build . -t glad-pipeline
 
-sudo docker run -it -v /mnt/data:/home/gfw/code/data glad-pipeline glad_pipeline.py
+sudo docker run -it -v /mnt/data:/home/gfw/code/data glad-pipeline glad_pipeline.py --include_russia
