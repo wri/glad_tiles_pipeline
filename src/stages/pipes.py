@@ -117,23 +117,11 @@ def date_conf_pipe(tile_ids, **kwargs):
 def resample_date_conf_pipe(tiles, **kwargs):
 
     workers = kwargs["workers"]
-    pipe = (
-        tiles
-        | Stage(
-            resample, name="day_conf", resample_method="near", zoom=12, **kwargs
-        ).setup(workers=workers)
-        | Stage(
-            resample, name="day_conf", resample_method="mode", zoom=11, **kwargs
-        ).setup(workers=workers)
-        | Stage(
-            resample, name="day_conf", resample_method="mode", zoom=10, **kwargs
-        ).setup(workers=workers)
-        # | Stage(build_vrt, name="day_conf", zoom=10, **kwargs).setup(
-        #    workers=1
-        # )  # Important
-    )
-
-    for i in range(9, -1, -1):
+    max_zoom = kwargs["max_zoom"]
+    pipe = tiles | Stage(
+        resample, name="day_conf", resample_method="near", zoom=max_zoom, **kwargs
+    ).setup(workers=workers)
+    for i in range(max_zoom - 1, -1, -1):
         pipe = pipe | Stage(
             resample, name="day_conf", resample_method="mode", zoom=i, **kwargs
         ).setup(workers=workers)
@@ -147,24 +135,16 @@ def resample_date_conf_pipe(tiles, **kwargs):
 
 def intensity_pipe(tiles, **kwargs):
     workers = kwargs["workers"]
+    max_zoom = kwargs["max_zoom"]
     pipe = (
         tiles
         | Stage(unset_no_data_value).setup(workers=workers)
         | Stage(prep_intensity, name="day_conf", **kwargs).setup(workers=workers)
         | Stage(
-            resample, name="intensity", resample_method="near", zoom=12, **kwargs
+            resample, name="intensity", resample_method="near", zoom=max_zoom, **kwargs
         ).setup(workers=workers)
-        | Stage(
-            resample, name="intensity", resample_method="bilinear", zoom=11, **kwargs
-        ).setup(workers=workers)
-        | Stage(
-            resample, name="intensity", resample_method="bilinear", zoom=10, **kwargs
-        ).setup(workers=workers)
-        # | Stage(build_vrt, name="intensity", zoom=10, **kwargs).setup(
-        #     workers=1
-        # )  # Important
     )
-    for i in range(9, -1, -1):
+    for i in range(max_zoom - 1, -1, -1):
         pipe = pipe | Stage(
             resample, name="intensity", resample_method="bilinear", zoom=i, **kwargs
         ).setup(workers=workers)
