@@ -17,6 +17,8 @@ from stages.upload_tiles import (
     upload_preprocessed_tiles_s3,
     upload_day_conf_s3,
     upload_day_conf_s3_gfw_pro,
+    upload_vrt_s3,
+    upload_vrt_tiles_s3,
 )
 from stages.resample import resample
 from stages.tiles import (
@@ -192,8 +194,8 @@ def copy_vrt_s3_pipe(**kwargs):
         | Stage(
             generate_vrt, kwargs["min_tile_zoom"], kwargs["max_zoom"], **kwargs
         ).setup(workers=workers)
-        # TODO: copy VRT and tiles to S3
-        #  s3://palm-risk-poc/data/glad/rgb z_9.vrt, z_10.vrt, z_11.vrt, z_12.vrt
+        | Stage(upload_vrt_s3, **kwargs).setup(workers=workers)
+        | Stage(upload_vrt_tiles_s3, zoom_tiles, **kwargs).setup(workers=workers)
     )
 
     for output in pipe.results():
