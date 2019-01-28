@@ -6,13 +6,19 @@ ENV USER gfw
 
 RUN adduser --shell /bin/bash --disabled-password --gecos "" $USER
 
-COPY requirements.txt /home/$USER/code/
-COPY setup.py /home/$USER/code
-COPY src /home/$USER/code/src
+COPY requirements.txt /home/$USER/
+COPY setup.py /home/$USER/
+COPY src /home/$USER/src
+COPY .aws  /home/$USER/.aws
+COPY .google  /home/$USER/.google
+
+ENV AWS_SHARED_CREDENTIALS_FILE /home/$USER/.aws/credentials
+ENV AWS_CONFIG_FILE /home/$USER/.aws/config
+ENV GOOGLE_APPLICATION_CREDENTIALS /home/$USER/.google/earthenginepartners-hansen.json
 
 RUN cd /usr/local/include && ln -s ./ gdal
-RUN cd /home/$USER/code && \
-    pip3 install -r /home/$USER/code/requirements.txt && \
+RUN cd /home/$USER && \
+    pip3 install -r /home/$USER/requirements.txt && \
     pip3 install -e . && \
     g++ src/cpp/add2.cpp -o /usr/bin/add2 -lgdal && \
     g++ src/cpp/build_rgb.cpp -o /usr/bin/build_rgb -lgdal && \
