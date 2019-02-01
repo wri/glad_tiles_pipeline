@@ -6,16 +6,23 @@ import logging
 
 
 # IMPORTANT to only use one (1) worker!
-def get_preprocessed_tiles(root, years, preprocessed_years):
+def get_preprocessed_tiles(root, include_years=None, exclude_years=None):
     preprocessed_tiles = list()
 
     for tile in glob.iglob(root + "/tiles/**/day_conf.tif", recursive=True):
         try:
-            year = int(PurePath(tile).parts[-2])
+            year = PurePath(tile).parts[-2]
 
-            if year not in years and year not in preprocessed_years:
-                preprocessed_tiles.append(tile)
-
+            if include_years and exclude_years:
+                if year in include_years and year not in exclude_years:
+                    preprocessed_tiles.append(tile)
+            elif include_years:
+                if year in include_years:
+                    preprocessed_tiles.append(tile)
+            elif exclude_years:
+                print(year)
+                if year not in exclude_years:
+                    preprocessed_tiles.append(tile)
         except ValueError:
             pass
 
@@ -142,6 +149,8 @@ def collect_day_conf_all_years(tiles, **kwargs):
     root = kwargs["root"]
     years = kwargs["years"]
     preprocessed_years = kwargs["preprocessed_years"]
+    # TODO: make sure that the right years are returned
+    # exclude_years = years + preprocessed_years
     preprocessed_tiles = get_preprocessed_tiles(root, years, preprocessed_years)
 
     tile_dicts = dict()

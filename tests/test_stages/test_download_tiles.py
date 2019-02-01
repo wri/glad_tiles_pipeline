@@ -1,4 +1,5 @@
 from stages.download_tiles import get_suffix, download_preprocessed_tiles_years
+from parallelpipe import Stage
 from helpers.utils import output_file
 import subprocess as sp
 from unittest import mock
@@ -27,21 +28,27 @@ def test_download_preprocessed_tiles_years(mock_sp, mock_path):
 
     mock_sp.check_call.return_value = sp.CalledProcessError
 
-    r = download_preprocessed_tiles_years(
-        tile_ids=tile_ids, preprocessed_years=preprocessed_years, root=root, name=name
+    pipe = tile_ids | Stage(
+        download_preprocessed_tiles_years,
+        preprocessed_years=preprocessed_years,
+        root=root,
+        name=name,
     )
 
-    for x in r.results():
+    for x in pipe.results():
         assert x == output
 
     # TODO: Is there a better way to check if nothing was returned?
     mock_sp.check_call.return_value = True
 
-    r = download_preprocessed_tiles_years(
-        tile_ids=tile_ids, preprocessed_years=preprocessed_years, root=root, name=name
+    pipe = tile_ids | Stage(
+        download_preprocessed_tiles_years,
+        preprocessed_years=preprocessed_years,
+        root=root,
+        name=name,
     )
 
     out = False
-    for x in r.results():
+    for x in pipe.results():
         out = True
     assert out is False

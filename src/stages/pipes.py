@@ -29,6 +29,7 @@ from stages.tiles import (
     generate_tilecache_config,
     generate_tiles,
 )
+from stages.export_csv import get_dataframe
 from stages.collectors import (
     collect_resampled_tiles,
     collect_rgb_tiles,
@@ -36,6 +37,7 @@ from stages.collectors import (
     collect_day_conf,
     collect_day_conf_all_years,
     collect_day_conf_pairs,
+    get_preprocessed_tiles,
 )
 
 from helpers.utils import get_pro_tiles
@@ -103,7 +105,7 @@ def date_conf_pipe(tile_ids, **kwargs):
         )
         | Stage(collect_day_conf_all_years, **kwargs).setup(workers=1)  # Important!
         | Stage(merge_years, name="day_conf", **kwargs).setup(workers=workers)
-        | Stage(upload_day_conf_s3, **kwargs).setup(workers=workers)
+        # | Stage(upload_day_conf_s3, **kwargs).setup(workers=workers)
         # | Stage(upload_day_conf_s3_gfw_pro, pro_tiles, **kwargs).setup(workers=workers)
     )
 
@@ -233,3 +235,18 @@ def tilecache_pipe(**kwargs):
     logging.info("Tilecache - Done")
 
     return
+
+
+def csv_export_pipe(**kwargs):
+
+    root = kwargs["root"]
+    years = kwargs["years"]
+    workers = kwargs["workers"]
+
+    day_conf_tiles = get_preprocessed_tiles(root, include_years=years)
+
+    pipe = day_conf_tiles | Stage(get_dataframe, **kwargs).setup(workers=workers)
+
+    for output in pipe.results():
+        logging.debug("Export CSV output: " + str(output))
+    logging.info("Export CSV - Done")

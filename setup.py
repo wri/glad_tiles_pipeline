@@ -16,6 +16,7 @@ setup(
         "numba",
         "numpy",
         "xmltodict",
+        "raster2points",
     ],
     # entry_points={"console_scripts": ["pixel_depth=utils.pixel_depth:main"]},
     scripts=[
