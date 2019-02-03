@@ -2,10 +2,7 @@ from osgeo import gdal
 from osgeo import osr
 import multiprocessing
 
-# from numba import jit
 
-
-# @jit
 def raster2array_large(rasterfn, return_cols_and_rows=False):
     """
     Modified from:
@@ -46,7 +43,6 @@ def raster2array_large(rasterfn, return_cols_and_rows=False):
             yield output
 
 
-# @jit
 def read_raster_with_block_size(rasterfn, j, i, cols, rows):
 
     ds = gdal.Open(rasterfn)
@@ -57,7 +53,6 @@ def read_raster_with_block_size(rasterfn, j, i, cols, rows):
     return data
 
 
-# @jit
 def get_no_data_vals(input_raster):
     raster = gdal.Open(input_raster)
     band_count = raster.RasterCount
@@ -73,7 +68,6 @@ def get_no_data_vals(input_raster):
     return nd_list
 
 
-# @jit
 def create_outfile(raster_template, output_raster, output_datatype, band_count):
     raster = gdal.Open(raster_template)
     geotransform = raster.GetGeoTransform()
@@ -85,7 +79,7 @@ def create_outfile(raster_template, output_raster, output_datatype, band_count):
     rows = raster.RasterYSize
 
     driver = gdal.GetDriverByName("GTiff")
-    options = ["COMPRESS=DEFLATE"]
+    options = ["COMPRESS=NONE"]
 
     band = raster.GetRasterBand(1)
     block_sizes = band.GetBlockSize()
