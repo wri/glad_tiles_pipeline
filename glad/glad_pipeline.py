@@ -7,7 +7,7 @@ from glad.pipes import (
     tilecache_pipe,
     csv_export_pipe,
 )
-from glad.stages.check_availablity import get_most_recent_day
+from glad.stages.collectors import get_most_recent_day
 from glad.utils.tiles import get_tile_ids_by_bbox
 from glad.utils.utils import get_data_root, get_parser, get_logger
 from typing import Dict, Any
