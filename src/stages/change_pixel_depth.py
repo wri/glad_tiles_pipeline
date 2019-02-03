@@ -16,7 +16,23 @@ def change_pixel_depth(tiles, **kwargs):
             f_name, year, folder, tile_id = file_details(tile)
 
             output = output_file(root, "tiles", tile_id, name, year, f_name)
-            cmd = ["pixel_depth.py", "-i", tile, "-o", output, "-d", "UInt16"]
+
+            cmd = [
+                "gdal_translate",
+                "-ot",
+                "UInt16",
+                "-a_nodata",
+                "0",
+                "-co",
+                "COMPRESS=NONE",
+                "-co",
+                "TILED=YES",
+                "-co",
+                "SPARSE_OK=TRUE",
+                tile,
+                output,
+            ]
+
             try:
                 logging.debug(cmd)
                 sp.check_call(cmd)
