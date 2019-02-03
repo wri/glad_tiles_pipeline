@@ -235,7 +235,7 @@ def get_logger(debug=True):
     :return: logger
     """
 
-    root = logging.getLogger()
+    root = logging.getLogger(__name__)
     if debug:
         root.setLevel(logging.DEBUG)
     else:

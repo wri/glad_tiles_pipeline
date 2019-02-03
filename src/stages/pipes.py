@@ -3,6 +3,8 @@ from stages.download_tiles import (
     download_latest_tiles,
     download_preprocessed_tiles_years,
     download_preprocessed_tiles_year,
+    download_emissions,
+    download_climate_mask,
 )
 from stages.change_pixel_depth import change_pixel_depth
 from stages.encode_glad import (
@@ -29,7 +31,7 @@ from stages.tiles import (
     generate_tilecache_config,
     generate_tiles,
 )
-from stages.export_csv import get_dataframe
+from stages.export_csv import get_dataframe, decode_day_conf, save_csv
 from stages.collectors import (
     collect_resampled_tiles,
     collect_rgb_tiles,
@@ -71,7 +73,7 @@ def preprocessed_tile_pipe(tile_ids, **kwargs):
         )
         | Stage(collect_day_conf, **kwargs).setup(workers=1)  # Important
         | Stage(merge_years, name="day_conf", **kwargs).setup(workers=workers)
-        | Stage(upload_preprocessed_tiles_s3, **kwargs).setup(workers=workers)
+        # | Stage(upload_preprocessed_tiles_s3, **kwargs).setup(workers=workers)
     )
 
     for output in pipe.results():
@@ -245,7 +247,16 @@ def csv_export_pipe(**kwargs):
 
     day_conf_tiles = get_preprocessed_tiles(root, include_years=years)
 
-    pipe = day_conf_tiles | Stage(get_dataframe, **kwargs).setup(workers=workers)
+    pipe = (
+        day_conf_tiles
+        | Stage(download_emissions, name="emissions", **kwargs).setup(workers=workers)
+        | Stage(download_climate_mask, name="climate_mask", **kwargs).setup(
+            workers=workers
+        )
+        | Stage(get_dataframe).setup(workers=workers)
+        | Stage(decode_day_conf).setup(workers=workers)
+        | Stage(save_csv, **kwargs).setup(workers=workers)
+    )
 
     for output in pipe.results():
         logging.debug("Export CSV output: " + str(output))

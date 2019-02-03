@@ -6,6 +6,7 @@ from stages.pipes import (
     rgb_pipe,
     copy_vrt_s3_pipe,
     tilecache_pipe,
+    csv_export_pipe,
 )
 from stages.check_availablity import get_most_recent_day
 from helpers.tiles import get_tile_ids_by_bbox
@@ -47,6 +48,11 @@ def main():
         "max_tilecache_zoom": args.max_tilecache_zoom,
         "num_tiles": args.num_tiles,
         "test": args.test,
+        "paths": {
+            "emissions": "s3://gfw2-data/climate/WHRC_biomass/WHRC_V4/t_co2_pixel/{top}_{left}_mt_co2_pixel_2000.tif",
+            "climate_mask": "s3://gfw2-data/forest_change/umd_landsat_alerts/archive/pipeline/climate/climate_mask/climate_mask_{top}_{left}.tif",
+            "preprocessed": "s3://gfw2-data/forest_change/umd_landsat_alerts/archive/tiles/{tile_id}/{product}{year}.tif",
+        },
     }
 
     try:
@@ -70,8 +76,9 @@ def main():
         resample_date_conf_pipe(date_conf_tiles, **kwargs)
         intensity_pipe(date_conf_tiles, **kwargs)
         rgb_pipe(**kwargs)
-        copy_vrt_s3_pipe(**kwargs)
+        # copy_vrt_s3_pipe(**kwargs)
         tilecache_pipe(**kwargs)
+        csv_export_pipe(**kwargs)
 
     finally:
         # TODO
