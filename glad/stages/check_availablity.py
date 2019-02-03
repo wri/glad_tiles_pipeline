@@ -1,4 +1,4 @@
-from helpers.utils import get_gs_bucket
+from glad.utils.utils import get_gs_bucket
 import datetime
 import logging
 

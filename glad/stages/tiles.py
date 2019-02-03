@@ -1,6 +1,6 @@
-from helpers.utils import output_file, output_mkdir, split_list
-from helpers.raster_utilities import get_scale_denominators
-from helpers.tiles import get_bbox_by_tile_id
+from glad.utils.utils import output_file, output_mkdir, split_list
+from glad.utils.raster_utilities import get_scale_denominators
+from glad.utils.tiles import get_bbox_by_tile_id
 from pathlib import Path, PurePath
 import xmltodict as xd
 import subprocess as sp

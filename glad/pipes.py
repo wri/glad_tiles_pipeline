@@ -1,21 +1,21 @@
 from parallelpipe import Stage
-from stages.download_tiles import (
+from glad.stages.download_tiles import (
     download_latest_tiles,
     download_preprocessed_tiles_years,
     download_preprocessed_tiles_year,
     download_emissions,
     download_climate_mask,
 )
-from stages.change_pixel_depth import change_pixel_depth
-from stages.encode_glad import (
+from glad.stages.change_pixel_depth import change_pixel_depth
+from glad.stages.encode_glad import (
     encode_date_conf,
     prep_intensity,
     unset_no_data_value,
     encode_rgb,
     project,
 )
-from stages.merge_tiles import combine_date_conf_pairs, merge_years
-from stages.upload_tiles import (
+from glad.stages.merge_tiles import combine_date_conf_pairs, merge_years
+from glad.stages.upload_tiles import (
     upload_preprocessed_tiles_s3,
     upload_day_conf_s3,
     upload_day_conf_s3_gfw_pro,
@@ -31,8 +31,8 @@ from stages.tiles import (
     generate_tilecache_config,
     generate_tiles,
 )
-from stages.export_csv import get_dataframe, decode_day_conf, save_csv
-from stages.collectors import (
+from glad.stages.export_csv import get_dataframe, decode_day_conf, save_csv
+from glad.stages.collectors import (
     collect_resampled_tiles,
     collect_rgb_tiles,
     collect_rgb_tile_ids,
@@ -42,7 +42,8 @@ from stages.collectors import (
     get_preprocessed_tiles,
 )
 
-from helpers.utils import get_pro_tiles
+from glad.utils.utils import get_pro_tiles
+
 
 import logging
 

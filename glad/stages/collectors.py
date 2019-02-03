@@ -1,6 +1,9 @@
-from helpers.utils import get_tile_id
+from glad.utils.utils import (
+    get_tile_id,
+    add_tile_to_dict,
+    add_preprocessed_tile_to_dict,
+)
 from pathlib import PurePath
-from helpers.utils import add_tile_to_dict, add_preprocessed_tile_to_dict
 import glob
 import logging
 

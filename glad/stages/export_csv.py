@@ -1,5 +1,5 @@
 from raster2points import raster2df
-from helpers.utils import output_file, file_details
+from glad.utils.utils import output_file, file_details
 import logging
 import math
 
