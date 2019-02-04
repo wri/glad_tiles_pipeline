@@ -2,10 +2,10 @@ from glad.utils.utils import (
     output_file,
     preprocessed_years_str,
     get_suffix,
-    get_gs_bucket,
     get_tile_id,
 )
 from glad.utils.tiles import get_bbox_by_tile_id, get_latitude, get_longitude
+from glad.utils.google import get_gs_bucket
 import subprocess as sp
 import logging
 

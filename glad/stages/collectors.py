@@ -1,33 +1,35 @@
+from google.cloud.storage.bucket import Bucket
 from glad.utils.utils import (
     get_tile_id,
     add_tile_to_dict,
     add_preprocessed_tile_to_dict,
 )
 from pathlib import PurePath
-from glad.utils.utils import get_gs_bucket
+from glad.utils.google import get_gs_bucket
+from typing import Dict, Any, List, Tuple
 import datetime
 import glob
 import logging
 
 
-def get_most_recent_day(**kwargs):
+def get_most_recent_day(**kwargs: Any) -> Tuple[str, List[str]]:
 
-    tile_ids = kwargs["tile_ids"]
-    years = kwargs["years"]
-    num_tiles = kwargs["num_tiles"]
-    today = datetime.datetime.today()
+    tile_ids: List[str] = kwargs["tile_ids"]
+    years: List[int] = kwargs["years"]
+    num_tiles: int = kwargs["num_tiles"]
+    today: datetime.datetime = datetime.datetime.today()
 
     # check for most recent day of GLAD data
     for day_offset in range(0, 11):
-        process_date = (today - datetime.timedelta(days=day_offset)).strftime(
+        process_date: str = (today - datetime.timedelta(days=day_offset)).strftime(
             "%Y/%m_%d"
         )
 
-        available_tiles = _check_tifs_exist(process_date, tile_ids, years)
+        available_tiles: List[str] = _check_tifs_exist(process_date, tile_ids, years)
         if len(available_tiles) == num_tiles:
             return process_date, available_tiles
 
-    msg = (
+    msg: str = (
         "Checked GCS for last 10 days - none had all {} tiled TIFs. "
         "You may want to verify the argument value for --num_tiles".format(num_tiles)
     )
@@ -35,35 +37,39 @@ def get_most_recent_day(**kwargs):
     raise ValueError(msg)
 
 
-def _check_tifs_exist(process_date, tile_ids, years):
+def _check_tifs_exist(
+    process_date: str, tile_ids: List[str], years: List[int]
+) -> List[str]:
 
-    bucket = get_gs_bucket()
+    bucket: Bucket = get_gs_bucket()
 
-    name_list = [
+    name_list: List[str] = [
         blob.name
         for blob in bucket.list_blobs(prefix="GLADalert/{}".format(process_date))
     ]
 
     logging.debug("Available TIFFS: " + str(name_list))
-    available_tiles = list()
+    available_tiles: List[str] = list()
 
     for tile_id in tile_ids:
-        c = 0
+        c: int = 0
         for year in years:
 
-            year_dig = str(year)[2:]
+            year_dig: str = str(year)[2:]
 
-            conf_str = "GLADalert/{0}/alert{1}_{2}.tif".format(
+            conf_str: str = "GLADalert/{0}/alert{1}_{2}.tif".format(
                 process_date, year_dig, tile_id
             )
             logging.debug("Checking for TIFF: " + conf_str)
 
-            alert_str = "GLADalert/{0}/alertDate{1}_{2}.tif".format(
+            alert_str: str = "GLADalert/{0}/alertDate{1}_{2}.tif".format(
                 process_date, year_dig, tile_id
             )
             logging.debug("Checking for TIFF: " + alert_str)
 
-            filtered_names = [x for x in name_list if conf_str in x or alert_str in x]
+            filtered_names: List[str] = [
+                x for x in name_list if conf_str in x or alert_str in x
+            ]
             logging.debug("Found: " + str(filtered_names))
 
             # if both alert and conf rasters exist, tile is ready to download
@@ -230,7 +236,7 @@ def collect_day_conf_all_years(tiles, **kwargs):
     preprocessed_years = kwargs["preprocessed_years"]
     # TODO: make sure that the right years are returned
     # exclude_years = years + preprocessed_years
-    preprocessed_tiles = get_preprocessed_tiles(root, years, preprocessed_years)
+    preprocessed_tiles = get_preprocessed_tiles(root, exclude_years=preprocessed_years)
 
     tile_dicts = dict()
     for tile in tiles:

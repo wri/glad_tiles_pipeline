@@ -1,7 +1,5 @@
 from pathlib import Path, PurePath
 from datetime import datetime
-from google.cloud import storage
-from google.auth.exceptions import TransportError
 import subprocess as sp
 import glob
 import re
@@ -273,23 +271,6 @@ def get_suffix(product):
         return "Date"
     else:
         return ""
-
-
-def get_gs_bucket():
-    tries = 0
-    success = False
-    while tries < 10 or not success:
-        try:
-            client = storage.Client()
-            bucket = client.bucket("earthenginepartners-hansen")
-        except TransportError as e:
-            time.sleep(10)
-            tries += 1
-            if tries == 10:
-                raise e
-        else:
-            success = True
-            return bucket
 
 
 def get_pro_tiles():
