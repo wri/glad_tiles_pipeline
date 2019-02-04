@@ -9,18 +9,22 @@ from glad.pipes import (
 )
 from glad.stages.collectors import get_most_recent_day
 from glad.utils.tiles import get_tile_ids_by_bbox
-from glad.utils.utils import get_data_root, get_parser, get_logger
+from glad.utils.utils import get_data_root
 from typing import Dict, Any
 import os
 import shutil
 import logging
+import sys
+import multiprocessing
+import argparse
+from datetime import datetime
 
 
 def main():
 
-    args = get_parser()
+    args = _get_parser()
 
-    get_logger(debug=args.debug)
+    _get_logger(debug=args.debug)
 
     if not args.ignore_preprocessed_years:
         preprocessed_years = range(2015, min(args.years))
@@ -62,21 +66,21 @@ def main():
         logging.error("Cannot find recently processes tiles. Aborting")
     else:
 
-        if os.path.exists(root):
-            # ignore_errors true will allow us to mount the data directory as a docker volume.
-            # If not set, this will though an IOError b/c it won't be able to delete mounted volume
-            # Data inside the directory/ volume - if any - will still be removed
-            shutil.rmtree(root, ignore_errors=True)
+        #    if os.path.exists(root):
+        # ignore_errors true will allow us to mount the data directory as a docker volume.
+        # If not set, this will though an IOError b/c it won't be able to delete mounted volume
+        # Data inside the directory/ volume - if any - will still be removed
+        #       shutil.rmtree(root, ignore_errors=True)
 
         # TODO
         #  add some logic to skip preprocssing step incase igonore_preprocessed_tiles is true
-        preprocessed_tile_pipe(tile_ids=tile_ids, **kwargs)
-        date_conf_tiles = date_conf_pipe(tile_ids, **kwargs)
-        resample_date_conf_pipe(date_conf_tiles, **kwargs)
-        intensity_pipe(date_conf_tiles, **kwargs)
-        rgb_pipe(**kwargs)
+        #   preprocessed_tile_pipe(tile_ids=tile_ids, **kwargs)
+        #   date_conf_tiles = date_conf_pipe(tile_ids, **kwargs)
+        #   resample_date_conf_pipe(date_conf_tiles, **kwargs)
+        #   intensity_pipe(date_conf_tiles, **kwargs)
+        #  rgb_pipe(**kwargs)
         # copy_vrt_s3_pipe(**kwargs)
-        tilecache_pipe(**kwargs)
+        #   tilecache_pipe(**kwargs)
         csv_export_pipe(**kwargs)
 
     finally:
@@ -84,6 +88,139 @@ def main():
         #  copy all files to S3, including log files
         #  Shut down server
         pass
+
+
+def _get_parser():
+    """
+    Build parser for command line input
+    :return: Parser for command line input
+    """
+    parser = argparse.ArgumentParser(description="Change the data type of a raster.")
+
+    parser.add_argument(
+        "--workers",
+        "-w",
+        type=int,
+        default=int(multiprocessing.cpu_count() / 2),
+        help="Maximum number of workers per stage",
+    )
+    parser.add_argument(
+        "--bbox",
+        "-b",
+        type=int,
+        nargs="+",
+        default=[-120, -40, 180, 30],
+        help="Bounding box for area to process (left, bottom, right, top)",
+    )
+    parser.add_argument(
+        "--years", "-y", nargs="+", default=get_current_years(), help="Years to process"
+    )
+    parser.add_argument(
+        "--ignore_preprocessed_years",
+        type=str2bool,
+        nargs="?",
+        default=False,
+        const=True,
+        help="Ignore preprocessed years prior to years to process",
+    )
+    parser.add_argument(
+        "--debug",
+        type=str2bool,
+        nargs="?",
+        const=True,
+        default=False,
+        help="Activate debug mode.",
+    )
+
+    parser.add_argument(
+        "--include_russia",
+        type=str2bool,
+        nargs="?",
+        const=True,
+        default=False,
+        help="Activate debug mode.",
+    )
+
+    parser.add_argument(
+        "--test",
+        type=str2bool,
+        nargs="?",
+        const=True,
+        default=False,
+        help="Tun as test - will not copy any data to S3.",
+    )
+
+    parser.add_argument("--max_zoom", type=int, default=12, help="Maximum zoom level")
+    parser.add_argument(
+        "--min_tile_zoom",
+        type=int,
+        default=10,
+        help="Minimum zoom level for 10x10 degree tiles",
+    )
+    parser.add_argument(
+        "--max_tilecache_zoom",
+        type=int,
+        default=8,
+        help="Maximum zoom level for building tilecache",
+    )
+    parser.add_argument("--min_zoom", type=int, default=0, help="Minimum zoom level")
+    parser.add_argument(
+        "--num_tiles",
+        "-n",
+        type=int,
+        default=115,
+        help="Number of expected input tiles",
+    )
+
+    return parser.parse_args()
+
+
+def _get_logger(debug=True):
+    """
+    Build logger
+    :param debug: Set Log Level to Debug or Info
+    :return: logger
+    """
+
+    root = logging.getLogger()
+    if debug:
+        root.setLevel(logging.DEBUG)
+    else:
+        root.setLevel(logging.INFO)
+
+    handler = logging.StreamHandler(sys.stdout)
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
+    handler.setFormatter(formatter)
+
+    root.addHandler(handler)
+    return root
+
+
+def str2bool(v):
+    """
+    Convert various strings to boolean
+    :param v: String
+    :return: Boolean
+    """
+    if v.lower() in ("yes", "true", "t", "y", "1"):
+        return True
+    elif v.lower() in ("no", "false", "f", "n", "0"):
+        return False
+    else:
+        raise argparse.ArgumentTypeError("Boolean value expected.")
+
+
+def get_current_years():
+    now = datetime.now()
+    year = now.year
+    month = now.month
+
+    if month < 7:
+        return [year - 1, year]
+    else:
+        return [year]
 
 
 if __name__ == "__main__":

@@ -105,7 +105,6 @@ def get_preprocessed_tiles(root, include_years=None, exclude_years=None):
                 if year in include_years:
                     preprocessed_tiles.append(tile)
             elif exclude_years:
-                print(year)
                 if year not in exclude_years:
                     preprocessed_tiles.append(tile)
         except ValueError:

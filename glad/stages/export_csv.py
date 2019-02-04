@@ -57,6 +57,7 @@ def decode_day_conf(tile_dfs):
         tile_id = tile_df[1]
         df = tile_df[2]
 
+        logging.info("Decode day/conf value for tile: " + tile_id)
         df["confidence"], df["year"], df["julian_day"] = zip(
             *map(_decode_day_conf, df[day_conf])
         )
@@ -76,11 +77,13 @@ def save_csv(tile_dfs, **kwargs):
 
         output = output_file(root, "output", "csv", year, tile_id + ".csv")
 
+        logging.info("Save file: " + output)
+
         df.to_csv(
             output,
             index=False,
             columns=(
-                "long",
+                "lon",
                 "lat",
                 "confidence",
                 "year",

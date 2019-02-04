@@ -243,7 +243,7 @@ def tilecache_pipe(**kwargs):
 def csv_export_pipe(**kwargs):
 
     root = kwargs["root"]
-    years = kwargs["years"]
+    years = [str(year) for year in kwargs["years"]]
     workers = kwargs["workers"]
 
     day_conf_tiles = get_preprocessed_tiles(root, include_years=years)

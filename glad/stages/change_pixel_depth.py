@@ -24,7 +24,7 @@ def change_pixel_depth(tiles, **kwargs):
                 "-a_nodata",
                 "0",
                 "-co",
-                "COMPRESS=NONE",
+                "COMPRESS=LZW",
                 "-co",
                 "TILED=YES",
                 "-co",

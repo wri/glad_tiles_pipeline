@@ -121,12 +121,17 @@ def download_emissions(tiles, **kwargs):
         top = get_latitude(top)
         left = get_longitude(left)
 
+        cmd = ["aws", "s3", "cp", s3_url.format(top=top, left=left), output]
+
         try:
-            sp.check_call(["aws", "s3", "cp", s3_url.format(top, left), output])
+            logging.debug("Download file: " + s3_url.format(top=top, left=left))
+            sp.check_call(cmd)
         except sp.CalledProcessError:
-            logging.warning("Failed to download file: " + s3_url.format(top, left))
+            logging.warning(
+                "Failed to download file: " + s3_url.format(top=top, left=left)
+            )
         else:
-            logging.info("Downloaded file: " + s3_url.format(top, left))
+            logging.info("Downloaded file: " + s3_url.format(top=top, left=left))
             yield tile, output
 
 
@@ -144,12 +149,17 @@ def download_climate_mask(tile_pairs, **kwargs):
         left = get_longitude(left)
 
         try:
-            sp.check_call(["aws", "s3", "cp", s3_url.format(top, left), output])
+            logging.debug("Download file: " + s3_url.format(top=top, left=left))
+            sp.check_call(
+                ["aws", "s3", "cp", s3_url.format(top=top, left=left), output]
+            )
         except sp.CalledProcessError:
-            logging.warning("Failed to download file: " + s3_url.format(top, left))
+            logging.warning(
+                "Failed to download file: " + s3_url.format(top=top, left=left)
+            )
             yield tile_pair[0], tile_pair[
                 1
             ], None  # Climate mask doesn't exist for all tiles
         else:
-            logging.info("Downloaded file: " + s3_url.format(top, left))
+            logging.info("Downloaded file: " + s3_url.format(top=top, left=left))
             yield tile_pair[0], tile_pair[1], output

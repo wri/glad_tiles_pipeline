@@ -3,11 +3,6 @@ from datetime import datetime
 import subprocess as sp
 import glob
 import re
-import argparse
-import logging
-import sys
-import time
-import multiprocessing
 
 
 def output_mkdir(*path):
@@ -118,20 +113,6 @@ def sort_dict(tile_dict):
     return sorted_list
 
 
-def str2bool(v):
-    """
-    Convert various strings to boolean
-    :param v: String
-    :return: Boolean
-    """
-    if v.lower() in ("yes", "true", "t", "y", "1"):
-        return True
-    elif v.lower() in ("no", "false", "f", "n", "0"):
-        return False
-    else:
-        raise argparse.ArgumentTypeError("Boolean value expected.")
-
-
 def get_data_root():
     """
     Get data root based on current working directory
@@ -141,129 +122,10 @@ def get_data_root():
     return cwd.parent.joinpath("data").as_posix()
 
 
-def get_parser():
-    """
-    Build parser for command line input
-    :return: Parser for command line input
-    """
-    parser = argparse.ArgumentParser(description="Change the data type of a raster.")
-
-    parser.add_argument(
-        "--workers",
-        "-w",
-        type=int,
-        default=int(multiprocessing.cpu_count() / 2),
-        help="Maximum number of workers per stage",
-    )
-    parser.add_argument(
-        "--bbox",
-        "-b",
-        type=int,
-        nargs="+",
-        default=[-120, -40, 180, 30],
-        help="Bounding box for area to process (left, bottom, right, top)",
-    )
-    parser.add_argument(
-        "--years", "-y", nargs="+", default=get_current_years(), help="Years to process"
-    )
-    parser.add_argument(
-        "--ignore_preprocessed_years",
-        type=str2bool,
-        nargs="?",
-        default=False,
-        const=True,
-        help="Ignore preprocessed years prior to years to process",
-    )
-    parser.add_argument(
-        "--debug",
-        type=str2bool,
-        nargs="?",
-        const=True,
-        default=False,
-        help="Activate debug mode.",
-    )
-
-    parser.add_argument(
-        "--include_russia",
-        type=str2bool,
-        nargs="?",
-        const=True,
-        default=False,
-        help="Activate debug mode.",
-    )
-
-    parser.add_argument(
-        "--test",
-        type=str2bool,
-        nargs="?",
-        const=True,
-        default=False,
-        help="Tun as test - will not copy any data to S3.",
-    )
-
-    parser.add_argument("--max_zoom", type=int, default=12, help="Maximum zoom level")
-    parser.add_argument(
-        "--min_tile_zoom",
-        type=int,
-        default=10,
-        help="Minimum zoom level for 10x10 degree tiles",
-    )
-    parser.add_argument(
-        "--max_tilecache_zoom",
-        type=int,
-        default=8,
-        help="Maximum zoom level for building tilecache",
-    )
-    parser.add_argument("--min_zoom", type=int, default=0, help="Minimum zoom level")
-    parser.add_argument(
-        "--num_tiles",
-        "-n",
-        type=int,
-        default=115,
-        help="Number of expected input tiles",
-    )
-
-    return parser.parse_args()
-
-
-def get_logger(debug=True):
-    """
-    Build logger
-    :param debug: Set Log Level to Debug or Info
-    :return: logger
-    """
-
-    root = logging.getLogger(__name__)
-    if debug:
-        root.setLevel(logging.DEBUG)
-    else:
-        root.setLevel(logging.INFO)
-
-    handler = logging.StreamHandler(sys.stdout)
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
-    handler.setFormatter(formatter)
-
-    root.addHandler(handler)
-    return root
-
-
 def split_list(l, n):
     """Yield successive n-sized chunks from l."""
     for i in range(0, len(l), n):
         yield l[i : i + n]
-
-
-def get_current_years():
-    now = datetime.now()
-    year = now.year
-    month = now.month
-
-    if month < 7:
-        return [year - 1, year]
-    else:
-        return [year]
 
 
 def get_suffix(product):
