@@ -9,6 +9,7 @@ RUN adduser --shell /bin/bash --disabled-password --gecos "" $USER
 COPY requirements.txt /home/$USER/
 COPY setup.py /home/$USER/
 COPY glad /home/$USER/glad
+COPY cpp /home/$USER/cpp
 COPY .aws  /home/$USER/.aws
 COPY .google  /home/$USER/.google
 
