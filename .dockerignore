@@ -1,0 +1,14 @@
+Dockerfile
+.git
+.gitignore
+*.egg-info
+.pre-commit-config.yaml
+README.md
+/venv/
+/data/
+/.mypy_cache
+
+
+# To prevent storing dev/temporary container data
+*.csv
+/tmp/*
