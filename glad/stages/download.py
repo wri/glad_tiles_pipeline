@@ -163,3 +163,26 @@ def download_climate_mask(tile_pairs, **kwargs):
         else:
             logging.info("Downloaded file: " + s3_url.format(top=top, left=left))
             yield tile_pair[0], tile_pair[1], output
+
+
+def download_stats_db(**kwargs):
+    """
+    Downloads stats_db from S3 and stores it in data/db folder
+    :param kwargs: global keyword arguments
+    :return: location of stats.db
+    """
+    root = kwargs["root"]
+    s3_url = kwargs["paths"]["stats_db"]
+    output = output_file(root, "db", "stats.db")
+
+    cmd = ["aws", "s3", "cp", s3_url, output]
+
+    try:
+        logging.debug("Download file: " + s3_url)
+        sp.check_call(cmd)
+    except sp.CalledProcessError as e:
+        logging.warning("Failed to download file: " + s3_url)
+        raise e
+    else:
+        logging.info("Downloaded file: " + s3_url)
+        return output

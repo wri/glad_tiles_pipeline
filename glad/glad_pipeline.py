@@ -55,6 +55,7 @@ def main():
             "emissions": "s3://gfw2-data/climate/WHRC_biomass/WHRC_V4/t_co2_pixel/{top}_{left}_mt_co2_pixel_2000.tif",
             "climate_mask": "s3://gfw2-data/forest_change/umd_landsat_alerts/archive/pipeline/climate/climate_mask/climate_mask_{top}_{left}.tif",
             "preprocessed": "s3://gfw2-data/forest_change/umd_landsat_alerts/archive/tiles/{tile_id}/{product}{year}.tif",
+            "stats_db": "s3://palm-risk-poc/data/mvt/stats.db",
         },
     }
 

@@ -1,10 +1,11 @@
 from parallelpipe import Stage
-from glad.stages.download_tiles import (
+from glad.stages.download import (
     download_latest_tiles,
     download_preprocessed_tiles_years,
     download_preprocessed_tiles_year,
     download_emissions,
     download_climate_mask,
+    download_stats_db,
 )
 from glad.stages.change_pixel_depth import change_pixel_depth
 from glad.stages.encode_glad import (
@@ -22,8 +23,8 @@ from glad.stages.upload_tiles import (
     upload_vrt_s3,
     upload_vrt_tiles_s3,
 )
-from stages.resample import resample
-from stages.tiles import (
+from glad.stages.resample import resample
+from glad.stages.tiles import (
     generate_tile_list,
     save_tile_lists,
     generate_vrt,
@@ -41,6 +42,8 @@ from glad.stages.collectors import (
     collect_day_conf_pairs,
     get_preprocessed_tiles,
 )
+
+from glad.stages.tile_db import delete_current_years, create_vector_tiles
 
 from glad.utils.utils import get_pro_tiles
 
@@ -248,6 +251,9 @@ def csv_export_pipe(**kwargs):
 
     day_conf_tiles = get_preprocessed_tiles(root, include_years=years)
 
+    stats_db = download_stats_db(**kwargs)
+    delete_current_years(stats_db, **kwargs)
+
     pipe = (
         day_conf_tiles
         | Stage(download_emissions, name="emissions", **kwargs).setup(workers=workers)
@@ -257,8 +263,21 @@ def csv_export_pipe(**kwargs):
         | Stage(get_dataframe).setup(workers=workers)
         | Stage(decode_day_conf).setup(workers=workers)
         | Stage(save_csv, **kwargs).setup(workers=workers)
+        | Stage(create_vector_tiles, **kwargs).setup(workers=workers)
     )
 
     for output in pipe.results():
         logging.debug("Export CSV output: " + str(output))
     logging.info("Export CSV - Done")
+
+
+def vector_tiles(csv, **kwargs):
+    pass
+    # stats_db = download_stats_db(**kwargs)
+    # delete_current_years(stats_db, **kwargs)
+
+    # pipe = csv | create_vector_tiles(**kwargs)
+
+    # reindex
+    # update latest
+    # vacuum
