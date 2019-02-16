@@ -16,6 +16,7 @@ setup(
         "numpy",
         "xmltodict",
         "raster2points",
+        "mercantile",
     ],
     scripts=[
         "glad/glad_pipeline.py",

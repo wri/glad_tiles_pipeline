@@ -5,6 +5,7 @@ from glad.pipes import (
     intensity_pipe,
     rgb_pipe,
     tilecache_pipe,
+    download_climate_data,
     csv_export_pipe,
 )
 from glad.stages.collectors import get_most_recent_day
@@ -75,13 +76,14 @@ def main():
 
         # TODO
         #  add some logic to skip preprocssing step incase igonore_preprocessed_tiles is true
-        preprocessed_tile_pipe(tile_ids=tile_ids, **kwargs)
+        preprocessed_tile_pipe(tile_ids, **kwargs)
         date_conf_tiles = date_conf_pipe(tile_ids, **kwargs)
         resample_date_conf_pipe(date_conf_tiles, **kwargs)
         intensity_pipe(date_conf_tiles, **kwargs)
         rgb_pipe(**kwargs)
         # copy_vrt_s3_pipe(**kwargs)
         tilecache_pipe(**kwargs)
+        download_climate_data(tile_ids, **kwargs)
         csv_export_pipe(**kwargs)
 
     finally:
@@ -150,7 +152,7 @@ def _get_parser():
         default=False,
         help="Tun as test - will not copy any data to S3.",
     )
-
+    parser.add_argument("--min_zoom", type=int, default=0, help="Minimum zoom level")
     parser.add_argument("--max_zoom", type=int, default=12, help="Maximum zoom level")
     parser.add_argument(
         "--min_tile_zoom",
@@ -164,7 +166,6 @@ def _get_parser():
         default=8,
         help="Maximum zoom level for building tilecache",
     )
-    parser.add_argument("--min_zoom", type=int, default=0, help="Minimum zoom level")
     parser.add_argument(
         "--num_tiles",
         "-n",

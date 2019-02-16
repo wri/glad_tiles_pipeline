@@ -4,7 +4,7 @@ from glad.utils.utils import (
     add_tile_to_dict,
     add_preprocessed_tile_to_dict,
 )
-from pathlib import PurePath
+from pathlib import PurePath, PosixPath
 from glad.utils.google import get_gs_bucket
 from typing import Dict, Any, List, Tuple
 import datetime
@@ -35,59 +35,6 @@ def get_most_recent_day(**kwargs: Any) -> Tuple[str, List[str]]:
     )
     logging.error(msg)
     raise ValueError(msg)
-
-
-def _check_tifs_exist(
-    process_date: str, tile_ids: List[str], years: List[int]
-) -> List[str]:
-
-    bucket: Bucket = get_gs_bucket()
-
-    name_list: List[str] = [
-        blob.name
-        for blob in bucket.list_blobs(prefix="GLADalert/{}".format(process_date))
-    ]
-
-    logging.debug("Available TIFFS: " + str(name_list))
-    available_tiles: List[str] = list()
-
-    for tile_id in tile_ids:
-        c: int = 0
-        for year in years:
-
-            year_dig: str = str(year)[2:]
-
-            conf_str: str = "GLADalert/{0}/alert{1}_{2}.tif".format(
-                process_date, year_dig, tile_id
-            )
-            logging.debug("Checking for TIFF: " + conf_str)
-
-            alert_str: str = "GLADalert/{0}/alertDate{1}_{2}.tif".format(
-                process_date, year_dig, tile_id
-            )
-            logging.debug("Checking for TIFF: " + alert_str)
-
-            filtered_names: List[str] = [
-                x for x in name_list if conf_str in x or alert_str in x
-            ]
-            logging.debug("Found: " + str(filtered_names))
-
-            # if both alert and conf rasters exist, tile is ready to download
-            if len(filtered_names) == 2:
-                c += 1
-
-        # TODO: Need to see if it's better to check for == or >=
-        #  currently checking for >= b/c it add some more flexibility incase new tiles were added
-        if c >= len(years):
-            available_tiles.append(tile_id)
-
-    logging.info(
-        "Day {} has {} tiles for years {}".format(
-            process_date, len(available_tiles), years
-        )
-    )
-
-    return available_tiles
 
 
 # IMPORTANT to only use one (1) worker!
@@ -255,3 +202,90 @@ def collect_day_conf_all_years(tiles, **kwargs):
     for key, value in tile_dicts.items():
         if len(value) < len(years) + 1:
             logging.warning("Could not create pair for: " + key)
+
+
+def match_emissions(tiles, **kwargs):
+    root = kwargs["root"]
+    name = kwargs["name"]
+
+    for tile in tiles:
+        tile_id = get_tile_id(tile)
+
+        path = PurePath(root, "climate", name, tile_id + ".tif")
+        if PosixPath(path).exists():
+            logging.info("Found matching emission file: " + path.as_posix())
+            yield tile, path.as_posix()
+        else:
+            logging.warning("Could not fine file: " + path.as_posix())
+            raise FileNotFoundError
+
+
+def match_climate_mask(tile_pairs, **kwargs):
+    root = kwargs["root"]
+    name = kwargs["name"]
+
+    for tile_pair in tile_pairs:
+
+        tile_id = get_tile_id(tile_pair[0])
+
+        path = PurePath(root, "climate", name, tile_id + ".tif")
+        if PosixPath(path).exists():
+            logging.info("Found matching emission file: " + path.as_posix())
+            yield tile_pair[0], tile_pair[1], path.as_posix()
+        else:
+            # Not all tiles have a corresponding climate mask
+            logging.warning("Could not fine file: " + path.as_posix())
+            yield tile_pair[0], tile_pair[1], None
+
+
+def _check_tifs_exist(
+    process_date: str, tile_ids: List[str], years: List[int]
+) -> List[str]:
+
+    bucket: Bucket = get_gs_bucket()
+
+    name_list: List[str] = [
+        blob.name
+        for blob in bucket.list_blobs(prefix="GLADalert/{}".format(process_date))
+    ]
+
+    logging.debug("Available TIFFS: " + str(name_list))
+    available_tiles: List[str] = list()
+
+    for tile_id in tile_ids:
+        c: int = 0
+        for year in years:
+
+            year_dig: str = str(year)[2:]
+
+            conf_str: str = "GLADalert/{0}/alert{1}_{2}.tif".format(
+                process_date, year_dig, tile_id
+            )
+            logging.debug("Checking for TIFF: " + conf_str)
+
+            alert_str: str = "GLADalert/{0}/alertDate{1}_{2}.tif".format(
+                process_date, year_dig, tile_id
+            )
+            logging.debug("Checking for TIFF: " + alert_str)
+
+            filtered_names: List[str] = [
+                x for x in name_list if conf_str in x or alert_str in x
+            ]
+            logging.debug("Found: " + str(filtered_names))
+
+            # if both alert and conf rasters exist, tile is ready to download
+            if len(filtered_names) == 2:
+                c += 1
+
+        # TODO: Need to see if it's better to check for == or >=
+        #  currently checking for >= b/c it add some more flexibility incase new tiles were added
+        if c >= len(years):
+            available_tiles.append(tile_id)
+
+    logging.info(
+        "Day {} has {} tiles for years {}".format(
+            process_date, len(available_tiles), years
+        )
+    )
+
+    return available_tiles

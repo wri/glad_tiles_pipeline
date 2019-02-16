@@ -13,3 +13,4 @@ uuid
 mapbox-vector-tile
 TileStache
 raster2points
+mercantile

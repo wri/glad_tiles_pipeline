@@ -109,15 +109,23 @@ def download_preprocessed_tiles_year(tile_ids, **kwargs):
                     yield output
 
 
-def download_emissions(tiles, **kwargs):
+def download_emissions(tile_ids, **kwargs):
+    """
+    Downloads carbon emission tiles from S3
+    :param tile_ids: list of tile ids to download
+    :param kwargs: global keyword arguments
+    :return: outfile or input tile_id
+    """
     root = kwargs["root"]
     name = kwargs["name"]
     s3_url = kwargs["paths"]["emissions"]
+    return_input = kwargs["return_input"]
 
-    for tile in tiles:
-        tile_id = get_tile_id(tile)
-        left, bottom, right, top = get_bbox_by_tile_id(tile_id)
+    for tile_id in tile_ids:
+
         output = output_file(root, "climate", name, tile_id + ".tif")
+
+        left, bottom, right, top = get_bbox_by_tile_id(tile_id)
         top = get_latitude(top)
         left = get_longitude(left)
 
@@ -132,19 +140,31 @@ def download_emissions(tiles, **kwargs):
             )
         else:
             logging.info("Downloaded file: " + s3_url.format(top=top, left=left))
-            yield tile, output
+            if not return_input:
+                yield output
+        finally:
+            if return_input:
+                yield tile_id
 
 
-def download_climate_mask(tile_pairs, **kwargs):
+def download_climate_mask(tile_ids, **kwargs):
+    """
+    Downloads climate mask from S3
+    Not all tiles have a climate mask!
+    :param tile_ids: list of tile ids to download
+    :param kwargs: global keyword arguments
+    :return: outfile or input tile_id
+    """
     root = kwargs["root"]
     name = kwargs["name"]
     s3_url = kwargs["paths"]["climate_mask"]
+    return_input = kwargs["return_input"]
 
-    for tile_pair in tile_pairs:
-        tile = tile_pair[0]
-        tile_id = get_tile_id(tile)
-        left, bottom, right, top = get_bbox_by_tile_id(tile_id)
+    for tile_id in tile_ids:
+
         output = output_file(root, "climate", name, tile_id + ".tif")
+
+        left, bottom, right, top = get_bbox_by_tile_id(tile_id)
         top = get_latitude(top)
         left = get_longitude(left)
 
@@ -157,12 +177,13 @@ def download_climate_mask(tile_pairs, **kwargs):
             logging.warning(
                 "Failed to download file: " + s3_url.format(top=top, left=left)
             )
-            yield tile_pair[0], tile_pair[
-                1
-            ], None  # Climate mask doesn't exist for all tiles
         else:
             logging.info("Downloaded file: " + s3_url.format(top=top, left=left))
-            yield tile_pair[0], tile_pair[1], output
+            if not return_input:
+                yield output
+        finally:
+            if return_input:
+                yield tile_id
 
 
 def download_stats_db(**kwargs):

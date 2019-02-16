@@ -3,6 +3,8 @@ from pathlib import PurePosixPath
 import subprocess as sp
 import sqlite3
 import logging
+import datetime
+import mercantile
 
 
 def delete_current_years(db, **kwargs):
