@@ -84,7 +84,6 @@ def convert_julian_date(tile_dfs):
         df["alert_date"] = df["year"].map(
             lambda year: datetime.datetime(year, 1, 1)
         ) + df["julian_day"].map(lambda julian_day: datetime.timedelta(julian_day - 1))
-        # pd.Series.map() = zip(*map(_convert_julian_date, df["year"], df["julian_day"]))
         df["alert_count"] = 1
         df = df.drop(columns=["year", "julian_day", "area", "val1", "val2"])
         yield year, tile_id, df
@@ -135,16 +134,6 @@ def convert_to_parent_xyz(tile_dfs):
         )
 
         yield year, tile_id, df
-
-
-def _convert_julian_date(year, julian_day):
-
-    d = datetime.datetime(year, 1, 1) + datetime.timedelta(julian_day - 1)
-
-    # return a 1d tuple so that we can zip it.
-    # There might be better ways to map functions over a single column
-    # but I haven't figured it out yet
-    return (d.strftime("%Y-%m-%d"),)
 
 
 def _decode_day_conf(value, baseyear=2015):
