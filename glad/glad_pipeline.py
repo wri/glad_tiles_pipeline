@@ -189,6 +189,15 @@ def _get_logger(debug=True):
     :param debug: Set Log Level to Debug or Info
     :return: logger
     """
+    now = datetime.now()
+
+    # TODO: use SysLogHandler instead of FileHandler
+    #  https://stackoverflow.com/questions/36762016/best-practice-to-write-logs-in-var-log-from-a-python-script
+    try:
+        os.makedirs("../log")
+    except FileExistsError:
+        # directory already exists
+        pass
 
     root = logging.getLogger()
     if debug:
@@ -196,13 +205,19 @@ def _get_logger(debug=True):
     else:
         root.setLevel(logging.INFO)
 
-    handler = logging.StreamHandler(sys.stdout)
     formatter = logging.Formatter(
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
-    handler.setFormatter(formatter)
 
-    root.addHandler(handler)
+    sh = logging.StreamHandler(sys.stdout)
+    fh = logging.FileHandler("../log/glad-{}.log".format(now.strftime("%Y%m%d%H%M%S")))
+
+    sh.setFormatter(formatter)
+    fh.setFormatter(formatter)
+
+    root.addHandler(sh)
+    root.addHandler(fh)
+
     return root
 
 
