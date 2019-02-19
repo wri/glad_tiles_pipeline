@@ -217,7 +217,8 @@ def match_emissions(tiles, **kwargs):
             yield tile, path.as_posix()
         else:
             logging.warning("Could not fine file: " + path.as_posix())
-            raise FileNotFoundError
+            yield tile, None
+            # raise FileNotFoundError
 
 
 def match_climate_mask(tile_pairs, **kwargs):
