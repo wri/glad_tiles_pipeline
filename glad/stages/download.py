@@ -192,9 +192,9 @@ def download_stats_db(**kwargs):
     :param kwargs: global keyword arguments
     :return: location of stats.db
     """
-    root = kwargs["root"]
+
     s3_url = kwargs["paths"]["stats_db"]
-    output = output_file(root, "db", "stats.db")
+    output = kwargs["db"]["db_path"]
 
     cmd = ["aws", "s3", "cp", s3_url, output]
 

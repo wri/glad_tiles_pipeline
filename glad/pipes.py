@@ -53,7 +53,16 @@ from glad.stages.collectors import (
     match_climate_mask,
 )
 
-from glad.stages.tile_db import delete_current_years
+from glad.stages.tile_db import (
+    delete_current_years,
+    get_xyz_csv,
+    make_main_table,
+    group_df_by_xyz,
+    insert_data,
+    reindex,
+    update_latest,
+    vacuum,
+)
 
 from glad.utils.utils import get_pro_tiles
 
@@ -281,9 +290,6 @@ def csv_export_pipe(**kwargs):
 
     day_conf_tiles = get_preprocessed_tiles(root, include_years=years)
 
-    # stats_db = download_stats_db(**kwargs)
-    # delete_current_years(stats_db, **kwargs)
-
     columns_csv = [
         "lon",
         "lat",
@@ -358,13 +364,14 @@ def csv_export_pipe(**kwargs):
     logging.info("Export CSV - Done")
 
 
-def vector_tiles(csv, **kwargs):
-    pass
-    # stats_db = download_stats_db(**kwargs)
-    # delete_current_years(stats_db, **kwargs)
+def stats_db(**kwargs):
 
-    # pipe = csv | create_vector_tiles(**kwargs)
-
-    # reindex
-    # update latest
-    # vacuum
+    download_stats_db(**kwargs)
+    delete_current_years(**kwargs)
+    csv = get_xyz_csv(**kwargs)
+    df = make_main_table(csv)
+    df = group_df_by_xyz(df)
+    insert_data(df, **kwargs)
+    reindex(**kwargs)
+    update_latest(**kwargs)
+    vacuum(**kwargs)

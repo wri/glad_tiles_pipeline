@@ -7,10 +7,11 @@ from glad.pipes import (
     tilecache_pipe,
     download_climate_data,
     csv_export_pipe,
+    stats_db,
 )
 from glad.stages.collectors import get_most_recent_day
 from glad.utils.tiles import get_tile_ids_by_bbox
-from glad.utils.utils import get_data_root
+from glad.utils.utils import get_data_root, output_file
 from typing import Dict, Any
 import os
 import shutil
@@ -52,6 +53,10 @@ def main():
         "max_tilecache_zoom": args.max_tilecache_zoom,
         "num_tiles": args.num_tiles,
         "test": args.test,
+        "db": {
+            "db_path": output_file(root, "db", "stats.db"),
+            "db_table": "tile_alert_stats",
+        },
         "paths": {
             "emissions": "s3://gfw2-data/climate/WHRC_biomass/WHRC_V4/t_co2_pixel/{top}_{left}_mt_co2_pixel_2000.tif",
             "climate_mask": "s3://gfw2-data/forest_change/umd_landsat_alerts/archive/pipeline/climate/climate_mask/climate_mask_{top}_{left}.tif",
@@ -85,6 +90,7 @@ def main():
         tilecache_pipe(**kwargs)
         download_climate_data(tile_ids, **kwargs)
         csv_export_pipe(**kwargs)
+        stats_db(**kwargs)
 
     finally:
         # TODO

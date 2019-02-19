@@ -1,13 +1,10 @@
-from glad.utils.utils import file_details, output_file
-from pathlib import PurePosixPath
-import subprocess as sp
+import pandas as pd
 import sqlite3
 import logging
-import datetime
-import mercantile
+import glob
 
 
-def delete_current_years(db, **kwargs):
+def delete_current_years(**kwargs):
     """
     Delete all entries for current years from DB
     :param db:
@@ -15,42 +12,104 @@ def delete_current_years(db, **kwargs):
     :return:
     """
     years = kwargs["years"]
+    db_path = kwargs["db"]["db_path"]
+    db_table = kwargs["db"]["db_table"]
 
-    conn = sqlite3.connect(db)
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
     for year in years:
 
+        logging.info("Delete entries for year {}".format(year))
         cursor.execute(
-            "DELETE FROM tile_alert_stats WHERE alert_date >= '{0}-01-01' AND alert_date <= '{0}-12-31';".format(
-                year
-            )
+            "DELETE FROM {0} "
+            "WHERE alert_date >= '{1}-01-01' "
+            "AND alert_date <= '{1}-12-31';".format(db_table, year)
         )
 
     conn.commit()
     conn.close()
 
 
-def create_vector_tiles(csv_files, **kwargs):
-
+def get_xyz_csv(**kwargs):
     root = kwargs["root"]
 
-    for csv_file in csv_files:
+    logging.info("Get XYZ csv files.")
+    for csv in glob.iglob(root + "/db/*/csv/*/*.csv"):
+        yield csv
 
-        f_name, year, format, folder = file_details(csv_file)
-        f_name = PurePosixPath(f_name).stem
-        f_name = PurePosixPath(f_name).with_suffix(".mbtiles")
 
-        output = output_file(root, "db", year, f_name)
+def make_main_table(csvs):
 
-        cmd = ["tippecanoe", "-o", output, "-z12", "-Z12", "-b", "0", csv_file]
+    df = pd.DataFrame()
+    logging.info("Merge files into one data frame")
+    for csv in csvs:
+        df = df.append(pd.read_csv(csv), ignore_index=True)
 
-        try:
-            logging.debug("Create vector tiles for: " + csv_file)
-            sp.check_call(cmd)
-        except sp.CalledProcessError as e:
-            logging.warning("Failed to create vector tiles for: " + csv_file)
-            raise e
-        else:
-            logging.info("Created vector tiles for: " + csv_file)
-            return output
+    return df
+
+
+def group_df_by_xyz(df):
+
+    logging.info("Group main_table by X/Y/Z date and conf")
+
+    groupby_df = (
+        df.groupby(["x", "y", "z", "alert_date", "confidence"]).sum().reset_index()
+    )
+    return groupby_df
+
+
+def insert_data(df, **kwargs):
+
+    db_path = kwargs["db"]["db_path"]
+    db_table = kwargs["db"]["db_table"]
+
+    conn = sqlite3.connect(db_path)
+    logging.info("insert into database " + db_path)
+    df.to_sql(db_table, con=conn, if_exists="append", index=False)
+    conn.commit()
+    conn.close()
+
+
+def reindex(**kwargs):
+
+    db_path = kwargs["db"]["db_path"]
+    db_table = kwargs["db"]["db_table"]
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    logging.info("Rebuild index for table " + db_table)
+    cur.execute("REINDEX {};".format(db_table))
+    conn.commit()
+    conn.close()
+
+
+def update_latest(**kwargs):
+
+    db_path = kwargs["db"]["db_path"]
+    db_table = kwargs["db"]["db_table"]
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    logging.info("Update latest date")
+    cur.execute(
+        "UPDATE latest "
+        "SET alert_date = (SELECT max(alert_date) FROM {});".format(db_table)
+    )
+    conn.commit()
+    conn.close()
+
+
+def vacuum(**kwargs):
+
+    db_path = kwargs["db"]["db_path"]
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    logging.info("Vacuum database")
+    cur.execute("VACUUM;")
+    conn.commit()
+    conn.close()
