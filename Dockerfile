@@ -1,4 +1,4 @@
-FROM tmaschler/gdal-mapnik-tippecanoe:latest
+FROM tmaschler/gdal-mapnik:latest
 MAINTAINER Thomas Maschler thomas.maschler@wri.org
 
 ENV NAME gfw-glad-pipeline
