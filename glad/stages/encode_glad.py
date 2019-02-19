@@ -1,5 +1,5 @@
-from helpers.utils import output_file, file_details
-import helpers.raster_utilities as ras_util
+from glad.utils.utils import output_file, file_details
+import glad.utils.raster_utilities as ras_util
 from pathlib import PurePath
 import subprocess as sp
 import logging

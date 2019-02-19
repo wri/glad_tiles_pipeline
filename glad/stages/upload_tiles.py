@@ -1,4 +1,4 @@
-from helpers.utils import file_details, get_file_name
+from glad.utils.utils import file_details, get_file_name
 import subprocess as sp
 import logging
 

@@ -1,11 +1,11 @@
-from helpers.utils import (
+from glad.utils.utils import (
     output_file,
     preprocessed_years_str,
     get_suffix,
-    get_gs_bucket,
     get_tile_id,
 )
-from helpers.tiles import get_bbox_by_tile_id, get_latitude, get_longitude
+from glad.utils.tiles import get_bbox_by_tile_id, get_latitude, get_longitude
+from glad.utils.google import get_gs_bucket
 import subprocess as sp
 import logging
 
@@ -109,47 +109,101 @@ def download_preprocessed_tiles_year(tile_ids, **kwargs):
                     yield output
 
 
-def download_emissions(tiles, **kwargs):
+def download_emissions(tile_ids, **kwargs):
+    """
+    Downloads carbon emission tiles from S3
+    :param tile_ids: list of tile ids to download
+    :param kwargs: global keyword arguments
+    :return: outfile or input tile_id
+    """
     root = kwargs["root"]
     name = kwargs["name"]
     s3_url = kwargs["paths"]["emissions"]
+    return_input = kwargs["return_input"]
 
-    for tile in tiles:
-        tile_id = get_tile_id(tile)
-        left, bottom, right, top = get_bbox_by_tile_id(tile_id)
+    for tile_id in tile_ids:
+
         output = output_file(root, "climate", name, tile_id + ".tif")
+
+        left, bottom, right, top = get_bbox_by_tile_id(tile_id)
         top = get_latitude(top)
         left = get_longitude(left)
 
+        cmd = ["aws", "s3", "cp", s3_url.format(top=top, left=left), output]
+
         try:
-            sp.check_call(["aws", "s3", "cp", s3_url.format(top, left), output])
+            logging.debug("Download file: " + s3_url.format(top=top, left=left))
+            sp.check_call(cmd)
         except sp.CalledProcessError:
-            logging.warning("Failed to download file: " + s3_url.format(top, left))
+            logging.warning(
+                "Failed to download file: " + s3_url.format(top=top, left=left)
+            )
         else:
-            logging.info("Downloaded file: " + s3_url.format(top, left))
-            yield tile, output
+            logging.info("Downloaded file: " + s3_url.format(top=top, left=left))
+            if not return_input:
+                yield output
+        finally:
+            if return_input:
+                yield tile_id
 
 
-def download_climate_mask(tile_pairs, **kwargs):
+def download_climate_mask(tile_ids, **kwargs):
+    """
+    Downloads climate mask from S3
+    Not all tiles have a climate mask!
+    :param tile_ids: list of tile ids to download
+    :param kwargs: global keyword arguments
+    :return: outfile or input tile_id
+    """
     root = kwargs["root"]
     name = kwargs["name"]
     s3_url = kwargs["paths"]["climate_mask"]
+    return_input = kwargs["return_input"]
 
-    for tile_pair in tile_pairs:
-        tile = tile_pair[0]
-        tile_id = get_tile_id(tile)
-        left, bottom, right, top = get_bbox_by_tile_id(tile_id)
+    for tile_id in tile_ids:
+
         output = output_file(root, "climate", name, tile_id + ".tif")
+
+        left, bottom, right, top = get_bbox_by_tile_id(tile_id)
         top = get_latitude(top)
         left = get_longitude(left)
 
         try:
-            sp.check_call(["aws", "s3", "cp", s3_url.format(top, left), output])
+            logging.debug("Download file: " + s3_url.format(top=top, left=left))
+            sp.check_call(
+                ["aws", "s3", "cp", s3_url.format(top=top, left=left), output]
+            )
         except sp.CalledProcessError:
-            logging.warning("Failed to download file: " + s3_url.format(top, left))
-            yield tile_pair[0], tile_pair[
-                1
-            ], None  # Climate mask doesn't exist for all tiles
+            logging.warning(
+                "Failed to download file: " + s3_url.format(top=top, left=left)
+            )
         else:
-            logging.info("Downloaded file: " + s3_url.format(top, left))
-            yield tile_pair[0], tile_pair[1], output
+            logging.info("Downloaded file: " + s3_url.format(top=top, left=left))
+            if not return_input:
+                yield output
+        finally:
+            if return_input:
+                yield tile_id
+
+
+def download_stats_db(**kwargs):
+    """
+    Downloads stats_db from S3 and stores it in data/db folder
+    :param kwargs: global keyword arguments
+    :return: location of stats.db
+    """
+
+    s3_url = kwargs["paths"]["stats_db"]
+    output = kwargs["db"]["db_path"]
+
+    cmd = ["aws", "s3", "cp", s3_url, output]
+
+    try:
+        logging.debug("Download file: " + s3_url)
+        sp.check_call(cmd)
+    except sp.CalledProcessError as e:
+        logging.warning("Failed to download file: " + s3_url)
+        raise e
+    else:
+        logging.info("Downloaded file: " + s3_url)
+        return output

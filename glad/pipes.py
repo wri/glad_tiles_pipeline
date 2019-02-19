@@ -1,29 +1,30 @@
 from parallelpipe import Stage
-from stages.download_tiles import (
+from glad.stages.download import (
     download_latest_tiles,
     download_preprocessed_tiles_years,
     download_preprocessed_tiles_year,
     download_emissions,
     download_climate_mask,
+    download_stats_db,
 )
-from stages.change_pixel_depth import change_pixel_depth
-from stages.encode_glad import (
+from glad.stages.change_pixel_depth import change_pixel_depth
+from glad.stages.encode_glad import (
     encode_date_conf,
     prep_intensity,
     unset_no_data_value,
     encode_rgb,
     project,
 )
-from stages.merge_tiles import combine_date_conf_pairs, merge_years
-from stages.upload_tiles import (
+from glad.stages.merge_tiles import combine_date_conf_pairs, merge_years
+from glad.stages.upload_tiles import (
     upload_preprocessed_tiles_s3,
     upload_day_conf_s3,
     upload_day_conf_s3_gfw_pro,
     upload_vrt_s3,
     upload_vrt_tiles_s3,
 )
-from stages.resample import resample
-from stages.tiles import (
+from glad.stages.resample import resample
+from glad.stages.tiles import (
     generate_tile_list,
     save_tile_lists,
     generate_vrt,
@@ -31,8 +32,16 @@ from stages.tiles import (
     generate_tilecache_config,
     generate_tiles,
 )
-from stages.export_csv import get_dataframe, decode_day_conf, save_csv
-from stages.collectors import (
+from glad.stages.export_csv import (
+    get_dataframe,
+    decode_day_conf,
+    save_csv,
+    convert_julian_date,
+    convert_latlon_xyz,
+    convert_to_parent_xyz,
+    group_by_xyz,
+)
+from glad.stages.collectors import (
     collect_resampled_tiles,
     collect_rgb_tiles,
     collect_rgb_tile_ids,
@@ -40,9 +49,23 @@ from stages.collectors import (
     collect_day_conf_all_years,
     collect_day_conf_pairs,
     get_preprocessed_tiles,
+    match_emissions,
+    match_climate_mask,
 )
 
-from helpers.utils import get_pro_tiles
+from glad.stages.tile_db import (
+    delete_current_years,
+    get_xyz_csv,
+    make_main_table,
+    group_df_by_xyz,
+    insert_data,
+    reindex,
+    update_latest,
+    vacuum,
+)
+
+from glad.utils.utils import get_pro_tiles
+
 
 import logging
 
@@ -239,25 +262,116 @@ def tilecache_pipe(**kwargs):
     return
 
 
+def download_climate_data(tile_ids, **kwargs):
+
+    workers = kwargs["workers"]
+
+    pipe = (
+        tile_ids
+        | Stage(
+            download_emissions, name="emissions", return_input=True, **kwargs
+        ).setup(workers=workers)
+        | Stage(
+            download_climate_mask, name="climate_mask", return_input=True, **kwargs
+        ).setup(workers=workers)
+    )
+
+    for output in pipe.results():
+        logging.debug("Download climate data output: " + str(output))
+    logging.info("Download climate data - Done")
+
+
 def csv_export_pipe(**kwargs):
 
     root = kwargs["root"]
-    years = kwargs["years"]
+    years = [str(year) for year in kwargs["years"]]
     workers = kwargs["workers"]
+    max_zoom = kwargs["max_zoom"]
 
     day_conf_tiles = get_preprocessed_tiles(root, include_years=years)
 
+    columns_csv = [
+        "lon",
+        "lat",
+        "confidence",
+        "year",
+        "julian_day",
+        "area",
+        "val1",
+        "val2",
+    ]
+
+    header_csv = [
+        "long",
+        "lat",
+        "confidence",
+        "year",
+        "julian_day",
+        "area",
+        "emissions",
+        "climate_mask",
+    ]
+
+    columns_xyz = ["x", "y", "z", "alert_count", "alert_date", "confidence"]
+    header_xyz = ["x", "y", "z", "alert_count", "alert_date", "confidence"]
+
     pipe = (
         day_conf_tiles
-        | Stage(download_emissions, name="emissions", **kwargs).setup(workers=workers)
-        | Stage(download_climate_mask, name="climate_mask", **kwargs).setup(
+        | Stage(match_emissions, name="emissions", **kwargs).setup(workers=workers)
+        | Stage(match_climate_mask, name="climate_mask", **kwargs).setup(
             workers=workers
         )
         | Stage(get_dataframe).setup(workers=workers)
         | Stage(decode_day_conf).setup(workers=workers)
-        | Stage(save_csv, **kwargs).setup(workers=workers)
+        | Stage(
+            save_csv,
+            name="output",
+            columns=columns_csv,
+            header=header_csv,
+            return_input=True,
+            **kwargs
+        ).setup(workers=workers)
+        | Stage(convert_julian_date).setup(workers=workers)
+        | Stage(convert_latlon_xyz, **kwargs).setup(workers=workers)
+        | Stage(group_by_xyz).setup(workers=workers)
+        | Stage(
+            save_csv,
+            name="db/{}".format(max_zoom),
+            columns=columns_xyz,
+            header=header_xyz,
+            return_input=True,
+            **kwargs
+        ).setup(workers=workers)
     )
+
+    for i in range(max_zoom - 1, -1, -1):
+        pipe = (
+            pipe
+            | Stage(convert_to_parent_xyz).setup(workers=workers)
+            | Stage(group_by_xyz).setup(workers=workers)
+            | Stage(
+                save_csv,
+                name="db/{}".format(i),
+                columns=columns_xyz,
+                header=header_xyz,
+                return_input=True,
+                **kwargs
+            ).setup(workers=workers)
+        )
 
     for output in pipe.results():
         logging.debug("Export CSV output: " + str(output))
     logging.info("Export CSV - Done")
+
+
+def stats_db(**kwargs):
+
+    download_stats_db(**kwargs)
+    delete_current_years(**kwargs)
+    csv = get_xyz_csv(**kwargs)
+    df = make_main_table(csv)
+    df = group_df_by_xyz(df)
+    insert_data(df, **kwargs)
+    reindex(**kwargs)
+    update_latest(**kwargs)
+    vacuum(**kwargs)

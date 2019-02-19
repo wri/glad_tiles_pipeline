@@ -79,7 +79,7 @@ def create_outfile(raster_template, output_raster, output_datatype, band_count):
     rows = raster.RasterYSize
 
     driver = gdal.GetDriverByName("GTiff")
-    options = ["COMPRESS=NONE"]
+    options = ["COMPRESS=LZW"]
 
     band = raster.GetRasterBand(1)
     block_sizes = band.GetBlockSize()

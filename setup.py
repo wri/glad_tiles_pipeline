@@ -1,13 +1,12 @@
-from setuptools import setup  # , Extension
+from setuptools import setup
 
 
 setup(
     name="glad_tile_pipeline",
-    version="0.0.1",
+    version="0.1.0",
     description="Tool to process GLAD tiles",
-    package_dir={"": "src"},
-    packages=["stages", "helpers"],
-    author="thomas.maschler",
+    packages=["glad"],
+    author="Thomas Maschler",
     license="MIT",
     install_requires=[
         "google-cloud-storage",
@@ -17,13 +16,12 @@ setup(
         "numpy",
         "xmltodict",
         "raster2points",
+        "mercantile",
     ],
-    # entry_points={"console_scripts": ["pixel_depth=utils.pixel_depth:main"]},
     scripts=[
-        "src/glad_pipeline.py",
-        "src/helpers/pixel_depth.py",
-        "src/helpers/encode_date_conf.py",
-        "src/helpers/download_glad_tiles.py",
+        "glad/glad_pipeline.py",
+        "glad/scripts/pixel_depth.py",
+        "glad/scripts/encode_date_conf.py",
+        "glad/scripts/download_glad_tiles.py",
     ],
-    # ext_modules=[Extension("add", ["src/utils/cpp/add2.exe.cpp"],)]
 )
