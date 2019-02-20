@@ -2,24 +2,26 @@ FROM tmaschler/gdal-mapnik:latest
 MAINTAINER Thomas Maschler thomas.maschler@wri.org
 
 ENV NAME gfw-glad-pipeline
-ENV USER gfw
+ENV SRC_PATH /usr/src/glad
+ENV SECRETS_PATH /usr/secrets
 
-RUN adduser --shell /bin/bash --disabled-password --gecos "" $USER
+RUN mkdir -p $SRC_PATH
+RUN mkdir -p $SECRETS_PATH
 
-COPY requirements.txt /home/$USER/
-COPY setup.py /home/$USER/
-COPY glad /home/$USER/glad
-COPY cpp /home/$USER/cpp
-COPY .aws  /home/$USER/.aws
-COPY .google  /home/$USER/.google
+COPY requirements.txt $SRC_PATH
+COPY setup.py $SRC_PATH
+COPY glad $SRC_PATH/glad
+COPY cpp $SRC_PATH/cpp
+COPY .aws  $SECRET_PATH/.aws
+COPY .google  $SECRET_PATH/.google
 
-ENV AWS_SHARED_CREDENTIALS_FILE /home/$USER/.aws/credentials
-ENV AWS_CONFIG_FILE /home/$USER/.aws/config
-ENV GOOGLE_APPLICATION_CREDENTIALS /home/$USER/.google/earthenginepartners-hansen.json
+ENV AWS_SHARED_CREDENTIALS_FILE $SECRET_PATH/.aws/credentials
+ENV AWS_CONFIG_FILE $SECRET_PATH/.aws/config
+ENV GOOGLE_APPLICATION_CREDENTIALS $SECRET_PATH/.google/earthenginepartners-hansen.json
 
 RUN cd /usr/local/include && ln -s ./ gdal
-RUN cd /home/$USER && \
-    pip3 install -r /home/$USER/requirements.txt && \
+RUN cd $SRC_PATH && \
+    pip3 install -r $SRC_PATH/requirements.txt && \
     pip3 install -e . && \
     g++ cpp/add2.cpp -o /usr/bin/add2 -lgdal && \
     g++ cpp/build_rgb.cpp -o /usr/bin/build_rgb -lgdal && \
