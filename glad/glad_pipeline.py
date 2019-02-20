@@ -190,11 +190,12 @@ def _get_logger(debug=True):
     :return: logger
     """
     now = datetime.now()
+    log_dir = "/usr/data/log"
 
     # TODO: use SysLogHandler instead of FileHandler
     #  https://stackoverflow.com/questions/36762016/best-practice-to-write-logs-in-var-log-from-a-python-script
     try:
-        os.makedirs("../log")
+        os.makedirs(log_dir)
     except FileExistsError:
         # directory already exists
         pass
@@ -210,7 +211,11 @@ def _get_logger(debug=True):
     )
 
     sh = logging.StreamHandler(sys.stdout)
-    fh = logging.FileHandler("../log/glad-{}.log".format(now.strftime("%Y%m%d%H%M%S")))
+    fh = logging.FileHandler(
+        "{}/glad-{}.log".format(log_dir, now.strftime("%Y%m%d%H%M%S"))
+    )
+
+    fh.setLevel(logging.WARNING)
 
     sh.setFormatter(formatter)
     fh.setFormatter(formatter)
