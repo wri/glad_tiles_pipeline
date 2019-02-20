@@ -63,4 +63,4 @@ EOL
 service docker start
 docker build . -t glad-pipeline
 
-docker run -it --ulimit nofile=2048:2048 -e IAM_ROLE=gfw-sync -v /mnt/data:/usr/data -v /mnt/log:/var/log glad-pipeline glad_pipeline.py -w 40
+docker run -it --ulimit nofile=4096:4096 -e IAM_ROLE=gfw-sync -v /mnt/data:/usr/data -v /mnt/log:/var/log glad-pipeline glad_pipeline.py -w 40
