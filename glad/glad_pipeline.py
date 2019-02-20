@@ -72,25 +72,28 @@ def main():
     except ValueError:
         logging.error("Cannot find recently processes tiles. Aborting")
     else:
+        try:
 
-        if os.path.exists(root):
-            # ignore_errors true will allow us to mount the data directory as a docker volume.
-            # If not set, this will though an IOError b/c it won't be able to delete mounted volume
-            # Data inside the directory/ volume - if any - will still be removed
-            shutil.rmtree(root, ignore_errors=True)
+            if os.path.exists(root):
+                # ignore_errors true will allow us to mount the data directory as a docker volume.
+                # If not set, this will though an IOError b/c it won't be able to delete mounted volume
+                # Data inside the directory/ volume - if any - will still be removed
+                shutil.rmtree(root, ignore_errors=True)
 
-        # TODO
-        #  add some logic to skip preprocssing step incase igonore_preprocessed_tiles is true
-        preprocessed_tile_pipe(tile_ids, **kwargs)
-        date_conf_tiles = date_conf_pipe(tile_ids, **kwargs)
-        resample_date_conf_pipe(date_conf_tiles, **kwargs)
-        intensity_pipe(date_conf_tiles, **kwargs)
-        rgb_pipe(**kwargs)
-        # copy_vrt_s3_pipe(**kwargs)
-        tilecache_pipe(**kwargs)
-        download_climate_data(tile_ids, **kwargs)
-        csv_export_pipe(**kwargs)
-        stats_db(**kwargs)
+            # TODO
+            #  add some logic to skip preprocssing step incase igonore_preprocessed_tiles is true
+            preprocessed_tile_pipe(tile_ids, **kwargs)
+            date_conf_tiles = date_conf_pipe(tile_ids, **kwargs)
+            resample_date_conf_pipe(date_conf_tiles, **kwargs)
+            intensity_pipe(date_conf_tiles, **kwargs)
+            rgb_pipe(**kwargs)
+            # copy_vrt_s3_pipe(**kwargs)
+            tilecache_pipe(**kwargs)
+            download_climate_data(tile_ids, **kwargs)
+            csv_export_pipe(**kwargs)
+            stats_db(**kwargs)
+        except Exception as e:
+            logging.error(e)
 
     finally:
         # TODO
