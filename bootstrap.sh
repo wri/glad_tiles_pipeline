@@ -58,4 +58,4 @@ EOL
 service docker start
 docker build . -t glad-pipeline
 
-docker run -e IAM_ROLE=gfw-sync -v /mnt/data:/home/gfw/code/data glad-pipeline glad_pipeline.py --include_russia
+docker run -it -e IAM_ROLE=gfw-sync -v /mnt/data:/local/data glad-pipeline glad_pipeline.py -w 40
