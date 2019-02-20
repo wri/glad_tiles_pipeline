@@ -8,7 +8,7 @@ mkfs.ext4 -E nodiscard /dev/nvme2n1
 mkdir -p /var/lib/docker
 mount -o discard /dev/nvme2n1 /var/lib/docker
 
-yum -y install docker git jq
+yum -y install docker git jq htop
 
 git clone https://github.com/wri/glad_tiles_pipeline.git
 cd glad_tiles_pipeline
