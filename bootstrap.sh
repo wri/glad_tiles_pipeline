@@ -8,7 +8,7 @@ mkfs.ext4 -E nodiscard /dev/nvme2n1
 mkdir -p /var/lib/docker
 mount -o discard /dev/nvme2n1 /var/lib/docker
 
-yum -y install docker git jq
+yum -y install docker git jq htop
 
 git clone https://github.com/wri/glad_tiles_pipeline.git
 cd glad_tiles_pipeline
@@ -58,4 +58,4 @@ EOL
 service docker start
 docker build . -t glad-pipeline
 
-docker run -it -e IAM_ROLE=gfw-sync -v /mnt/data:/local/data glad-pipeline glad_pipeline.py -w 40
+docker run -it -e IAM_ROLE=gfw-sync -v /mnt/data:/usr/data glad-pipeline glad_pipeline.py -w 40

@@ -8,6 +8,7 @@ ENV SECRETS_PATH /usr/secrets
 RUN mkdir -p $SRC_PATH
 RUN mkdir -p $SECRETS_PATH
 
+# copy required files
 COPY requirements.txt $SRC_PATH
 COPY setup.py $SRC_PATH
 COPY glad $SRC_PATH/glad
@@ -15,10 +16,12 @@ COPY cpp $SRC_PATH/cpp
 COPY .aws  $SECRET_PATH/.aws
 COPY .google  $SECRET_PATH/.google
 
+# set environment variables
 ENV AWS_SHARED_CREDENTIALS_FILE $SECRET_PATH/.aws/credentials
 ENV AWS_CONFIG_FILE $SECRET_PATH/.aws/config
 ENV GOOGLE_APPLICATION_CREDENTIALS $SECRET_PATH/.google/earthenginepartners-hansen.json
 
+# install app and compile scripts
 RUN cd /usr/local/include && ln -s ./ gdal
 RUN cd $SRC_PATH && \
     pip3 install -r $SRC_PATH/requirements.txt && \
@@ -28,3 +31,6 @@ RUN cd $SRC_PATH && \
     g++ cpp/combine2.cpp -o /usr/bin/combine2 -lgdal && \
     g++ cpp/combine3.cpp -o /usr/bin/combine3 -lgdal && \
     g++ cpp/reclass.cpp -o /usr/bin/reclass -lgdal
+
+#increase open file limit
+RUN ulimit -n 2048
