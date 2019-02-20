@@ -46,12 +46,17 @@ def decode_day_conf(tile_dfs):
         tile_id = tile_df[1]
         df = tile_df[2]
 
-        logging.info("Decode day/conf value for tile: " + tile_id)
-        df["confidence"], df["year"], df["julian_day"] = zip(
-            *map(_decode_day_conf, df[day_conf])
-        )
-        df = df.drop(columns=[day_conf])
-        yield year, tile_id, df
+        try:
+            logging.info("Decode day/conf value for tile: " + tile_id)
+            df["confidence"], df["year"], df["julian_day"] = zip(
+                *map(_decode_day_conf, df[day_conf])
+            )
+        except KeyError:
+            logging.error("Cannot fine column " + day_conf)
+            logging.error(df.head)
+        else:
+            df = df.drop(columns=[day_conf])
+            yield year, tile_id, df
 
 
 def save_csv(tile_dfs, name, columns, header, return_input, **kwargs):
