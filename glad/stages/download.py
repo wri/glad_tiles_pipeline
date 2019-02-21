@@ -195,6 +195,9 @@ def download_stats_db(**kwargs):
 
     s3_url = kwargs["paths"]["stats_db"]
     output = kwargs["db"]["db_path"]
+    env = kwargs["env"]
+
+    s3_url = s3_url.format(env=env)
 
     cmd = ["aws", "s3", "cp", s3_url, output]
 

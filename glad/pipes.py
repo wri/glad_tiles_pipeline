@@ -18,10 +18,13 @@ from glad.stages.encode_glad import (
 from glad.stages.merge_tiles import combine_date_conf_pairs, merge_years
 from glad.stages.upload_tiles import (
     upload_preprocessed_tiles_s3,
+    upload_raw_tile_s3,
     upload_day_conf_s3,
     upload_day_conf_s3_gfw_pro,
-    upload_vrt_s3,
-    upload_vrt_tiles_s3,
+    upload_rgb_wm_s3,
+    upload_tilecache_s3,
+    upload_csv_s3,
+    upload_statsdb,
 )
 from glad.stages.resample import resample
 from glad.stages.tiles import (
@@ -96,7 +99,7 @@ def preprocessed_tile_pipe(tile_ids, **kwargs):
         )
         | Stage(collect_day_conf, **kwargs).setup(workers=1)  # Important
         | Stage(merge_years, name="day_conf", **kwargs).setup(workers=workers)
-        # | Stage(upload_preprocessed_tiles_s3, **kwargs).setup(workers=workers)
+        | Stage(upload_preprocessed_tiles_s3, **kwargs).setup(workers=workers)
     )
 
     for output in pipe.results():
@@ -115,12 +118,13 @@ def date_conf_pipe(tile_ids, **kwargs):
     """
     workers = kwargs["workers"]
 
-    # pro_tiles = get_pro_tiles()
+    pro_tiles = get_pro_tiles()
 
     pipe = (
         tile_ids
         | Stage(download_latest_tiles, name="download", **kwargs).setup(workers=workers)
         | Stage(change_pixel_depth, name="pixel_depth", **kwargs).setup(workers=workers)
+        | Stage(upload_raw_tile_s3, name="pixel_depth", **kwargs).setup(workers=workers)
         | Stage(encode_date_conf, name="encode_day_conf", **kwargs).setup(
             workers=workers
         )
@@ -130,8 +134,8 @@ def date_conf_pipe(tile_ids, **kwargs):
         )
         | Stage(collect_day_conf_all_years, **kwargs).setup(workers=1)  # Important!
         | Stage(merge_years, name="day_conf", **kwargs).setup(workers=workers)
-        # | Stage(upload_day_conf_s3, **kwargs).setup(workers=workers)
-        # | Stage(upload_day_conf_s3_gfw_pro, pro_tiles, **kwargs).setup(workers=workers)
+        | Stage(upload_day_conf_s3, **kwargs).setup(workers=workers)
+        | Stage(upload_day_conf_s3_gfw_pro, pro_tiles, **kwargs).setup(workers=workers)
     )
 
     date_conf_tiles = list()
@@ -198,36 +202,13 @@ def rgb_pipe(**kwargs):
         tile_pairs
         | Stage(encode_rgb).setup(workers=workers)
         | Stage(project).setup(workers=workers)
+        | Stage(upload_rgb_wm_s3, **kwargs).setup(workers=workers)
     )
     for output in pipe.results():
         logging.debug("RGB output: " + str(output))
     logging.info("RGB - Done")
 
     return
-
-
-def copy_vrt_s3_pipe(**kwargs):
-
-    root = kwargs["root"]
-    workers = kwargs["workers"]
-
-    # TODO consider moving this to the rbg pipe
-    zoom_tiles = list()
-    for pair in collect_rgb_tiles(root):
-        zoom_tiles.append(pair)
-
-    pipe = (
-        zoom_tiles
-        | Stage(
-            generate_vrt, kwargs["min_tile_zoom"], kwargs["max_zoom"], **kwargs
-        ).setup(workers=workers)
-        | Stage(upload_vrt_s3, **kwargs).setup(workers=workers)
-        | Stage(upload_vrt_tiles_s3, zoom_tiles, **kwargs).setup(workers=workers)
-    )
-
-    for output in pipe.results():
-        logging.debug("Copy VRT to S3 output: " + str(output))
-    logging.info("opy VRT to S3 - Done")
 
 
 def tilecache_pipe(**kwargs):
@@ -251,12 +232,13 @@ def tilecache_pipe(**kwargs):
         | Stage(generate_tile_list, tile_ids=tile_ids, **kwargs).setup(workers=workers)
         | Stage(save_tile_lists, **kwargs).setup(workers=workers)
         | Stage(generate_tiles, **kwargs).setup(workers=workers)
-        # TODO: copy tilecache to S3
-        #  s3://wri-tiles/glad_{}/tiles/'.format(prod | stage)
     )
 
     for output in pipe.results():
         logging.debug("Tilecache output: " + str(output))
+
+    upload_tilecache_s3(**kwargs)
+
     logging.info("Tilecache - Done")
 
     return
@@ -331,6 +313,7 @@ def csv_export_pipe(**kwargs):
             return_input=True,
             **kwargs
         ).setup(workers=workers)
+        | Stage(upload_csv_s3, name="output", **kwargs).setup(workers=workers)
         | Stage(convert_julian_date).setup(workers=workers)
         | Stage(convert_latlon_xyz, **kwargs).setup(workers=workers)
         | Stage(group_by_xyz).setup(workers=workers)
@@ -375,3 +358,4 @@ def stats_db(**kwargs):
     reindex(**kwargs)
     update_latest(**kwargs)
     vacuum(**kwargs)
+    upload_statsdb(**kwargs)
