@@ -52,12 +52,10 @@ def decode_day_conf(tile_dfs):
                 *map(_decode_day_conf, df[day_conf])
             )
         except KeyError:
-            logging.error(
-                "Cannot fine column {} for tile {} and year {}".format(
-                    day_conf, tile_id, year
-                )
+            logging.warning(
+                "Cannot fine column {} for tile {} and year {}. "
+                "Data frame seems to be empty. Skip.".format(day_conf, tile_id, year)
             )
-            logging.error(df.head)
         else:
             df = df.drop(columns=[day_conf])
             yield year, tile_id, df

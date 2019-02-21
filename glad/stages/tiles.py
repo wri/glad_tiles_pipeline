@@ -15,7 +15,7 @@ def generate_vrt(zoom_tiles, min_zoom_vrt, max_zoom_vrt, **kwargs):
         zoom = zoom_tile[0]
         tiles = zoom_tile[1]
 
-        if min_zoom_vrt >= zoom <= max_zoom_vrt:
+        if min_zoom_vrt <= zoom <= max_zoom_vrt:
             output = output_file(root, "tiles", "z_{}.vrt".format(zoom))
             cmd = [
                 "gdalbuildvrt",
