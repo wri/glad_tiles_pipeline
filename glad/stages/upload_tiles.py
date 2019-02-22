@@ -237,7 +237,7 @@ def upload_statsdb(**kwargs):
         output = path.format(env=env)
 
         try:
-            sp.check_call(["aws", "s3", "cp", db, output, "--recursive"])
+            sp.check_call(["aws", "s3", "cp", db, output])
         except sp.CalledProcessError:
             logging.warning("Failed to upload db to  " + output)
         else:

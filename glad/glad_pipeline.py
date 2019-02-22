@@ -37,7 +37,9 @@ def main():
         args.bbox[0], args.bbox[1], args.bbox[2], args.bbox[3]
     )
 
+    num_tiles = args.num_tiles
     if args.include_russia:
+        num_tiles += 1
         tile_ids.append("130E_42N_142E_53N")
 
     root = get_data_root()
@@ -53,7 +55,7 @@ def main():
         "min_zoom": args.min_zoom,
         "min_tile_zoom": args.min_tile_zoom,
         "max_tilecache_zoom": args.max_tilecache_zoom,
-        "num_tiles": args.num_tiles,
+        "num_tiles": num_tiles,
         "env": args.env,
         "db": {
             "db_path": output_file(root, "db", "stats.db"),
