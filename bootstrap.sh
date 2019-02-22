@@ -15,6 +15,8 @@ mount -o discard /dev/nvme3n1 /mnt/log
 
 yum -y install docker git jq htop
 
+cd /home/ec2-user
+
 git clone https://github.com/wri/glad_tiles_pipeline.git
 cd glad_tiles_pipeline
 mkdir .aws
@@ -38,7 +40,7 @@ aws_access_key_id = $default_id
 aws_secret_access_key = $default_secret
 aws_session_token = $default_token
 
-[profile gfwpro]
+[GFWPro_gfwpro-raster-data_remote]
 aws_access_key_id = $pro_id
 aws_secret_access_key = $pro_secret
 aws_session_token = $pro_token
@@ -51,7 +53,7 @@ cat >.aws/config <<EOL
 output = json
 region = us-east-1
 
-[gfwpro]
+[profile GFWPro_gfwpro-raster-data_remote]
 output = json
 region = us-east-1
 EOL
