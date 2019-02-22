@@ -1,61 +1,127 @@
-from glad.utils.utils import file_details, get_file_name
+from glad.utils.utils import file_details, output_file, get_tile_id
+from pathlib import PurePath
 import subprocess as sp
 import logging
 
 
 def upload_preprocessed_tiles_s3(tiles, **kwargs):
 
-    test = kwargs["test"]
+    """
+    Backups prepocessed tiles for previous years to S3
+    :param tiles:
+    :param kwargs:
+    :return:
+    """
 
-    if not test:
-        for tile in tiles:
+    # TODO: This function returns the input and should be marked accordingly
+
+    env = kwargs["env"]
+    path = kwargs["paths"]["encoded_backup"]
+
+    for tile in tiles:
+        if env == "test":
+            logging.info("Test run, skipped upload preprocessed tiles to S3: " + tile)
+            yield tile
+
+        else:
+            f_name, year_str, folder, tile_id = file_details(tile)
+            output = path.format(env=env, year_str=year_str, tile_id=tile_id)
+
+            try:
+                sp.check_call(["aws", "s3", "cp", tile, output])
+            except sp.CalledProcessError:
+                logging.warning("Failed to upload file to  " + output)
+            else:
+                logging.info("Upload file to " + output)
+                yield tile
+
+
+def upload_raw_tile_s3(tiles, **kwargs):
+    """
+    Backups raw day and conf tiles for single years
+    :param tiles:
+    :param kwargs:
+    :return:
+    """
+
+    # TODO: This function returns the input and should be marked accordingly
+
+    env = kwargs["env"]
+    path = kwargs["paths"]["raw_backup"]
+
+    for tile in tiles:
+        if env == "test":
+            logging.info("Test run, skipped upload preprocessed tiles to S3: " + tile)
+            yield tile
+
+        else:
             f_name, year, folder, tile_id = file_details(tile)
-            output = "s3://gfw2-data/forest_change/umd_landsat_alerts/archive/pipeline/tiles/{}/{}/{}/{}".format(
-                tile_id, folder, year, f_name
+            output = path.format(
+                env=env, year=year, product=f_name[:-4], tile_id=tile_id
             )
 
             try:
                 sp.check_call(["aws", "s3", "cp", tile, output])
             except sp.CalledProcessError:
-                logging.warning("Failed to upload file: " + tile)
+                logging.warning("Failed to upload file to  " + output)
             else:
-                logging.info("Upload file: " + tile)
+                logging.info("Upload file " + output)
                 yield tile
-    else:
-        logging.debug("Test run , skipped upload preprocessed tiles to S3")
 
 
 def upload_day_conf_s3(tiles, **kwargs):
+    """
+    Uploads final encode tiles which include all years
+    :param tiles:
+    :param kwargs:
+    :return:
+    """
 
-    test = kwargs["test"]
+    # TODO: This function returns the input and should be marked accordingly
 
-    if not test:
-        for tile in tiles:
-            f_name, year, folder, tile_id = file_details(tile)
-            output = "s3://palm-risk-poc/data/glad/analysis-staging/{}/{}".format(
-                tile_id, f_name
-            )
+    env = kwargs["env"]
+    path = kwargs["paths"]["analysis"]
+
+    for tile in tiles:
+        if env == "test":
+            logging.info("Test run, skipped upload preprocessed tiles to S3: " + tile)
+            yield tile
+
+        else:
+            tile_id = get_tile_id(tile)
+            output = path.format(env=env, tile_id=tile_id)
 
             try:
                 sp.check_call(["aws", "s3", "cp", tile, output])
             except sp.CalledProcessError:
-                logging.warning("Failed to upload file: " + tile)
+                logging.warning("Failed to upload file to " + output)
             else:
-                logging.info("Upload file: " + tile)
+                logging.info("Upload file " + output)
                 yield tile
-    else:
-        logging.debug("Test run , skipped upload day_conf to S3 bucket")
 
 
 def upload_day_conf_s3_gfw_pro(tiles, pro_tiles, **kwargs):
+    """
+    Uploads final encode tiles which include all years to S3 GFW-Pro account
+    :param tiles:
+    :param kwargs:
+    :return:
+    """
 
-    test = kwargs["test"]
+    # TODO: This function returns the input and should be marked accordingly
 
-    if not test:
-        for tile in tiles:
-            f_name, year, folder, tile_id = file_details(tile)
+    env = kwargs["env"]
+    path = kwargs["paths"]["pro"]
+
+    for tile in tiles:
+        if env != "prod":  # No Staging environment for Pro!
+            logging.info("Test run, skipped upload preprocessed tiles to S3: " + tile)
+            yield tile
+
+        else:
+            tile_id = get_tile_id(tile)
             if tile_id in pro_tiles.keys():
-                output = "s3://gfwpro-raster-data/{}".format(pro_tiles[tile_id])
+                output = path.format(pro_id=pro_tiles[tile_id])
 
                 try:
                     sp.check_call(
@@ -70,58 +136,109 @@ def upload_day_conf_s3_gfw_pro(tiles, pro_tiles, **kwargs):
                         ]
                     )
                 except sp.CalledProcessError:
-                    logging.warning("Failed to upload file: " + tile)
+                    logging.warning("Failed to upload file to  " + output)
                 else:
-                    logging.info("Upload file: " + tile)
+                    logging.info("Upload file to " + output)
                     yield tile
-    else:
-        logging.debug("Test run , skipped upload day_conf to GFW Pro S3 bucket")
 
 
-def upload_vrt_s3(zoom_vrts, **kwargs):
-    test = kwargs["test"]
+def upload_rgb_wm_s3(tiles, **kwargs):
 
-    if not test:
-        for zoom_vrt in zoom_vrts:
-            vrt = zoom_vrt[1]
+    env = kwargs["env"]
+    path = kwargs["paths"]["resampled_rgb"]
 
-            vrt_name = get_file_name(vrt)
-            output = "s3://palm-risk-poc/data/glad/rgb/{}".format(vrt_name)
+    for tile in tiles:
+        if env == "test":
+            logging.info("Test run, skipped upload preprocessed tiles to S3: " + tile)
+            yield tile
+
+        else:
+            f_name, zoom, folder, tile_id = file_details(tile)
+            output = path.format(env=env, zoom=zoom, tile_id=tile_id)
 
             try:
-                sp.check_call(["aws", "s3", "cp", vrt, output])
+                sp.check_call(["aws", "s3", "cp", tile, output])
             except sp.CalledProcessError:
-                logging.warning("Failed to upload file: " + vrt)
+                logging.warning("Failed to upload file to " + output)
             else:
-                logging.info("Upload file: " + vrt)
-                yield zoom_vrt
+                logging.info("Upload file to " + output)
+                yield tile
+
+
+# Needs to be outside pipe!
+def upload_tilecache_s3(**kwargs):
+    root = kwargs["root"]
+    env = kwargs["env"]
+    path = kwargs["paths"]["tilecache"]
+
+    folder = PurePath(root, "tilecache", "tiles").as_posix()
+
+    if env == "test":
+        logging.info("Test run, skipped upload tilecache to S3: " + folder)
+
     else:
-        logging.debug("Test run , skipped upload day_conf to S3 bucket")
+
+        output = path.format(env=env)
+
+        try:
+            sp.check_call(["aws", "s3", "cp", folder, output, "--recursive"])
+        except sp.CalledProcessError:
+            logging.warning("Failed to upload tilecache to " + output)
+        else:
+            logging.info("Upload tilecache to " + output)
 
 
-def upload_vrt_tiles_s3(zoom_vrts, zoom_tiles, **kwargs):
-    test = kwargs["test"]
+def upload_csv_s3(tile_dfs, name, **kwargs):
 
-    if not test:
-        for zoom_vrt in zoom_vrts:
-            zoom = zoom_vrt[0]
+    # TODO: remove name from param list, if possible
 
-            for zoom_tile in zoom_tiles:
-                if zoom_tile[0] == zoom:
-                    for tile in zoom_tile[1]:
+    env = kwargs["env"]
+    path = kwargs["paths"]["csv"]
+    root = kwargs["root"]
 
-                        f_name, zoom_level, folder, tile_id = file_details(tile)
+    for tile_df in tile_dfs:
 
-                        output = "s3://palm-risk-poc/data/glad/rgb/{}/{}/{}/{}".format(
-                            tile_id, folder, zoom_level, f_name
-                        )
+        year = tile_df[0]
+        tile_id = tile_df[1]
 
-                        try:
-                            sp.check_call(["aws", "s3", "cp", tile, output])
-                        except sp.CalledProcessError:
-                            logging.warning("Failed to upload file: " + tile)
-                        else:
-                            logging.info("Upload file: " + tile)
-                            yield tile
+        if env == "test":
+            logging.info(
+                "Test run, skipped upload preprocessed tiles to S3: " + tile_id
+            )
+            yield tile_df
+
+        else:
+
+            csv = output_file(root, name, "csv", year, tile_id + ".csv")
+
+            output = path.format(env=env, year=year, tile_id=tile_id)
+
+            try:
+                sp.check_call(["aws", "s3", "cp", csv, output])
+            except sp.CalledProcessError:
+                logging.warning("Failed to upload file to " + output)
+            else:
+                logging.info("Upload file to " + output)
+                yield tile_df
+
+
+# needs to run outside pipe
+def upload_statsdb(**kwargs):
+
+    env = kwargs["env"]
+    db = kwargs["db"]["db_path"]
+    path = kwargs["paths"]["stats_db"]
+
+    if env == "test":
+        logging.info("Test run, skipped upload db to S3: " + db)
+
     else:
-        logging.debug("Test run , skipped upload day_conf to S3 bucket")
+
+        output = path.format(env=env)
+
+        try:
+            sp.check_call(["aws", "s3", "cp", db, output])
+        except sp.CalledProcessError:
+            logging.warning("Failed to upload db to  " + output)
+        else:
+            logging.info("Upload db to " + output)

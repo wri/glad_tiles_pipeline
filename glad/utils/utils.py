@@ -148,6 +148,8 @@ def get_pro_tiles():
     obj_list = out.split(b"\n")
 
     pro_tiles = {
-        obj.split("-glad_")[1].strip(): obj.strip() for obj in obj_list if "glad" in obj
+        obj.split(b"-glad_")[1].strip(): obj.strip()
+        for obj in obj_list
+        if b"glad" in obj
     }
     return pro_tiles
