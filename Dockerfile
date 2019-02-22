@@ -31,4 +31,3 @@ RUN cd $SRC_PATH && \
     g++ cpp/combine2.cpp -o /usr/bin/combine2 -lgdal && \
     g++ cpp/combine3.cpp -o /usr/bin/combine3 -lgdal && \
     g++ cpp/reclass.cpp -o /usr/bin/reclass -lgdal
-cd ..
