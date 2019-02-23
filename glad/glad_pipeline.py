@@ -168,7 +168,7 @@ def _get_parser():
         "--env",
         type=str,
         default="test",
-        choices=["prod", "stage", "test"],
+        choices=["prod", "staging", "test"],
         help="Will copy data to the selected environment. Won't copy data for test.",
     )
     parser.add_argument("--min_zoom", type=int, default=0, help="Minimum zoom level")
