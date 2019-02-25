@@ -241,4 +241,25 @@ def upload_statsdb(**kwargs):
         except sp.CalledProcessError:
             logging.warning("Failed to upload db to  " + output)
         else:
-            logging.info("Upload db to " + output)
+            logging.info("Uploaded db to " + output)
+
+
+# needs to run outside pipe
+def upload_logs(**kwargs):
+    env = kwargs["env"]
+    log = kwargs["log"]
+    path = kwargs["path"]["log"]
+
+    if env == "test":
+        logging.info("Test run, skipped upload logfile to S3: " + log)
+
+    else:
+
+        output = path.format(env=env, logfile=PurePath(log).parts[-1])
+
+        try:
+            sp.check_call(["aws", "s3", "cp", log, output])
+        except sp.CalledProcessError:
+            logging.warning("Failed to upload logfile to  " + output)
+        else:
+            logging.info("Uploaded logfile to " + output)
