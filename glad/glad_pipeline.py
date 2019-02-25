@@ -10,9 +10,11 @@ from glad.pipes import (
     stats_db,
 )
 from glad.stages.collectors import get_most_recent_day
+from glad.stages.upload_tiles import upload_logs
 from glad.utils.tiles import get_tile_ids_by_bbox
 from glad.utils.utils import get_data_root, output_file
 from typing import Dict, Any
+from pathlib import PurePath
 import os
 import shutil
 import logging
@@ -26,7 +28,8 @@ def main():
 
     args = _get_parser()
 
-    _get_logger(debug=args.debug)
+    logfile = _get_logfile()
+    _get_logger(logfile, debug=args.debug)
 
     if not args.ignore_preprocessed_years:
         preprocessed_years = range(2015, min(args.years))
@@ -57,6 +60,7 @@ def main():
         "max_tilecache_zoom": args.max_tilecache_zoom,
         "num_tiles": num_tiles,
         "env": args.env,
+        "log": logfile,
         "db": {
             "db_path": output_file(root, "db", "stats.db"),
             "db_table": "tile_alert_stats",
@@ -74,6 +78,7 @@ def main():
             "stats_db": s3_base_path + "{env}/db/stats.db",
             "pro": "s3://gfwpro-raster-data/{pro_id}",
             "tilecache": "s3://wri-tiles/glad_{env}/tiles",
+            "log": s3_base_path + "{env}/log/{logfile}",
         },
     }
 
@@ -107,10 +112,7 @@ def main():
             logging.exception(e)
 
     finally:
-        # TODO
-        #  copy all files to S3, including log files
-        #  Shut down server
-        pass
+        upload_logs(**kwargs)
 
 
 def _get_parser():
@@ -196,14 +198,9 @@ def _get_parser():
     return parser.parse_args()
 
 
-def _get_logger(debug=True):
-    """
-    Build logger
-    :param debug: Set Log Level to Debug or Info
-    :return: logger
-    """
+def _get_logfile():
     now = datetime.now()
-    log_dir = "/var/log/glad"
+    log_dir = "/var/lib/glad"
 
     # TODO: use SysLogHandler instead of FileHandler
     #  https://stackoverflow.com/questions/36762016/best-practice-to-write-logs-in-var-log-from-a-python-script
@@ -212,6 +209,18 @@ def _get_logger(debug=True):
     except FileExistsError:
         # directory already exists
         pass
+
+    logfile = "{}/glad-{}.log".format(log_dir, now.strftime("%Y%m%d%H%M%S"))
+
+    return logfile
+
+
+def _get_logger(logfile, debug=True):
+    """
+    Build logger
+    :param debug: Set Log Level to Debug or Info
+    :return: logger
+    """
 
     root = logging.getLogger()
     if debug:
@@ -224,9 +233,7 @@ def _get_logger(debug=True):
     )
 
     sh = logging.StreamHandler(sys.stdout)
-    fh = logging.FileHandler(
-        "{}/glad-{}.log".format(log_dir, now.strftime("%Y%m%d%H%M%S"))
-    )
+    fh = logging.FileHandler(logfile)
 
     fh.setLevel(logging.WARNING)
 
