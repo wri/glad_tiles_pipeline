@@ -200,7 +200,7 @@ def _get_parser():
 
 def _get_logfile():
     now = datetime.now()
-    log_dir = "/var/lib/glad"
+    log_dir = "/var/log/glad"
 
     # TODO: use SysLogHandler instead of FileHandler
     #  https://stackoverflow.com/questions/36762016/best-practice-to-write-logs-in-var-log-from-a-python-script
