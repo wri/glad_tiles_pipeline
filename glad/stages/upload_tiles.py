@@ -248,7 +248,7 @@ def upload_statsdb(**kwargs):
 def upload_logs(**kwargs):
     env = kwargs["env"]
     log = kwargs["log"]
-    path = kwargs["path"]["log"]
+    path = kwargs["paths"]["log"]
 
     if env == "test":
         logging.info("Test run, skipped upload logfile to S3: " + log)
