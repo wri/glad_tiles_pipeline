@@ -74,7 +74,7 @@ def main():
             "raw_backup": s3_base_path + "{env}/raw/{year}/{product}/{tile_id}.tif",
             "resampled_rgb": s3_base_path + "{env}/rgb/{zoom}/{tile_id}.tif",
             "analysis": s3_base_path + "{env}/analysis/{tile_id}.tif",
-            "csv": s3_base_path + "{env}/csv/{year}/{tile_id}.csv",
+            "csv": s3_base_path + "{env}/csv/{tile_id}_{year}.csv",
             "stats_db": s3_base_path + "{env}/db/stats.db",
             "pro": "s3://gfwpro-raster-data/{pro_id}",
             "tilecache": "s3://wri-tiles/glad_{env}/tiles",
