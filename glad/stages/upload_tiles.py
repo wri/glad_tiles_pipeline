@@ -92,11 +92,12 @@ def upload_day_conf_s3(tiles, **kwargs):
             output = path.format(env=env, tile_id=tile_id)
 
             try:
+                logging.info("Upload file " + output)
                 sp.check_call(["aws", "s3", "cp", tile, output])
             except sp.CalledProcessError:
                 logging.warning("Failed to upload file to " + output)
             else:
-                logging.info("Upload file " + output)
+                logging.info("Uploaded file " + output)
                 yield tile
 
 
@@ -124,6 +125,7 @@ def upload_day_conf_s3_gfw_pro(tiles, pro_tiles, **kwargs):
                 output = path.format(pro_id=pro_tiles[tile_id])
 
                 try:
+                    logging.info("Upload file to GFW Pro: " + output)
                     sp.check_call(
                         [
                             "aws",
@@ -136,9 +138,9 @@ def upload_day_conf_s3_gfw_pro(tiles, pro_tiles, **kwargs):
                         ]
                     )
                 except sp.CalledProcessError:
-                    logging.warning("Failed to upload file to  " + output)
+                    logging.warning("Failed to upload file to GFW Pro: " + output)
                 else:
-                    logging.info("Upload file to " + output)
+                    logging.info("Uploaded file to GFW Pro: " + output)
                     yield tile
 
 
