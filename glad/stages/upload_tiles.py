@@ -141,7 +141,7 @@ def upload_day_conf_s3_gfw_pro(tiles, pro_tiles, **kwargs):
                     logging.warning("Failed to upload file to GFW Pro: " + output)
                 else:
                     logging.info("Uploaded file to GFW Pro: " + output)
-                    yield tile
+            yield tile
 
 
 def upload_rgb_wm_s3(tiles, **kwargs):
