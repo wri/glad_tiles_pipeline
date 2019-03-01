@@ -14,7 +14,6 @@ from glad.stages.upload_tiles import upload_logs
 from glad.utils.tiles import get_tile_ids_by_bbox
 from glad.utils.utils import get_data_root, output_file
 from typing import Dict, Any
-from pathlib import PurePath
 import os
 import shutil
 import logging

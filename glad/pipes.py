@@ -279,8 +279,8 @@ def csv_export_pipe(**kwargs):
         "year",
         "julian_day",
         "area",
-        "val1",
-        "val2",
+        "emissions",
+        "climate_mask",
     ]
 
     header_csv = [

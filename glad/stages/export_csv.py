@@ -15,12 +15,15 @@ def get_dataframe(tile_pairs):
         f_name, year, folder, tile_id = file_details(tile)
 
         tiles = [tile_pair[0]]
+        col_names = ["day_conf"]
 
         if emissions:
-            tiles = tiles + [emissions]
+            tiles += [emissions]
+            col_names += ["emissions"]
 
         if climate_mask:
-            tiles = tiles + [climate_mask]
+            tiles += [climate_mask]
+            col_names += ["climate_mask"]
 
         try:
             logging.info("Extract points for tile: " + str(tiles))
@@ -30,15 +33,15 @@ def get_dataframe(tile_pairs):
             logging.error(e)
         else:
             if not emissions:
-                df["val1"] = 0
+                df["emissions"] = 0
             if not climate_mask:
-                df["val2"] = 0
+                df["climate_mask"] = 0
             yield year, tile_id, df
 
 
 def decode_day_conf(tile_dfs):
 
-    day_conf = "val0"
+    day_conf = "day_conf"
 
     for tile_df in tile_dfs:
 
@@ -98,7 +101,7 @@ def convert_julian_date(tile_dfs):
             lambda year: datetime.datetime(year, 1, 1)
         ) + df["julian_day"].map(lambda julian_day: datetime.timedelta(julian_day - 1))
         df["alert_count"] = 1
-        df = df.drop(columns=["year", "julian_day", "area", "val1", "val2"])
+        df = df.drop(columns=["year", "julian_day", "area", "emissions", "climate_mask"])
         yield year, tile_id, df
 
 
