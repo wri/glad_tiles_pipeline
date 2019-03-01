@@ -109,6 +109,45 @@ def download_preprocessed_tiles_year(tile_ids, **kwargs):
                     yield output
 
 
+# TODO: The next three functions are more or less the same. We should rewrite them as one.
+def download_gadm(tile_ids, **kwargs):
+    """
+    Downloads GADM tiles from S3
+    :param tile_ids: list of tile ids to download
+    :param kwargs: global keyword arguments
+    :return: outfile or input tile_id
+    """
+    root = kwargs["root"]
+    name = kwargs["name"]
+    s3_url = kwargs["paths"]["gadm"]
+    return_input = kwargs["return_input"]
+
+    for tile_id in tile_ids:
+
+        output = output_file(root, "gadm", name, tile_id + ".tif")
+
+        left, bottom, right, top = get_bbox_by_tile_id(tile_id)
+        top = get_latitude(top)
+        left = get_longitude(left)
+
+        cmd = ["aws", "s3", "cp", s3_url.format(top=top, left=left), output]
+
+        try:
+            logging.debug("Download file: " + s3_url.format(top=top, left=left))
+            sp.check_call(cmd)
+        except sp.CalledProcessError:
+            logging.warning(
+                "Failed to download file: " + s3_url.format(top=top, left=left)
+            )
+        else:
+            logging.info("Downloaded file: " + s3_url.format(top=top, left=left))
+            if not return_input:
+                yield output
+        finally:
+            if return_input:
+                yield tile_id
+
+
 def download_emissions(tile_ids, **kwargs):
     """
     Downloads carbon emission tiles from S3

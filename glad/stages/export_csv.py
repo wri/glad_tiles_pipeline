@@ -9,13 +9,18 @@ import datetime
 def get_dataframe(tile_pairs):
     for tile_pair in tile_pairs:
         tile = tile_pair[0]
-        emissions = tile_pair[1]
-        climate_mask = tile_pair[2]
+        gadm = tile_pair[1]
+        emissions = tile_pair[2]
+        climate_mask = tile_pair[3]
 
         f_name, year, folder, tile_id = file_details(tile)
 
         tiles = [tile_pair[0]]
         col_names = ["day_conf"]
+
+        if gadm:
+            tiles += [gadm]
+            col_names += ["gadm"]
 
         if emissions:
             tiles += [emissions]
@@ -32,6 +37,8 @@ def get_dataframe(tile_pairs):
             logging.error("Failed to extract points for tiles: " + str(tiles))
             logging.error(e)
         else:
+            if not emissions:
+                df["gadm"] = 0
             if not emissions:
                 df["emissions"] = 0
             if not climate_mask:

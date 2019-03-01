@@ -5,7 +5,7 @@ from glad.pipes import (
     intensity_pipe,
     rgb_pipe,
     tilecache_pipe,
-    download_climate_data,
+    download_enrichment_data,
     csv_export_pipe,
     stats_db,
 )
@@ -65,6 +65,7 @@ def main():
             "db_table": "tile_alert_stats",
         },
         "paths": {
+            "gadm": "s3://gfw2-data/analyses/gadm/tiles/adm2/gadm_adm2_{top}_{left}.tif",
             "emissions": "s3://gfw2-data/climate/WHRC_biomass/WHRC_V4/t_co2_pixel/{top}_{left}_t_co2_pixel_2000.tif",
             "climate_mask": "s3://gfw2-data/forest_change/umd_landsat_alerts/archive/pipeline/climate/climate_mask/climate_mask_{top}_{left}.tif",
             "preprocessed": "s3://gfw2-data/forest_change/umd_landsat_alerts/archive/tiles/{tile_id}/{product}{year}.tif",
@@ -103,7 +104,7 @@ def main():
             intensity_pipe(date_conf_tiles, **kwargs)
             rgb_pipe(**kwargs)
             tilecache_pipe(**kwargs)
-            download_climate_data(tile_ids, **kwargs)
+            download_enrichment_data(tile_ids, **kwargs)
             csv_export_pipe(**kwargs)
             stats_db(**kwargs)
         except Exception as e:

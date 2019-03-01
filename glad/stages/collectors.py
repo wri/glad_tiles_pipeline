@@ -204,20 +204,37 @@ def collect_day_conf_all_years(tiles, **kwargs):
             logging.warning("Could not create pair for: " + key)
 
 
-def match_emissions(tiles, **kwargs):
+def match_gadm(tiles, **kwargs):
     root = kwargs["root"]
     name = kwargs["name"]
 
     for tile in tiles:
         tile_id = get_tile_id(tile)
 
-        path = PurePath(root, "climate", name, tile_id + ".tif")
+        path = PurePath(root, "gadm", name, tile_id + ".tif")
         if PosixPath(path).exists():
-            logging.info("Found matching emission file: " + path.as_posix())
+            logging.info("Found matching gadm file: " + path.as_posix())
             yield tile, path.as_posix()
         else:
-            logging.warning("Could not fine file: " + path.as_posix())
+            logging.warning("Could not find gadm file: " + path.as_posix())
             yield tile, None
+            # raise FileNotFoundError
+
+
+def match_emissions(tile_pairs, **kwargs):
+    root = kwargs["root"]
+    name = kwargs["name"]
+
+    for tile_pair in tile_pairs:
+        tile_id = get_tile_id(tile_pair[0])
+
+        path = PurePath(root, "climate", name, tile_id + ".tif")
+        if PosixPath(path).exists():
+            logging.info("Found matching emissions file: " + path.as_posix())
+            yield tile_pair[0], tile_pair[1], path.as_posix()
+        else:
+            logging.warning("Could not find emissions file: " + path.as_posix())
+            yield tile_pair[0], tile_pair[1], None
             # raise FileNotFoundError
 
 
@@ -231,12 +248,12 @@ def match_climate_mask(tile_pairs, **kwargs):
 
         path = PurePath(root, "climate", name, tile_id + ".tif")
         if PosixPath(path).exists():
-            logging.info("Found matching emission file: " + path.as_posix())
-            yield tile_pair[0], tile_pair[1], path.as_posix()
+            logging.info("Found matching climate mask: " + path.as_posix())
+            yield tile_pair[0], tile_pair[1], tile_pair[2], path.as_posix()
         else:
             # Not all tiles have a corresponding climate mask
-            logging.warning("Could not fine file: " + path.as_posix())
-            yield tile_pair[0], tile_pair[1], None
+            logging.warning("Could not find climate mask: " + path.as_posix())
+            yield tile_pair[0], tile_pair[1], tile_pair[2], None
 
 
 def _check_tifs_exist(

@@ -3,6 +3,7 @@ from glad.stages.download import (
     download_latest_tiles,
     download_preprocessed_tiles_years,
     download_preprocessed_tiles_year,
+    download_gadm,
     download_emissions,
     download_climate_mask,
     download_stats_db,
@@ -52,6 +53,7 @@ from glad.stages.collectors import (
     collect_day_conf_all_years,
     collect_day_conf_pairs,
     get_preprocessed_tiles,
+    match_gadm,
     match_emissions,
     match_climate_mask,
 )
@@ -244,12 +246,15 @@ def tilecache_pipe(**kwargs):
     return
 
 
-def download_climate_data(tile_ids, **kwargs):
+def download_enrichment_data(tile_ids, **kwargs):
 
     workers = kwargs["workers"]
 
     pipe = (
         tile_ids
+        | Stage(
+            download_gadm, name="adm2", return_input=True, **kwargs
+        ).setup(workers=workers)
         | Stage(
             download_emissions, name="emissions", return_input=True, **kwargs
         ).setup(workers=workers)
@@ -299,6 +304,7 @@ def csv_export_pipe(**kwargs):
 
     pipe = (
         day_conf_tiles
+        | Stage(match_gadm, name="adm2", **kwargs).setup(workers=workers)
         | Stage(match_emissions, name="emissions", **kwargs).setup(workers=workers)
         | Stage(match_climate_mask, name="climate_mask", **kwargs).setup(
             workers=workers
