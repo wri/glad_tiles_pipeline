@@ -7,6 +7,7 @@ from glad.pipes import (
     tilecache_pipe,
     download_enrichment_data,
     csv_export_pipe,
+    climate_stats,
     stats_db,
 )
 from glad.stages.collectors import get_most_recent_day
@@ -105,8 +106,9 @@ def main():
             rgb_pipe(**kwargs)
             tilecache_pipe(**kwargs)
             download_enrichment_data(tile_ids, **kwargs)
-            csv_export_pipe(**kwargs)
-            stats_db(**kwargs)
+            frames = csv_export_pipe(**kwargs)
+            climate_stats(frames, **kwargs)
+            stats_db(frames, **kwargs)
         except Exception as e:
             logging.exception(e)
 

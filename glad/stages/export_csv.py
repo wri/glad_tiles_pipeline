@@ -37,6 +37,9 @@ def get_dataframe(tile_pairs):
             logging.error("Failed to extract points for tiles: " + str(tiles))
             logging.error(e)
         else:
+
+            df["alert_count"] = 1
+
             if not emissions:
                 df["gadm"] = 0
             if not emissions:
@@ -58,7 +61,7 @@ def decode_day_conf(tile_dfs):
 
         try:
             logging.info("Decode day/conf value for tile: " + tile_id)
-            df["confidence"], df["year"], df["julian_day"] = zip(
+            df["confidence"], df["year"], df["week"], df["julian_day"] = zip(
                 *map(_decode_day_conf, df[day_conf])
             )
         except KeyError:
@@ -107,8 +110,10 @@ def convert_julian_date(tile_dfs):
         df["alert_date"] = df["year"].map(
             lambda year: datetime.datetime(year, 1, 1)
         ) + df["julian_day"].map(lambda julian_day: datetime.timedelta(julian_day - 1))
-        df["alert_count"] = 1
-        df = df.drop(columns=["year", "julian_day", "area", "emissions", "climate_mask"])
+
+        df = df.drop(
+            columns=["year", "week", "julian_day", "area", "emissions", "climate_mask"]
+        )
         yield year, tile_id, df
 
 
@@ -175,4 +180,7 @@ def _decode_day_conf(value, baseyear=2015):
         max_days += 365 + int(not (year % 4))
         next_year += 1
 
-    return conf, year, days - min_days
+    d = datetime.datetime.strptime("2019-50", "%Y-%j")
+    week = int(datetime.datetime.strftime(d, "%U"))
+
+    return conf, year, week, days - min_days
