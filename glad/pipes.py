@@ -46,6 +46,12 @@ from glad.stages.export_csv import (
     convert_to_parent_xyz,
     group_by_xyz,
 )
+from glad.stages.dataframes import (
+    climate_aggregate_df,
+    climate_concate_df,
+    climate_filter_df,
+)
+
 from glad.stages.collectors import (
     collect_resampled_tiles,
     collect_rgb_tiles,
@@ -274,7 +280,6 @@ def csv_export_pipe(**kwargs):
     root = kwargs["root"]
     years = [str(year) for year in kwargs["years"]]
     workers = kwargs["workers"]
-    max_zoom = kwargs["max_zoom"]
 
     day_conf_tiles = get_preprocessed_tiles(root, include_years=years)
 
@@ -283,6 +288,7 @@ def csv_export_pipe(**kwargs):
         "lat",
         "confidence",
         "year",
+        "week",
         "julian_day",
         "area",
         "emissions",
@@ -290,6 +296,7 @@ def csv_export_pipe(**kwargs):
         "iso",
         "adm1",
         "adm2",
+        "alert_count",
     ]
 
     header_csv = [
@@ -297,6 +304,7 @@ def csv_export_pipe(**kwargs):
         "lat",
         "confidence",
         "year",
+        "week",
         "julian_day",
         "area",
         "emissions",
@@ -304,10 +312,10 @@ def csv_export_pipe(**kwargs):
         "iso",
         "adm1",
         "adm2",
+        "alert_count",
     ]
 
-    columns_xyz = ["x", "y", "z", "alert_count", "alert_date", "confidence"]
-    header_xyz = ["x", "y", "z", "alert_count", "alert_date", "confidence"]
+    frames = list()
 
     pipe = (
         day_conf_tiles
@@ -328,6 +336,52 @@ def csv_export_pipe(**kwargs):
             **kwargs
         ).setup(workers=workers)
         | Stage(upload_csv_s3, name="output", **kwargs).setup(workers=workers)
+    )
+
+    for output in pipe.results():
+        logging.debug("Export CSV output: " + str(output))
+        frames.append(output)
+    logging.info("Export CSV - Done")
+
+    return output
+
+
+def climate_stats(frames, **kwargs):
+
+    workers = kwargs["workers"]
+
+    # preprocessed_years = kwargs["preprocessed_years"]
+
+    # preprocessed_df = get_preprocessed_df(include_years=preprocessed_years, **kwargs)
+    pipe = (
+        frames
+        | Stage(climate_filter_df).setup(workers=workers)
+        | Stage(climate_aggregate_df).setup(workers=workers)
+        | Stage(climate_concate_df).setup(workers=1)
+        | Stage(climate_aggregate_df).setup(workers=1)
+    )
+
+    for output in pipe.results():
+        df = output
+        logging.info(df)
+
+    # frames = [df, preprocessed_df]
+    # df = climate_concate_df(frames)
+
+    # df = climate_expand_df(df)
+
+
+def stats_db(frames, **kwargs):
+
+    workers = kwargs["workers"]
+    max_zoom = kwargs["max_zoom"]
+
+    columns_xyz = ["x", "y", "z", "alert_count", "alert_date", "confidence"]
+    header_xyz = ["x", "y", "z", "alert_count", "alert_date", "confidence"]
+
+    # TODO: Check if we can keep frames in memory and write directly to sqlite
+    pipe = (
+        frames
         | Stage(convert_julian_date).setup(workers=workers)
         | Stage(convert_latlon_xyz, **kwargs).setup(workers=workers)
         | Stage(group_by_xyz).setup(workers=workers)
@@ -359,9 +413,6 @@ def csv_export_pipe(**kwargs):
     for output in pipe.results():
         logging.debug("Export CSV output: " + str(output))
     logging.info("Export CSV - Done")
-
-
-def stats_db(**kwargs):
 
     download_stats_db(**kwargs)
     delete_current_years(**kwargs)
