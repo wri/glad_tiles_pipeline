@@ -1,9 +1,11 @@
 from raster2points import raster2df
-from glad.utils.utils import output_file, file_details
+from glad.utils.utils import output_file, file_details, get_file_dir
+import pandas as pd
 import logging
 import math
 import mercantile
 import datetime
+import os
 
 
 def get_dataframe(tile_pairs):
@@ -32,7 +34,7 @@ def get_dataframe(tile_pairs):
 
         try:
             logging.info("Extract points for tile: " + str(tiles))
-            df = raster2df(*tiles, calc_area=True)
+            df = raster2df(*tiles, col_names=col_names, calc_area=True)
         except Exception as e:
             logging.error("Failed to extract points for tiles: " + str(tiles))
             logging.error(e)
@@ -63,11 +65,39 @@ def decode_day_conf(tile_dfs):
             )
         except KeyError:
             logging.warning(
-                "Cannot fine column {} for tile {} and year {}. "
+                "Cannot find column {} for tile {} and year {}. "
                 "Data frame seems to be empty. Skip.".format(day_conf, tile_id, year)
             )
         else:
             df = df.drop(columns=[day_conf])
+            yield year, tile_id, df
+
+
+def decode_gadm(tile_dfs):
+
+    gadm = "gadm"
+
+    for tile_df in tile_dfs:
+
+        year = tile_df[0]
+        tile_id = tile_df[1]
+        df = tile_df[2]
+
+        f_dir = get_file_dir(__file__)
+        gadm_csv = os.path.join(f_dir, 'fixures/gadm-adm2.csv')
+        gadm_df = pd.read_csv(gadm_csv)
+
+        try:
+            logging.info("Decode gadm id for tile: " + tile_id)
+            df = df.join(gadm_df.set_index("id"), on="gadm")
+
+        except KeyError:
+            logging.warning(
+                "Cannot find column {} for tile {} and year {}. "
+                "Data frame seems to be empty. Skip.".format(gadm, tile_id, year)
+            )
+        else:
+            df = df.drop(columns=[gadm])
             yield year, tile_id, df
 
 

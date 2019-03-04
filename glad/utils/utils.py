@@ -2,6 +2,7 @@ from pathlib import Path, PurePath
 import subprocess as sp
 import glob
 import re
+import os
 
 
 def output_mkdir(*path):
@@ -47,6 +48,10 @@ def get_file_name(f):
     """
     p = PurePath(f)
     return p.parts[-1]
+
+
+def get_file_dir(f):
+    return os.path.dirname(os.path.realpath(f))
 
 
 def get_tile_id(f):
@@ -134,6 +139,7 @@ def get_suffix(product):
         return ""
 
 
+# TODO: move to collectors
 def get_pro_tiles():
     out = sp.check_output(
         [

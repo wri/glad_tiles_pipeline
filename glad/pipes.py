@@ -39,6 +39,7 @@ from glad.stages.tiles import (
 from glad.stages.export_csv import (
     get_dataframe,
     decode_day_conf,
+    decode_gadm,
     save_csv,
     convert_julian_date,
     convert_latlon_xyz,
@@ -286,6 +287,9 @@ def csv_export_pipe(**kwargs):
         "area",
         "emissions",
         "climate_mask",
+        "iso",
+        "adm1",
+        "adm2",
     ]
 
     header_csv = [
@@ -297,6 +301,9 @@ def csv_export_pipe(**kwargs):
         "area",
         "emissions",
         "climate_mask",
+        "iso",
+        "adm1",
+        "adm2",
     ]
 
     columns_xyz = ["x", "y", "z", "alert_count", "alert_date", "confidence"]
@@ -311,6 +318,7 @@ def csv_export_pipe(**kwargs):
         )
         | Stage(get_dataframe).setup(workers=workers)
         | Stage(decode_day_conf).setup(workers=workers)
+        | Stage(decode_gadm).setup(workers=workers)
         | Stage(
             save_csv,
             name="output",
