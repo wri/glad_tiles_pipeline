@@ -22,7 +22,7 @@ cd glad_tiles_pipeline
 mkdir .aws
 mkdir .google
 
-meta=$(aws sts assume-role --role-arn arn:aws:iam::838255262149:role/gfw_sync --role-session-name GFWsync)
+meta=$(aws sts assume-role --duration-seconds 7200 --role-arn arn:aws:iam::838255262149:role/gfw_sync --role-session-name GFWsync)
 default_id=$(echo $meta | jq '.Credentials.AccessKeyId'  | sed -e 's/^"//' -e 's/"$//')
 default_secret=$(echo $meta | jq '.Credentials.SecretAccessKey'  | sed -e 's/^"//' -e 's/"$//')
 default_token=$(echo $meta | jq '.Credentials.SessionToken'  | sed -e 's/^"//' -e 's/"$//')
