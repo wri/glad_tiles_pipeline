@@ -84,7 +84,7 @@ def decode_gadm(tile_dfs):
         df = tile_df[2]
 
         f_dir = get_file_dir(__file__)
-        gadm_csv = os.path.join(f_dir, 'fixures/gadm-adm2.csv')
+        gadm_csv = os.path.join(f_dir, "fixures/gadm-adm2.csv")
         gadm_df = pd.read_csv(gadm_csv)
 
         try:
@@ -138,7 +138,9 @@ def convert_julian_date(tile_dfs):
             lambda year: datetime.datetime(year, 1, 1)
         ) + df["julian_day"].map(lambda julian_day: datetime.timedelta(julian_day - 1))
         df["alert_count"] = 1
-        df = df.drop(columns=["year", "julian_day", "area", "emissions", "climate_mask"])
+        df = df.drop(
+            columns=["year", "julian_day", "area", "emissions", "climate_mask"]
+        )
         yield year, tile_id, df
 
 

@@ -253,9 +253,9 @@ def download_enrichment_data(tile_ids, **kwargs):
 
     pipe = (
         tile_ids
-        | Stage(
-            download_gadm, name="adm2", return_input=True, **kwargs
-        ).setup(workers=workers)
+        | Stage(download_gadm, name="adm2", return_input=True, **kwargs).setup(
+            workers=workers
+        )
         | Stage(
             download_emissions, name="emissions", return_input=True, **kwargs
         ).setup(workers=workers)
