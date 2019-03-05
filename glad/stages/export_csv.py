@@ -210,7 +210,8 @@ def _decode_day_conf(value, baseyear=2015):
         max_days += 365 + int(not (year % 4))
         next_year += 1
 
-    d = datetime.datetime.strptime("2019-50", "%Y-%j")
+    day = days - min_days
+    d = datetime.datetime.strptime("{}-{}".format(year, day), "%Y-%j")
     week = int(datetime.datetime.strftime(d, "%U"))
 
-    return conf, year, week, days - min_days
+    return conf, year, week, day

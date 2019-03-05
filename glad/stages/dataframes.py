@@ -69,7 +69,7 @@ def climate_concate_df(dfs):
 def climate_expand_df(df):
 
     logging.info("Expand dataframe")
-    week_year_df = df.groupby(["week", "year"]).size().reset_index()
+    week_year_df = df.groupby(["year", "week"]).size().reset_index()
     iso_adm1_df = df.groupby(["iso", "adm1"]).size().reset_index()
 
     week_year_df["temp_key"] = 1
@@ -82,12 +82,15 @@ def climate_expand_df(df):
     join_fields = ["iso", "adm1", "year", "week"]
     df = pd.merge(temp_df, df, on=join_fields, how="left")
 
-    df.confidence.fillna(3, inplace=True)
-    df.alert_count.fillna(0, inplace=True)
+    df.confidence.fillna(3, inplace=True, downcast="infer")
+    df.alert_count.fillna(0, inplace=True, downcast="infer")
     df.emissions.fillna(0, inplace=True)
     df.area.fillna(0, inplace=True)
 
-    return df.sort_values(join_fields)
+    df = df.drop("0_x", axis=1).drop("0_y", axis=1).reset_index()
+    df = df.sort_values(join_fields)
+
+    return df.drop("index", axis=1)
 
 
 def climate_cumsum_df(df):
