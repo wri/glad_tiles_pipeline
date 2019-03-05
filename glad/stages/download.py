@@ -237,7 +237,7 @@ def download_stats_db(**kwargs):
     env = kwargs["env"]
 
     if env == "test":
-        env = "stage"
+        env = "staging"
 
     s3_url = s3_url.format(env=env)
 

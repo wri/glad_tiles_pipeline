@@ -1,11 +1,11 @@
 import os
 from pathlib import PurePath
-from stages.collectors import get_preprocessed_tiles
+from glad.stages.collectors import get_preprocessed_tiles
 
 
 def test_get_preprocessed_tiles():
 
-    root = PurePath(os.path.dirname(os.path.realpath(__file__)), "fixtures").as_posix()
+    root = PurePath(os.path.dirname(os.path.realpath(__file__)), "fixures").as_posix()
 
     all = ["2015", "2016", "2017", "2018", "2019", "2015_2016_2017"]
     include = ["2015", "2016", "2017", "2018"]

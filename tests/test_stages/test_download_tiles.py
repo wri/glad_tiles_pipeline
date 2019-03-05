@@ -1,6 +1,6 @@
-from stages.download_tiles import get_suffix, download_preprocessed_tiles_years
+from glad.stages.download import get_suffix, download_preprocessed_tiles_years
 from parallelpipe import Stage
-from helpers.utils import output_file
+from glad.utils.utils import output_file
 import subprocess as sp
 from unittest import mock
 
@@ -10,8 +10,8 @@ def test_get_suffix():
     assert get_suffix("conf") == ""
 
 
-@mock.patch("helpers.utils.Path")
-@mock.patch("stages.download_tiles.sp")
+@mock.patch("glad.utils.utils.Path")
+@mock.patch("glad.stages.download.sp")
 def test_download_preprocessed_tiles_years(mock_sp, mock_path):
 
     preprocessed_years = [2015, 2016, 2017]

@@ -1,4 +1,5 @@
-from helpers.encode_date_conf import get_year_offset, encode_days, encode_conf
+"""
+from glad.stages.utils.utils import get_year_offset, encode_days, encode_conf
 import numpy as np
 
 
@@ -30,3 +31,4 @@ def test_encode_conf():
     assert (
         o.all() == np.array([[10000, 0, 10000], [0, 20000, 0], [30000, 0, 30000]]).all()
     )
+"""

@@ -1,4 +1,4 @@
-from helpers.tiles import (
+from glad.utils.tiles import (
     upper_bound,
     lower_bound,
     get_longitude,

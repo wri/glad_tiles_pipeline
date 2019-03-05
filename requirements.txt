@@ -10,7 +10,8 @@ modestmaps
 simplejson
 werkzeug
 uuid
-mapbox-vector-tile
 TileStache
 raster2points
 mercantile
+pre-commit
+pytest

@@ -50,6 +50,10 @@ from glad.stages.dataframes import (
     climate_aggregate_df,
     climate_concate_df,
     climate_filter_df,
+    climate_cumsum_df,
+    climate_emissions_targets,
+    climate_expand_df,
+    climate_format_df,
 )
 
 from glad.stages.collectors import (
@@ -76,7 +80,7 @@ from glad.stages.tile_db import (
     vacuum,
 )
 
-from glad.utils.utils import get_pro_tiles
+from glad.utils.utils import get_pro_tiles, output_file
 
 
 import logging
@@ -343,16 +347,17 @@ def csv_export_pipe(**kwargs):
         frames.append(output)
     logging.info("Export CSV - Done")
 
-    return output
+    return frames
 
 
 def climate_stats(frames, **kwargs):
 
+    root = kwargs["root"]
     workers = kwargs["workers"]
 
     # preprocessed_years = kwargs["preprocessed_years"]
-
     # preprocessed_df = get_preprocessed_df(include_years=preprocessed_years, **kwargs)
+
     pipe = (
         frames
         | Stage(climate_filter_df).setup(workers=workers)
@@ -363,12 +368,17 @@ def climate_stats(frames, **kwargs):
 
     for output in pipe.results():
         df = output
-        logging.info(df)
 
     # frames = [df, preprocessed_df]
     # df = climate_concate_df(frames)
 
-    # df = climate_expand_df(df)
+    df = climate_expand_df(df[0])
+    df = climate_cumsum_df(df)
+    df = climate_emissions_targets(df)
+    df = climate_format_df(df)
+
+    output = output_file(root, "output", "csv", "climate.csv")
+    df.to_csv(output)
 
 
 def stats_db(frames, **kwargs):
