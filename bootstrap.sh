@@ -13,7 +13,7 @@ mkdir -p /mnt/log
 mount -o discard /dev/nvme3n1 /mnt/log
 
 
-yum -y install docker git jq htop
+yum -y install docker git jq htop fswatch
 
 cd /home/ec2-user
 
@@ -65,4 +65,6 @@ EOL
 service docker start
 docker build . -t glad-pipeline
 
-docker run -it --ulimit nofile=4096:4096 -e IAM_ROLE=gfw-sync -v /mnt/data:/usr/data -v /mnt/log:/var/log glad-pipeline glad_pipeline.py -w 35 --env prod
+docker run -d --ulimit nofile=4096:4096 -e IAM_ROLE=gfw-sync -v /mnt/data:/usr/data -v /mnt/log:/var/log glad-pipeline glad_pipeline.py -w 35 --env prod
+
+fswatch -o /mnt/log/glad/done | xargs -n1 -I{} shutdown
