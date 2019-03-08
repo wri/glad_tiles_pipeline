@@ -6,7 +6,7 @@ aws ec2 run-instances \
     --key-name tmaschler_wri2 \
     --security-group-ids sg-d7a0d8ad sg-6c6a5911 \
     --subnet-id subnet-116d9a4a \
-    --user-data bootstrap.sh \
+    --user-data file://bootstrap.sh \
     --ebs-optimized \
     --iam-instance-profile Name=gfw_docker_host \
     --instance-initiated-shutdown-behavior terminate \
