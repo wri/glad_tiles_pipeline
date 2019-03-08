@@ -114,6 +114,10 @@ def main():
     finally:
         upload_logs(**kwargs)
 
+        # signal for docker host to shutdown
+        f = open("/var/log/glad/done", "w+")
+        f.close()
+
 
 def _get_parser():
     """
