@@ -240,7 +240,7 @@ def _get_logger(logfile, debug=True):
     sh = logging.StreamHandler(sys.stdout)
     fh = logging.FileHandler(logfile)
 
-    fh.setLevel(logging.WARNING)
+    fh.setLevel(logging.INFO)
 
     sh.setFormatter(formatter)
     fh.setFormatter(formatter)
