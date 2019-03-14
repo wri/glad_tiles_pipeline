@@ -19,6 +19,7 @@ cd /home/ec2-user
 
 git clone https://github.com/wri/glad_tiles_pipeline.git
 cd glad_tiles_pipeline
+git checkout feature/shutdown_privileged
 mkdir .aws
 mkdir .google
 
@@ -65,4 +66,7 @@ EOL
 service docker start
 docker build . -t glad-pipeline
 
-docker run --privileged -d --ulimit nofile=4096:4096 -e IAM_ROLE=gfw-sync -v /mnt/data:/usr/data -v /mnt/log:/var/log glad-pipeline glad_pipeline.py -w 35 --env prod --shutdown
+nohub fswatch -o /mnt/log/glad/done | xargs -n1 -I{} shutdown > /dev/null 2>&1 &
+
+docker run -d --ulimit nofile=4096:4096 -e IAM_ROLE=gfw-sync -v /mnt/data:/usr/data -v /mnt/log:/var/log glad-pipeline glad_pipeline.py -w 35 --env test --shutdown
+
