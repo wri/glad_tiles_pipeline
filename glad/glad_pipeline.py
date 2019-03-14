@@ -114,9 +114,10 @@ def main():
     finally:
         upload_logs(**kwargs)
 
-        # signal for docker host to shutdown
-        f = open("/var/log/glad/done", "w+")
-        f.close()
+        if args.shutdown:
+            # signal for docker host to shutdown
+            f = open("/var/log/glad/done", "w+")
+            f.close()
 
 
 def _get_parser():
@@ -159,6 +160,15 @@ def _get_parser():
         const=True,
         default=False,
         help="Activate debug mode.",
+    )
+
+    parser.add_argument(
+        "--shutdown",
+        type=str2bool,
+        nargs="?",
+        const=True,
+        default=False,
+        help="Shutdown server once process completed.",
     )
 
     parser.add_argument(
