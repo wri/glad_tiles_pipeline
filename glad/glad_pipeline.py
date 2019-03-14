@@ -83,7 +83,6 @@ def main():
     }
 
     try:
-        raise Exception
         # TODO
         #  add some logic to skip this step in case we don't deal with current years
         kwargs["tile_date"], tile_ids = get_most_recent_day(tile_ids=tile_ids, **kwargs)
