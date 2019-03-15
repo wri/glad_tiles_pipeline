@@ -112,6 +112,9 @@ def main():
         upload_logs(**kwargs)
 
         if args.shutdown:
+
+            logging.warning("Send shutdown signal")
+
             # signal for docker host to shutdown
             f = open("/var/log/glad/done", "w+")
             f.close()
