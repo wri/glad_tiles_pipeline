@@ -13,23 +13,21 @@ from glad.stages.collectors import get_most_recent_day
 from glad.stages.upload_tiles import upload_logs
 from glad.utils.tiles import get_tile_ids_by_bbox
 from glad.utils.utils import get_data_root, output_file
+from glad.utils.parser import get_parser
+from glad.utils.logger import get_logger, get_logfile
 from typing import Dict, Any
-from pathlib import PurePath
+
 import os
 import shutil
 import logging
-import sys
-import multiprocessing
-import argparse
-from datetime import datetime
 
 
 def main():
 
-    args = _get_parser()
+    args = get_parser()
 
-    logfile = _get_logfile()
-    _get_logger(logfile, debug=args.debug)
+    logfile = get_logfile()
+    get_logger(logfile, debug=args.debug)
 
     if not args.ignore_preprocessed_years:
         preprocessed_years = range(2015, min(args.years))
@@ -118,171 +116,6 @@ def main():
             # signal for docker host to shutdown
             f = open("/var/log/glad/done", "w+")
             f.close()
-
-
-def _get_parser():
-    """
-    Build parser for command line input
-    :return: Parser for command line input
-    """
-    parser = argparse.ArgumentParser(description="Change the data type of a raster.")
-
-    parser.add_argument(
-        "--workers",
-        "-w",
-        type=int,
-        default=int(multiprocessing.cpu_count() / 2),
-        help="Maximum number of workers per stage",
-    )
-    parser.add_argument(
-        "--bbox",
-        "-b",
-        type=int,
-        nargs="+",
-        default=[-120, -40, 180, 30],
-        help="Bounding box for area to process (left, bottom, right, top)",
-    )
-    parser.add_argument(
-        "--years", "-y", nargs="+", default=get_current_years(), help="Years to process"
-    )
-    parser.add_argument(
-        "--ignore_preprocessed_years",
-        type=str2bool,
-        nargs="?",
-        default=False,
-        const=True,
-        help="Ignore preprocessed years prior to years to process",
-    )
-    parser.add_argument(
-        "--debug",
-        type=str2bool,
-        nargs="?",
-        const=True,
-        default=False,
-        help="Activate debug mode.",
-    )
-
-    parser.add_argument(
-        "--shutdown",
-        type=str2bool,
-        nargs="?",
-        const=True,
-        default=False,
-        help="Shutdown server once process completed.",
-    )
-
-    parser.add_argument(
-        "--include_russia",
-        type=str2bool,
-        nargs="?",
-        const=True,
-        default=False,
-        help="Activate debug mode.",
-    )
-
-    parser.add_argument(
-        "--env",
-        type=str,
-        default="test",
-        choices=["prod", "staging", "test"],
-        help="Will copy data to the selected environment. Won't copy data for test.",
-    )
-    parser.add_argument("--min_zoom", type=int, default=0, help="Minimum zoom level")
-    parser.add_argument("--max_zoom", type=int, default=12, help="Maximum zoom level")
-    parser.add_argument(
-        "--min_tile_zoom",
-        type=int,
-        default=10,
-        help="Minimum zoom level for 10x10 degree tiles",
-    )
-    parser.add_argument(
-        "--max_tilecache_zoom",
-        type=int,
-        default=8,
-        help="Maximum zoom level for building tilecache",
-    )
-    parser.add_argument(
-        "--num_tiles",
-        "-n",
-        type=int,
-        default=115,
-        help="Number of expected input tiles",
-    )
-
-    return parser.parse_args()
-
-
-def _get_logfile():
-    now = datetime.now()
-    log_dir = "/var/log/glad"
-
-    # TODO: use SysLogHandler instead of FileHandler
-    #  https://stackoverflow.com/questions/36762016/best-practice-to-write-logs-in-var-log-from-a-python-script
-    try:
-        os.makedirs(log_dir)
-    except FileExistsError:
-        # directory already exists
-        pass
-
-    logfile = "{}/glad-{}.log".format(log_dir, now.strftime("%Y%m%d%H%M%S"))
-
-    return logfile
-
-
-def _get_logger(logfile, debug=True):
-    """
-    Build logger
-    :param debug: Set Log Level to Debug or Info
-    :return: logger
-    """
-
-    root = logging.getLogger()
-    if debug:
-        root.setLevel(logging.DEBUG)
-    else:
-        root.setLevel(logging.INFO)
-
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
-
-    sh = logging.StreamHandler(sys.stdout)
-    fh = logging.FileHandler(logfile)
-
-    fh.setLevel(logging.WARNING)
-
-    sh.setFormatter(formatter)
-    fh.setFormatter(formatter)
-
-    root.addHandler(sh)
-    root.addHandler(fh)
-
-    return root
-
-
-def str2bool(v):
-    """
-    Convert various strings to boolean
-    :param v: String
-    :return: Boolean
-    """
-    if v.lower() in ("yes", "true", "t", "y", "1"):
-        return True
-    elif v.lower() in ("no", "false", "f", "n", "0"):
-        return False
-    else:
-        raise argparse.ArgumentTypeError("Boolean value expected.")
-
-
-def get_current_years():
-    now = datetime.now()
-    year = now.year
-    month = now.month
-
-    if month < 7:
-        return [year - 1, year]
-    else:
-        return [year]
 
 
 if __name__ == "__main__":
