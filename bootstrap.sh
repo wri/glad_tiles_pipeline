@@ -22,7 +22,7 @@ cd glad_tiles_pipeline
 mkdir .aws
 mkdir .google
 
-meta=$(aws sts assume-role --role-arn arn:aws:iam::838255262149:role/gfw_sync --role-session-name GFWsync)
+meta=$(aws sts assume-role --duration-seconds 7200 --role-arn arn:aws:iam::838255262149:role/gfw_sync --role-session-name GFWsync)
 default_id=$(echo $meta | jq '.Credentials.AccessKeyId'  | sed -e 's/^"//' -e 's/"$//')
 default_secret=$(echo $meta | jq '.Credentials.SecretAccessKey'  | sed -e 's/^"//' -e 's/"$//')
 default_token=$(echo $meta | jq '.Credentials.SessionToken'  | sed -e 's/^"//' -e 's/"$//')
@@ -39,20 +39,16 @@ cat >.aws/credentials <<EOL
 aws_access_key_id = $default_id
 aws_secret_access_key = $default_secret
 aws_session_token = $default_token
-
 [GFWPro_gfwpro-raster-data_remote]
 aws_access_key_id = $pro_id
 aws_secret_access_key = $pro_secret
 aws_session_token = $pro_token
-
 EOL
 
 cat >.aws/config <<EOL
-
 [default]
 output = json
 region = us-east-1
-
 [profile GFWPro_gfwpro-raster-data_remote]
 output = json
 region = us-east-1
