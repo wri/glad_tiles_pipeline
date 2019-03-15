@@ -47,8 +47,10 @@ def resample(tiles, **kwargs):
         try:
             logging.debug(cmd)
             sp.check_call(cmd)
-        except sp.CalledProcessError:
-            logging.warning("Failed to resample file: " + tile)
+        except sp.CalledProcessError as e:
+            logging.error("Failed to resample file: " + tile)
+            logging.error(e)
+            raise e
         else:
             logging.info("Resampled file: " + tile)
             yield output
@@ -71,8 +73,10 @@ def build_vrt(tiles, **kwargs):
 
     try:
         sp.check_call(cmd)
-    except sp.CalledProcessError:
-        logging.warning("Failed to build VRT: " + output)
+    except sp.CalledProcessError as e:
+        logging.error("Failed to build VRT: " + output)
+        logging.error(e)
+        raise e
     else:
         logging.info("Built VRT: " + output)
         yield output

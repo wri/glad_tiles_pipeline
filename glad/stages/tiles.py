@@ -28,8 +28,10 @@ def generate_vrt(zoom_tiles, min_zoom_vrt, max_zoom_vrt, **kwargs):
 
             try:
                 sp.check_call(cmd)
-            except sp.CalledProcessError:
-                logging.warning("Failed to build VRT: " + output)
+            except sp.CalledProcessError as e:
+                logging.error("Failed to build VRT: " + output)
+                logging.error(e)
+                raise e
             else:
                 logging.info("Built VRT: " + output)
                 yield zoom, output
@@ -59,8 +61,22 @@ def generate_tile_list(zoom_tiles, tile_ids, **kwargs):
                     str(zoom),
                 ]
 
-                logging.debug(cmd)
-                tile_str = sp.check_output(cmd)
+                try:
+                    logging.info(
+                        "Generate tilestache list for zoom {} and tile {}".format(
+                            zoom, tile_id
+                        )
+                    )
+                    tile_str = sp.check_output(cmd)
+                except sp.CalledProcessError as e:
+                    logging.error(
+                        "Failed to generate tilestache list for zoom {} and tile {}".format(
+                            zoom, tile_id
+                        )
+                    )
+                    logging.error(e)
+                    raise e
+
                 for t in tile_str.split():
                     tile_set.add(t)
 
@@ -80,10 +96,17 @@ def save_tile_lists(zoom_tilelists, **kwargs):
             output = output_file(
                 root, "tilecache", "config", "z_{0}_{1}.txt".format(zoom, i)
             )
-
-            with open(output, "w") as f:
-                for tile_coords in tiles:
-                    f.write((tile_coords.decode("utf-8") + "\n"))
+            try:
+                logging.info("Try to save tile list #{} for zoom {}".format(i, zoom))
+                with open(output, "w") as f:
+                    for tile_coords in tiles:
+                        f.write((tile_coords.decode("utf-8") + "\n"))
+            except Exception as e:
+                logging.error(
+                    "Failed to save tile list #{} for zoom {}".format(i, zoom)
+                )
+                logging.error(e)
+                raise e
 
             i += 1
             yield zoom, output
@@ -110,8 +133,10 @@ def generate_tiles(zoom_tilelists, **kwargs):
 
         try:
             sp.check_call(cmd)
-        except sp.CalledProcessError:
-            logging.warning("Failed to seed tiles for: " + tilelist)
+        except sp.CalledProcessError as e:
+            logging.error("Failed to seed tiles for: " + tilelist)
+            logging.error(e)
+            raise e
         else:
             logging.info("Seeded tiles for : " + tilelist)
             yield zoom, output_dir
@@ -152,11 +177,12 @@ def generate_tilecache_mapfile(zoom_images, **kwargs):
             logging.info("Generating Mapfile " + output)
             with open(output, "w") as f:
                 f.write(xd.unparse(mapfile, pretty=True))
-            yield zoom, output
         except Exception as e:
             logging.error("Could not generate mapfile " + output)
             logging.error(e)
             raise e
+        else:
+            yield zoom, output
 
 
 def generate_tilecache_config(zoom_mapfiles, **kwargs):
@@ -177,9 +203,12 @@ def generate_tilecache_config(zoom_mapfiles, **kwargs):
 
         config["cache"]["path"] = tilecache_path
         config["layers"]["tiles"]["provider"]["mapfile"] = mapfile
-
-        logging.info("Generating tilecache config file " + output)
-        with open(output, "w") as f:
-            f.write(json.dumps(config, indent=4))
-
+        try:
+            logging.info("Generating tilecache config file " + output)
+            with open(output, "w") as f:
+                f.write(json.dumps(config, indent=4))
+        except Exception as e:
+            logging.error("Failed to generate tilecache config file " + output)
+            logging.error(e)
+            raise e
         yield zoom, output

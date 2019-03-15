@@ -41,8 +41,10 @@ def download_latest_tiles(tile_ids, **kwargs):
                     logging.debug("Attempt to download " + tif_url)
                     blob = bucket.blob(tif_url)
                     blob.download_to_filename(output)
-                except sp.CalledProcessError:
-                    logging.warning("Failed to download file: " + tif_url)
+                except sp.CalledProcessError as e:
+                    logging.error("Failed to download file: " + tif_url)
+                    logging.error(e)
+                    raise e
                 else:
                     logging.info("Downloaded file: " + tif_url)
                     logging.debug(output)
@@ -68,6 +70,11 @@ def download_preprocessed_tiles_years(tile_ids, **kwargs):
             sp.check_call(["aws", "s3", "cp", s3_url, output])
         except sp.CalledProcessError:
             logging.warning("Failed to download file: " + s3_url)
+            logging.info(
+                "Will try to download tiles {} for years {} separately".format(
+                    tile_id, year_str
+                )
+            )
             yield tile_id
         else:
             logging.info("Downloaded file: " + s3_url)
@@ -97,11 +104,13 @@ def download_preprocessed_tiles_year(tile_ids, **kwargs):
                             output,
                         ]
                     )
-                except sp.CalledProcessError:
-                    logging.warning(
+                except sp.CalledProcessError as e:
+                    logging.error(
                         "Failed to download file: "
                         + s3_url.format(tile_id, product, year)
                     )
+                    logging.error(e)
+                    raise e
                 else:
                     logging.info(
                         "Downloaded file: " + s3_url.format(tile_id, product, year)
@@ -138,6 +147,7 @@ def download_emissions(tile_ids, **kwargs):
             logging.warning(
                 "Failed to download file: " + s3_url.format(top=top, left=left)
             )
+            logging.warning("Will ignore emissions data for tile {}".format(tile_id))
         else:
             logging.info("Downloaded file: " + s3_url.format(top=top, left=left))
             if not return_input:
@@ -177,6 +187,7 @@ def download_climate_mask(tile_ids, **kwargs):
             logging.warning(
                 "Failed to download file: " + s3_url.format(top=top, left=left)
             )
+            logging.warning("Will ignore climate_mask for tile {}".format(tile_id))
         else:
             logging.info("Downloaded file: " + s3_url.format(top=top, left=left))
             if not return_input:
@@ -208,7 +219,8 @@ def download_stats_db(**kwargs):
         logging.debug("Download file: " + s3_url)
         sp.check_call(cmd)
     except sp.CalledProcessError as e:
-        logging.warning("Failed to download file: " + s3_url)
+        logging.error("Failed to download file: " + s3_url)
+        logging.error(e)
         raise e
     else:
         logging.info("Downloaded file: " + s3_url)

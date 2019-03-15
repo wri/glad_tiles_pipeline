@@ -30,8 +30,10 @@ def encode_date_conf(tiles, **kwargs):
 
         try:
             sp.check_call(cmd)
-        except sp.CalledProcessError:
-            logging.warning("Failed to encode file: " + tile)
+        except sp.CalledProcessError as e:
+            logging.error("Failed to encode file: " + tile)
+            logging.error(e)
+            raise e
         else:
             logging.info("Encoded file: " + tile)
             yield output
@@ -58,8 +60,10 @@ def prep_intensity(tiles, **kwargs):
 
         try:
             sp.check_call(cmd)
-        except sp.CalledProcessError:
-            logging.warning("Failed to prepare intensity for file: " + tile)
+        except sp.CalledProcessError as e:
+            logging.error("Failed to prepare intensity for file: " + tile)
+            logging.error(e)
+            raise e
         else:
             logging.info("Prepared intensity for file: " + tile)
             yield output
@@ -79,8 +83,10 @@ def unset_no_data_value(tiles):
 
         try:
             sp.check_call(cmd)
-        except sp.CalledProcessError:
-            logging.warning("Failed to unset nodata value for file: " + tile)
+        except sp.CalledProcessError as e:
+            logging.error("Failed to unset nodata value for file: " + tile)
+            logging.error(e)
+            raise e
         else:
             logging.info("Unset nodata value for file: " + tile)
             yield output
@@ -98,8 +104,10 @@ def encode_rgb(tile_pairs):
 
         try:
             sp.check_call(cmd)
-        except sp.CalledProcessError:
-            logging.warning("Failed to build RGB for: " + str(tile_pair))
+        except sp.CalledProcessError as e:
+            logging.error("Failed to build RGB for: " + str(tile_pair))
+            logging.error(e)
+            raise e
         else:
             logging.info("Built RGB for: " + str(tile_pair))
             yield output
@@ -153,8 +161,10 @@ def project(tiles):
 
         try:
             sp.check_call(cmd)
-        except sp.CalledProcessError:
-            logging.warning("Failed to project file: " + tile)
+        except sp.CalledProcessError as e:
+            logging.error("Failed to project file: " + tile)
+            logging.error(e)
+            raise e
         else:
             logging.info("Projected file: " + tile)
             yield output

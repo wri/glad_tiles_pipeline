@@ -18,8 +18,10 @@ def combine_date_conf_pairs(pairs, **kwargs):
 
         try:
             sp.check_call(["add2", pair["day"], pair["conf"], output])
-        except sp.CalledProcessError:
-            logging.warning("Failed to combine files into: " + output)
+        except sp.CalledProcessError as e:
+            logging.error("Failed to combine files into: " + output)
+            logging.error(e)
+            raise e
         else:
             logging.info("Combined files into: " + output)
             yield output
@@ -41,8 +43,10 @@ def merge_years(tile_dicts, **kwargs):
 
         try:
             sp.check_call(["combine{}".format(len(input))] + input + [output])
-        except sp.CalledProcessError:
-            logging.warning("Failed to combine files: " + str(input))
+        except sp.CalledProcessError as e:
+            logging.error("Failed to combine files: " + str(input))
+            logging.error(e)
+            raise e
         else:
             logging.info("Combined files: " + str(input))
             yield output

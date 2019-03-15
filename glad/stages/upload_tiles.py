@@ -29,8 +29,10 @@ def upload_preprocessed_tiles_s3(tiles, **kwargs):
 
             try:
                 sp.check_call(["aws", "s3", "cp", tile, output])
-            except sp.CalledProcessError:
-                logging.warning("Failed to upload file to  " + output)
+            except sp.CalledProcessError as e:
+                logging.error("Failed to upload file to  " + output)
+                logging.error(e)
+                raise e
             else:
                 logging.info("Upload file to " + output)
                 yield tile
@@ -62,8 +64,10 @@ def upload_raw_tile_s3(tiles, **kwargs):
 
             try:
                 sp.check_call(["aws", "s3", "cp", tile, output])
-            except sp.CalledProcessError:
-                logging.warning("Failed to upload file to  " + output)
+            except sp.CalledProcessError as e:
+                logging.error("Failed to upload file to  " + output)
+                logging.error(e)
+                raise e
             else:
                 logging.info("Upload file " + output)
                 yield tile
@@ -94,8 +98,10 @@ def upload_day_conf_s3(tiles, **kwargs):
             try:
                 logging.info("Upload file " + output)
                 sp.check_call(["aws", "s3", "cp", tile, output])
-            except sp.CalledProcessError:
-                logging.warning("Failed to upload file to " + output)
+            except sp.CalledProcessError as e:
+                logging.error("Failed to upload file to " + output)
+                logging.error(e)
+                raise e
             else:
                 logging.info("Uploaded file " + output)
                 yield tile
@@ -137,8 +143,10 @@ def upload_day_conf_s3_gfw_pro(tiles, pro_tiles, **kwargs):
                             "GFWPro_gfwpro-raster-data_remote",
                         ]
                     )
-                except sp.CalledProcessError:
-                    logging.warning("Failed to upload file to GFW Pro: " + output)
+                except sp.CalledProcessError as e:
+                    logging.error("Failed to upload file to GFW Pro: " + output)
+                    logging.error(e)
+                    raise e
                 else:
                     logging.info("Uploaded file to GFW Pro: " + output)
             yield tile
@@ -160,8 +168,10 @@ def upload_rgb_wm_s3(tiles, **kwargs):
 
             try:
                 sp.check_call(["aws", "s3", "cp", tile, output])
-            except sp.CalledProcessError:
-                logging.warning("Failed to upload file to " + output)
+            except sp.CalledProcessError as e:
+                logging.error("Failed to upload file to " + output)
+                logging.error(e)
+                raise e
             else:
                 logging.info("Upload file to " + output)
                 yield tile
@@ -184,8 +194,10 @@ def upload_tilecache_s3(**kwargs):
 
         try:
             sp.check_call(["aws", "s3", "cp", folder, output, "--recursive"])
-        except sp.CalledProcessError:
-            logging.warning("Failed to upload tilecache to " + output)
+        except sp.CalledProcessError as e:
+            logging.error("Failed to upload tilecache to " + output)
+            logging.error(e)
+            raise e
         else:
             logging.info("Upload tilecache to " + output)
 
@@ -217,8 +229,10 @@ def upload_csv_s3(tile_dfs, name, **kwargs):
 
             try:
                 sp.check_call(["aws", "s3", "cp", csv, output])
-            except sp.CalledProcessError:
-                logging.warning("Failed to upload file to " + output)
+            except sp.CalledProcessError as e:
+                logging.error("Failed to upload file to " + output)
+                logging.error(e)
+                raise e
             else:
                 logging.info("Upload file to " + output)
                 yield tile_df
@@ -240,8 +254,10 @@ def upload_statsdb(**kwargs):
 
         try:
             sp.check_call(["aws", "s3", "cp", db, output])
-        except sp.CalledProcessError:
-            logging.warning("Failed to upload db to  " + output)
+        except sp.CalledProcessError as e:
+            logging.error("Failed to upload db to  " + output)
+            logging.error(e)
+            raise e
         else:
             logging.info("Uploaded db to " + output)
 
@@ -261,7 +277,9 @@ def upload_logs(**kwargs):
 
         try:
             sp.check_call(["aws", "s3", "cp", log, output])
-        except sp.CalledProcessError:
-            logging.warning("Failed to upload logfile to  " + output)
+        except sp.CalledProcessError as e:
+            logging.error("Failed to upload logfile to  " + output)
+            logging.error(e)
+            raise e
         else:
             logging.info("Uploaded logfile to " + output)
