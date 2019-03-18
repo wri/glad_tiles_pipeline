@@ -28,6 +28,7 @@ def get_dataframe(tile_pairs):
         except Exception as e:
             logging.error("Failed to extract points for tiles: " + str(tiles))
             logging.error(e)
+            raise e
         else:
             if not emissions:
                 df["val1"] = 0
@@ -53,7 +54,7 @@ def decode_day_conf(tile_dfs):
             )
         except KeyError:
             logging.warning(
-                "Cannot fine column {} for tile {} and year {}. "
+                "Cannot find column {} for tile {} and year {}. "
                 "Data frame seems to be empty. Skip.".format(day_conf, tile_id, year)
             )
         else:
@@ -73,16 +74,24 @@ def save_csv(tile_dfs, name, columns, header, return_input, **kwargs):
 
         output = output_file(root, name, "csv", year, tile_id + ".csv")
 
-        logging.info("Save file: " + output)
-
-        df.to_csv(
-            output, index=False, columns=columns, header=header, date_format="%Y-%m-%d"
-        )
-
-        if return_input:
-            yield tile_df
+        try:
+            logging.info("Save file: " + output)
+            df.to_csv(
+                output,
+                index=False,
+                columns=columns,
+                header=header,
+                date_format="%Y-%m-%d",
+            )
+        except Exception as e:
+            logging.error("Failed to save file: " + output)
+            logging.error(e)
+            raise e
         else:
-            yield output
+            if return_input:
+                yield tile_df
+            else:
+                yield output
 
 
 def convert_julian_date(tile_dfs):
@@ -93,13 +102,21 @@ def convert_julian_date(tile_dfs):
         tile_id = tile_df[1]
         df = tile_df[2]
 
-        logging.info("Convert julian date for tile: " + tile_id)
-        df["alert_date"] = df["year"].map(
-            lambda year: datetime.datetime(year, 1, 1)
-        ) + df["julian_day"].map(lambda julian_day: datetime.timedelta(julian_day - 1))
-        df["alert_count"] = 1
-        df = df.drop(columns=["year", "julian_day", "area", "val1", "val2"])
-        yield year, tile_id, df
+        try:
+            logging.info("Convert julian date for tile: " + tile_id)
+            df["alert_date"] = df["year"].map(
+                lambda year: datetime.datetime(year, 1, 1)
+            ) + df["julian_day"].map(
+                lambda julian_day: datetime.timedelta(julian_day - 1)
+            )
+            df["alert_count"] = 1
+            df = df.drop(columns=["year", "julian_day", "area", "val1", "val2"])
+        except Exception as e:
+            logging.error("Failed to convert julian data for tile " + tile_id)
+            logging.error(e)
+            raise e
+        else:
+            yield year, tile_id, df
 
 
 def convert_latlon_xyz(tile_dfs, **kwargs):
@@ -110,13 +127,19 @@ def convert_latlon_xyz(tile_dfs, **kwargs):
         year = tile_df[0]
         tile_id = tile_df[1]
         df = tile_df[2]
-        logging.info("Convert Lat/Lon to X/Y/Z for tile: " + tile_id)
-        df["z"] = max_zoom  # we need this first for zip(map()) to work
-        df["x"], df["y"], df["z"] = zip(
-            *map(mercantile.tile, df["lon"], df["lat"], df["z"])
-        )
-        df = df.drop(columns=["lon", "lat"])
-        yield year, tile_id, df
+        try:
+            logging.info("Convert Lat/Lon to X/Y/Z for tile: " + tile_id)
+            df["z"] = max_zoom  # we need this first for zip(map()) to work
+            df["x"], df["y"], df["z"] = zip(
+                *map(mercantile.tile, df["lon"], df["lat"], df["z"])
+            )
+            df = df.drop(columns=["lon", "lat"])
+        except Exception as e:
+            logging.error("Failed to convert Lat/Lon to X/Y/Z for tile " + tile_id)
+            logging.error(e)
+            raise e
+        else:
+            yield year, tile_id, df
 
 
 def group_by_xyz(tile_dfs):
@@ -126,12 +149,20 @@ def group_by_xyz(tile_dfs):
         tile_id = tile_df[1]
         df = tile_df[2]
 
-        logging.info("Group by X/Y/Z date and conf: " + tile_id)
+        try:
+            logging.info("Group by X/Y/Z date and conf: " + tile_id)
 
-        groupby_df = (
-            df.groupby(["x", "y", "z", "alert_date", "confidence"]).sum().reset_index()
-        )
-        yield year, tile_id, groupby_df
+            groupby_df = (
+                df.groupby(["x", "y", "z", "alert_date", "confidence"])
+                .sum()
+                .reset_index()
+            )
+        except Exception as e:
+            logging.error("Failed to group by X/Y/Z date and conf for tile " + tile_id)
+            logging.error(e)
+            raise e
+        else:
+            yield year, tile_id, groupby_df
 
 
 def convert_to_parent_xyz(tile_dfs):
@@ -141,12 +172,17 @@ def convert_to_parent_xyz(tile_dfs):
         tile_id = tile_df[1]
         df = tile_df[2]
 
-        logging.info("Convert X/Y/Z to parent X/Y/Z: " + tile_id)
-        df["x"], df["y"], df["z"] = zip(
-            *map(mercantile.parent, df["x"], df["y"], df["z"])
-        )
-
-        yield year, tile_id, df
+        try:
+            logging.info("Convert X/Y/Z to parent X/Y/Z: " + tile_id)
+            df["x"], df["y"], df["z"] = zip(
+                *map(mercantile.parent, df["x"], df["y"], df["z"])
+            )
+        except Exception as e:
+            logging.error("Failed to convert X/Y/Z to parent X/Y/Z for tile " + tile_id)
+            logging.error(e)
+            raise e
+        else:
+            yield year, tile_id, df
 
 
 def _decode_day_conf(value, baseyear=2015):

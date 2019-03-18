@@ -67,7 +67,6 @@ def main():
             "emissions": "s3://gfw2-data/climate/WHRC_biomass/WHRC_V4/t_co2_pixel/{top}_{left}_t_co2_pixel_2000.tif",
             "climate_mask": "s3://gfw2-data/forest_change/umd_landsat_alerts/archive/pipeline/climate/climate_mask/climate_mask_{top}_{left}.tif",
             "preprocessed": "s3://gfw2-data/forest_change/umd_landsat_alerts/archive/tiles/{tile_id}/{product}{year}.tif",
-            #  "stats_db": "s3://palm-risk-poc/data/mvt/stats.db",
             "encoded_backup": s3_base_path + "{env}/encoded/{year_str}/{tile_id}.tif",
             "raw_backup": s3_base_path + "{env}/raw/{year}/{product}/{tile_id}.tif",
             "resampled_rgb": s3_base_path + "{env}/rgb/{zoom}/{tile_id}.tif",
@@ -113,6 +112,9 @@ def main():
         upload_logs(**kwargs)
 
         if args.shutdown:
+
+            logging.warning("Send shutdown signal")
+
             # signal for docker host to shutdown
             f = open("/var/log/glad/done", "w+")
             f.close()

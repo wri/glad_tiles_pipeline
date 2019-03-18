@@ -216,7 +216,7 @@ def match_emissions(tiles, **kwargs):
             logging.info("Found matching emission file: " + path.as_posix())
             yield tile, path.as_posix()
         else:
-            logging.warning("Could not fine file: " + path.as_posix())
+            logging.warning("Could not find matching emission file: " + path.as_posix())
             yield tile, None
             # raise FileNotFoundError
 
@@ -231,11 +231,11 @@ def match_climate_mask(tile_pairs, **kwargs):
 
         path = PurePath(root, "climate", name, tile_id + ".tif")
         if PosixPath(path).exists():
-            logging.info("Found matching emission file: " + path.as_posix())
+            logging.info("Found matching climate mask: " + path.as_posix())
             yield tile_pair[0], tile_pair[1], path.as_posix()
         else:
             # Not all tiles have a corresponding climate mask
-            logging.warning("Could not fine file: " + path.as_posix())
+            logging.warning("Could not find matching climate mask: " + path.as_posix())
             yield tile_pair[0], tile_pair[1], None
 
 
