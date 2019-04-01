@@ -26,15 +26,17 @@ def generate_vrt(zoom_tiles, min_zoom_vrt, max_zoom_vrt, **kwargs):
                 output,
             ] + tiles
 
-            try:
-                sp.check_call(cmd)
-            except sp.CalledProcessError as e:
-                logging.error("Failed to build VRT: " + output)
-                logging.error(e)
-                raise e
-            else:
+            logging.debug(cmd)
+            p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
+            o, e = p.communicate()
+            logging.debug(o)
+            if p.returncode == 0:
                 logging.info("Built VRT: " + output)
                 yield zoom, output
+            else:
+                logging.error("Failed to build VRT: " + output)
+                logging.error(e)
+                raise sp.CalledProcessError
 
 
 def generate_tile_list(zoom_tiles, tile_ids, **kwargs):
@@ -61,6 +63,7 @@ def generate_tile_list(zoom_tiles, tile_ids, **kwargs):
                     str(zoom),
                 ]
 
+                # TODO: Check if we can change this to sp.Popen
                 try:
                     logging.info(
                         "Generate tilestache list for zoom {} and tile {}".format(
@@ -131,15 +134,17 @@ def generate_tiles(zoom_tilelists, **kwargs):
         cmd += ["--output-directory", output_dir]
         cmd += ["--tile-list", tilelist]
 
-        try:
-            sp.check_call(cmd)
-        except sp.CalledProcessError as e:
-            logging.error("Failed to seed tiles for: " + tilelist)
-            logging.error(e)
-            raise e
-        else:
+        logging.debug(cmd)
+        p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
+        o, e = p.communicate()
+        logging.debug(o)
+        if p.returncode == 0:
             logging.info("Seeded tiles for : " + tilelist)
             yield zoom, output_dir
+        else:
+            logging.error("Failed to seed tiles for: " + tilelist)
+            logging.error(e)
+            raise sp.CalledProcessError
 
 
 def generate_tilecache_mapfile(zoom_images, **kwargs):
