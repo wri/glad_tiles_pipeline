@@ -33,13 +33,14 @@ def change_pixel_depth(tiles, **kwargs):
                 output,
             ]
 
-            try:
-                logging.debug(cmd)
-                sp.check_call(cmd)
-            except sp.CalledProcessError as e:
-                logging.error("Failed to change pixel depth for file: " + tile)
-                logging.error(e)
-                raise e
-            else:
+            logging.debug(cmd)
+            p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
+            o, e = p.communicate()
+            logging.debug(o)
+            if p.returncode == 0:
                 logging.info("Changed pixel depth for file: " + tile)
                 yield output
+            else:
+                logging.error("Failed to change pixel depth for file: " + tile)
+                logging.error(e)
+                raise sp.CalledProcessError

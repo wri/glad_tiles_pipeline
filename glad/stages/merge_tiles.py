@@ -16,15 +16,19 @@ def combine_date_conf_pairs(pairs, **kwargs):
 
         output = output_file(root, "tiles", tile_id, name, year, "day_conf.tif")
 
-        try:
-            sp.check_call(["add2", pair["day"], pair["conf"], output])
-        except sp.CalledProcessError as e:
-            logging.error("Failed to combine files into: " + output)
-            logging.error(e)
-            raise e
-        else:
+        cmd = ["add2", pair["day"], pair["conf"], output]
+
+        logging.debug(cmd)
+        p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
+        o, e = p.communicate()
+        logging.debug(o)
+        if p.returncode == 0:
             logging.info("Combined files into: " + output)
             yield output
+        else:
+            logging.error("Failed to combine files into: " + output)
+            logging.error(e)
+            raise sp.CalledProcessError
 
 
 def merge_years(tile_dicts, **kwargs):
@@ -41,12 +45,16 @@ def merge_years(tile_dicts, **kwargs):
 
         input = sort_dict(tile_dict)
 
-        try:
-            sp.check_call(["combine{}".format(len(input))] + input + [output])
-        except sp.CalledProcessError as e:
-            logging.error("Failed to combine files: " + str(input))
-            logging.error(e)
-            raise e
-        else:
+        cmd = ["combine{}".format(len(input))] + input + [output]
+
+        logging.debug(cmd)
+        p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
+        o, e = p.communicate()
+        logging.debug(o)
+        if p.returncode == 0:
             logging.info("Combined files: " + str(input))
             yield output
+        else:
+            logging.error("Failed to combine files: " + str(input))
+            logging.error(e)
+            raise sp.CalledProcessError
