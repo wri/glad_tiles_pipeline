@@ -5,7 +5,7 @@ aws ec2 run-instances \
     --instance-type r5d.24xlarge \
     --key-name tmaschler_wri2 \
     --security-group-ids sg-d7a0d8ad sg-6c6a5911 \
-    --subnet-id subnet-116d9a4a \
+    --subnet-id subnet-00335589f5f424283 \
     --user-data file://bootstrap.sh \
     --ebs-optimized \
     --iam-instance-profile Name=gfw_docker_host \

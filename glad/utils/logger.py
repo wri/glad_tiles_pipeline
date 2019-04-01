@@ -42,7 +42,10 @@ def get_logger(logfile, debug=True):
     sh = logging.StreamHandler(sys.stdout)
     fh = logging.FileHandler(logfile)
 
-    fh.setLevel(logging.WARNING)
+    if debug:
+        fh.setLevel(logging.DEBUG)
+    else:
+        fh.setLevel(logging.INFO)
 
     sh.setFormatter(formatter)
     fh.setFormatter(formatter)

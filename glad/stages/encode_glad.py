@@ -28,15 +28,17 @@ def encode_date_conf(tiles, **kwargs):
         else:
             cmd += ["-m", "conf"]
 
-        try:
-            sp.check_call(cmd)
-        except sp.CalledProcessError as e:
-            logging.error("Failed to encode file: " + tile)
-            logging.error(e)
-            raise e
-        else:
+        logging.debug(cmd)
+        p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
+        o, e = p.communicate()
+        logging.debug(o)
+        if p.returncode == 0:
             logging.info("Encoded file: " + tile)
             yield output
+        else:
+            logging.error("Failed to encode file: " + tile)
+            logging.error(e)
+            raise sp.CalledProcessError
 
 
 def prep_intensity(tiles, **kwargs):
@@ -58,15 +60,17 @@ def prep_intensity(tiles, **kwargs):
 
         cmd = ["reclass", tile, output, str(max_ras_value)]
 
-        try:
-            sp.check_call(cmd)
-        except sp.CalledProcessError as e:
-            logging.error("Failed to prepare intensity for file: " + tile)
-            logging.error(e)
-            raise e
-        else:
+        logging.debug(cmd)
+        p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
+        o, e = p.communicate()
+        logging.debug(o)
+        if p.returncode == 0:
             logging.info("Prepared intensity for file: " + tile)
             yield output
+        else:
+            logging.error("Failed to prepare intensity for file: " + tile)
+            logging.error(e)
+            raise sp.CalledProcessError
 
 
 def unset_no_data_value(tiles):
@@ -81,15 +85,17 @@ def unset_no_data_value(tiles):
         output = tile
         cmd = ["gdal_edit.py", tile, "-unsetnodata"]
 
-        try:
-            sp.check_call(cmd)
-        except sp.CalledProcessError as e:
-            logging.error("Failed to unset nodata value for file: " + tile)
-            logging.error(e)
-            raise e
-        else:
+        logging.debug(cmd)
+        p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
+        o, e = p.communicate()
+        logging.debug(o)
+        if p.returncode == 0:
             logging.info("Unset nodata value for file: " + tile)
             yield output
+        else:
+            logging.error("Failed to unset nodata value for file: " + tile)
+            logging.error(e)
+            raise sp.CalledProcessError
 
 
 def encode_rgb(tile_pairs):
@@ -102,15 +108,17 @@ def encode_rgb(tile_pairs):
 
         cmd = ["build_rgb", day_conf, intensity, output]
 
-        try:
-            sp.check_call(cmd)
-        except sp.CalledProcessError as e:
-            logging.error("Failed to build RGB for: " + str(tile_pair))
-            logging.error(e)
-            raise e
-        else:
+        logging.debug(cmd)
+        p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
+        o, e = p.communicate()
+        logging.debug(o)
+        if p.returncode == 0:
             logging.info("Built RGB for: " + str(tile_pair))
             yield output
+        else:
+            logging.error("Failed to build RGB for: " + str(tile_pair))
+            logging.error(e)
+            raise sp.CalledProcessError
 
 
 def project(tiles):
@@ -159,12 +167,14 @@ def project(tiles):
         # cmd += ['--config', 'GDAL_CACHEMAX', ras_util.get_mem_pct(), '-wm', ras_util.get_mem_pct()]
         cmd += ["-tr", cell_size, cell_size, tile, output]
 
-        try:
-            sp.check_call(cmd)
-        except sp.CalledProcessError as e:
-            logging.error("Failed to project file: " + tile)
-            logging.error(e)
-            raise e
-        else:
+        logging.debug(cmd)
+        p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
+        o, e = p.communicate()
+        logging.debug(o)
+        if p.returncode == 0:
             logging.info("Projected file: " + tile)
             yield output
+        else:
+            logging.error("Failed to project file: " + tile)
+            logging.error(e)
+            raise sp.CalledProcessError

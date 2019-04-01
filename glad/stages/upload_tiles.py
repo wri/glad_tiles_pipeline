@@ -27,15 +27,19 @@ def upload_preprocessed_tiles_s3(tiles, **kwargs):
             f_name, year_str, folder, tile_id = file_details(tile)
             output = path.format(env=env, year_str=year_str, tile_id=tile_id)
 
-            try:
-                sp.check_call(["aws", "s3", "cp", tile, output])
-            except sp.CalledProcessError as e:
-                logging.error("Failed to upload file to  " + output)
-                logging.error(e)
-                raise e
-            else:
+            cmd = ["aws", "s3", "cp", tile, output]
+
+            logging.debug(cmd)
+            p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
+            o, e = p.communicate()
+            logging.debug(o)
+            if p.returncode == 0:
                 logging.info("Upload file to " + output)
                 yield tile
+            else:
+                logging.error("Failed to upload file to  " + output)
+                logging.error(e)
+                raise sp.CalledProcessError
 
 
 def upload_raw_tile_s3(tiles, **kwargs):
@@ -62,15 +66,19 @@ def upload_raw_tile_s3(tiles, **kwargs):
                 env=env, year=year, product=f_name[:-4], tile_id=tile_id
             )
 
-            try:
-                sp.check_call(["aws", "s3", "cp", tile, output])
-            except sp.CalledProcessError as e:
-                logging.error("Failed to upload file to  " + output)
-                logging.error(e)
-                raise e
-            else:
+            cmd = ["aws", "s3", "cp", tile, output]
+
+            logging.debug(cmd)
+            p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
+            o, e = p.communicate()
+            logging.debug(o)
+            if p.returncode == 0:
                 logging.info("Upload file " + output)
                 yield tile
+            else:
+                logging.error("Failed to upload file to  " + output)
+                logging.error(e)
+                raise sp.CalledProcessError
 
 
 def upload_day_conf_s3(tiles, **kwargs):
@@ -95,16 +103,19 @@ def upload_day_conf_s3(tiles, **kwargs):
             tile_id = get_tile_id(tile)
             output = path.format(env=env, tile_id=tile_id)
 
-            try:
-                logging.info("Upload file " + output)
-                sp.check_call(["aws", "s3", "cp", tile, output])
-            except sp.CalledProcessError as e:
-                logging.error("Failed to upload file to " + output)
-                logging.error(e)
-                raise e
-            else:
+            cmd = ["aws", "s3", "cp", tile, output]
+
+            logging.debug(cmd)
+            p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
+            o, e = p.communicate()
+            logging.debug(o)
+            if p.returncode == 0:
                 logging.info("Uploaded file " + output)
                 yield tile
+            else:
+                logging.error("Failed to upload file to " + output)
+                logging.error(e)
+                raise sp.CalledProcessError
 
 
 def upload_day_conf_s3_gfw_pro(tiles, pro_tiles, **kwargs):
@@ -129,26 +140,25 @@ def upload_day_conf_s3_gfw_pro(tiles, pro_tiles, **kwargs):
             tile_id = get_tile_id(tile)
             if tile_id in pro_tiles.keys():
                 output = path.format(pro_id=pro_tiles[tile_id])
-
-                try:
-                    logging.info("Upload file to GFW Pro: " + output)
-                    sp.check_call(
-                        [
-                            "aws",
-                            "s3",
-                            "cp",
-                            tile,
-                            output,
-                            "--profile",
-                            "GFWPro_gfwpro-raster-data_remote",
-                        ]
-                    )
-                except sp.CalledProcessError as e:
+                cmd = [
+                    "aws",
+                    "s3",
+                    "cp",
+                    tile,
+                    output,
+                    "--profile",
+                    "GFWPro_gfwpro-raster-data_remote",
+                ]
+                logging.debug(cmd)
+                p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
+                o, e = p.communicate()
+                logging.debug(o)
+                if p.returncode == 0:
+                    logging.info("Uploaded file to GFW Pro: " + output)
+                else:
                     logging.error("Failed to upload file to GFW Pro: " + output)
                     logging.error(e)
-                    raise e
-                else:
-                    logging.info("Uploaded file to GFW Pro: " + output)
+                    raise sp.CalledProcessError
             yield tile
 
 
@@ -166,15 +176,19 @@ def upload_rgb_wm_s3(tiles, **kwargs):
             f_name, zoom, folder, tile_id = file_details(tile)
             output = path.format(env=env, zoom=zoom, tile_id=tile_id)
 
-            try:
-                sp.check_call(["aws", "s3", "cp", tile, output])
-            except sp.CalledProcessError as e:
-                logging.error("Failed to upload file to " + output)
-                logging.error(e)
-                raise e
-            else:
+            cmd = ["aws", "s3", "cp", tile, output]
+
+            logging.debug(cmd)
+            p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
+            o, e = p.communicate()
+            logging.debug(o)
+            if p.returncode == 0:
                 logging.info("Upload file to " + output)
                 yield tile
+            else:
+                logging.error("Failed to upload file to " + output)
+                logging.error(e)
+                raise sp.CalledProcessError
 
 
 # Needs to be outside pipe!
@@ -191,15 +205,18 @@ def upload_tilecache_s3(**kwargs):
     else:
 
         output = path.format(env=env)
+        cmd = ["aws", "s3", "cp", folder, output, "--recursive"]
 
-        try:
-            sp.check_call(["aws", "s3", "cp", folder, output, "--recursive"])
-        except sp.CalledProcessError as e:
+        logging.debug(cmd)
+        p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
+        o, e = p.communicate()
+        logging.debug(o)
+        if p.returncode == 0:
+            logging.info("Upload tilecache to " + output)
+        else:
             logging.error("Failed to upload tilecache to " + output)
             logging.error(e)
-            raise e
-        else:
-            logging.info("Upload tilecache to " + output)
+            raise sp.CalledProcessError
 
 
 def upload_csv_s3(tile_dfs, name, **kwargs):
@@ -227,15 +244,19 @@ def upload_csv_s3(tile_dfs, name, **kwargs):
 
             output = path.format(env=env, year=year, tile_id=tile_id)
 
-            try:
-                sp.check_call(["aws", "s3", "cp", csv, output])
-            except sp.CalledProcessError as e:
-                logging.error("Failed to upload file to " + output)
-                logging.error(e)
-                raise e
-            else:
+            cmd = ["aws", "s3", "cp", csv, output]
+
+            logging.debug(cmd)
+            p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
+            o, e = p.communicate()
+            logging.debug(o)
+            if p.returncode == 0:
                 logging.info("Upload file to " + output)
                 yield tile_df
+            else:
+                logging.error("Failed to upload file to " + output)
+                logging.error(e)
+                raise sp.CalledProcessError
 
 
 # needs to run outside pipe
@@ -252,14 +273,18 @@ def upload_statsdb(**kwargs):
 
         output = path.format(env=env)
 
-        try:
-            sp.check_call(["aws", "s3", "cp", db, output])
-        except sp.CalledProcessError as e:
+        cmd = ["aws", "s3", "cp", db, output]
+
+        logging.debug(cmd)
+        p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
+        o, e = p.communicate()
+        logging.debug(o)
+        if p.returncode == 0:
+            logging.info("Uploaded db to " + output)
+        else:
             logging.error("Failed to upload db to  " + output)
             logging.error(e)
-            raise e
-        else:
-            logging.info("Uploaded db to " + output)
+            raise sp.CalledProcessError
 
 
 # needs to run outside pipe
@@ -275,11 +300,15 @@ def upload_logs(**kwargs):
 
         output = path.format(env=env, logfile=PurePath(log).parts[-1])
 
-        try:
-            sp.check_call(["aws", "s3", "cp", log, output])
-        except sp.CalledProcessError as e:
+        cmd = ["aws", "s3", "cp", log, output]
+
+        logging.debug(cmd)
+        p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
+        o, e = p.communicate()
+        logging.debug(o)
+        if p.returncode == 0:
+            logging.info("Uploaded logfile to " + output)
+        else:
             logging.error("Failed to upload logfile to  " + output)
             logging.error(e)
-            raise e
-        else:
-            logging.info("Uploaded logfile to " + output)
+            raise sp.CalledProcessError

@@ -1,7 +1,8 @@
 import gdal
 import argparse
 import shutil
-import subprocess
+import subprocess as sp
+import logging
 
 # import raster_utilities as ras_util
 
@@ -40,7 +41,7 @@ def main():
         "-ot",
         args.data_type,
         "-co",
-        "COMPRESS=DEFLATE",
+        "COMPRESS=LZW",
         args.output_raster,
     ]
     cmd += [
@@ -57,14 +58,36 @@ def main():
 
     # If the initial data type is correct and no bounding box is specified, just copy it to the output
     if run_gdal:
-        subprocess.check_call(cmd)
+        logging.debug(cmd)
+        p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
+        o, e = p.communicate()
+        logging.debug(o)
+        if p.returncode == 0:
+            logging.info("Change NoData value and DataType for " + args.input_raster)
+        else:
+            logging.error(
+                "Failed to change NoData value and DataType for " + args.input_raster
+            )
+            logging.error(e)
+            raise sp.CalledProcessError
 
     else:
 
         # all GLAD rasters should have a NoData value of 0
         if not band.GetNoDataValue():
+
             cmd = ["gdal_edit.py", args.input_raster, "-a_nodata", "0"]
-            subprocess.check_call(cmd)
+
+            logging.debug(cmd)
+            p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
+            o, e = p.communicate()
+            logging.debug(o)
+            if p.returncode == 0:
+                logging.info("Change No data value for " + args.input_raster)
+            else:
+                logging.error("Failed to change no data value for " + args.input_raster)
+                logging.error(e)
+                raise sp.CalledProcessError
 
         shutil.copy(args.input_raster, args.output_raster)
 

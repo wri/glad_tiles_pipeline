@@ -41,7 +41,7 @@ def download_latest_tiles(tile_ids, **kwargs):
                     logging.debug("Attempt to download " + tif_url)
                     blob = bucket.blob(tif_url)
                     blob.download_to_filename(output)
-                except sp.CalledProcessError as e:
+                except Exception as e:
                     logging.error("Failed to download file: " + tif_url)
                     logging.error(e)
                     raise e
@@ -65,19 +65,23 @@ def download_preprocessed_tiles_years(tile_ids, **kwargs):
         )
 
         output = output_file(root, "tiles", tile_id, name, year_str, "day_conf.tif")
+        cmd = ["aws", "s3", "cp", s3_url, output]
 
-        try:
-            sp.check_call(["aws", "s3", "cp", s3_url, output])
-        except sp.CalledProcessError:
+        logging.debug(cmd)
+        p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
+        o, e = p.communicate()
+        logging.debug(o)
+        if p.returncode == 0:
+            logging.info("Downloaded file: " + s3_url)
+        else:
             logging.warning("Failed to download file: " + s3_url)
+            logging.warning(e)
             logging.info(
                 "Will try to download tiles {} for years {} separately".format(
                     tile_id, year_str
                 )
             )
             yield tile_id
-        else:
-            logging.info("Downloaded file: " + s3_url)
 
 
 def download_preprocessed_tiles_year(tile_ids, **kwargs):
@@ -94,28 +98,24 @@ def download_preprocessed_tiles_year(tile_ids, **kwargs):
                     root, "tiles", tile_id, name, year, product + ".tif"
                 )
 
-                try:
-                    sp.check_call(
-                        [
-                            "aws",
-                            "s3",
-                            "cp",
-                            s3_url.format(tile_id, product, year),
-                            output,
-                        ]
+                cmd = ["aws", "s3", "cp", s3_url.format(tile_id, product, year), output]
+
+                logging.debug(cmd)
+                p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
+                o, e = p.communicate()
+                logging.debug(o)
+                if p.returncode == 0:
+                    logging.info(
+                        "Downloaded file: " + s3_url.format(tile_id, product, year)
                     )
-                except sp.CalledProcessError as e:
+                    yield output
+                else:
                     logging.error(
                         "Failed to download file: "
                         + s3_url.format(tile_id, product, year)
                     )
                     logging.error(e)
-                    raise e
-                else:
-                    logging.info(
-                        "Downloaded file: " + s3_url.format(tile_id, product, year)
-                    )
-                    yield output
+                    raise sp.CalledProcessError
 
 
 def download_emissions(tile_ids, **kwargs):
@@ -140,21 +140,22 @@ def download_emissions(tile_ids, **kwargs):
 
         cmd = ["aws", "s3", "cp", s3_url.format(top=top, left=left), output]
 
-        try:
-            logging.debug("Download file: " + s3_url.format(top=top, left=left))
-            sp.check_call(cmd)
-        except sp.CalledProcessError:
+        logging.debug(cmd)
+        p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
+        o, e = p.communicate()
+        logging.debug(o)
+        if p.returncode == 0:
+            logging.info("Downloaded file: " + s3_url.format(top=top, left=left))
+            if not return_input:
+                yield output
+        else:
             logging.warning(
                 "Failed to download file: " + s3_url.format(top=top, left=left)
             )
             logging.warning("Will ignore emissions data for tile {}".format(tile_id))
-        else:
-            logging.info("Downloaded file: " + s3_url.format(top=top, left=left))
-            if not return_input:
-                yield output
-        finally:
-            if return_input:
-                yield tile_id
+            logging.warning(e)
+        if return_input:
+            yield tile_id
 
 
 def download_climate_mask(tile_ids, **kwargs):
@@ -178,23 +179,24 @@ def download_climate_mask(tile_ids, **kwargs):
         top = get_latitude(top)
         left = get_longitude(left)
 
-        try:
-            logging.debug("Download file: " + s3_url.format(top=top, left=left))
-            sp.check_call(
-                ["aws", "s3", "cp", s3_url.format(top=top, left=left), output]
-            )
-        except sp.CalledProcessError:
+        cmd = ["aws", "s3", "cp", s3_url.format(top=top, left=left), output]
+
+        logging.debug(cmd)
+        p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
+        o, e = p.communicate()
+        logging.debug(o)
+        if p.returncode == 0:
+            logging.info("Downloaded file: " + s3_url.format(top=top, left=left))
+            if not return_input:
+                yield output
+        else:
             logging.warning(
                 "Failed to download file: " + s3_url.format(top=top, left=left)
             )
             logging.warning("Will ignore climate_mask for tile {}".format(tile_id))
-        else:
-            logging.info("Downloaded file: " + s3_url.format(top=top, left=left))
-            if not return_input:
-                yield output
-        finally:
-            if return_input:
-                yield tile_id
+            logging.warning(e)
+        if return_input:
+            yield tile_id
 
 
 def download_stats_db(**kwargs):
@@ -215,13 +217,14 @@ def download_stats_db(**kwargs):
 
     cmd = ["aws", "s3", "cp", s3_url, output]
 
-    try:
-        logging.debug("Download file: " + s3_url)
-        sp.check_call(cmd)
-    except sp.CalledProcessError as e:
-        logging.error("Failed to download file: " + s3_url)
-        logging.error(e)
-        raise e
-    else:
+    logging.debug(cmd)
+    p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
+    o, e = p.communicate()
+    logging.debug(o)
+    if p.returncode == 0:
         logging.info("Downloaded file: " + s3_url)
         return output
+    else:
+        logging.error("Failed to download file: " + s3_url)
+        logging.error(e)
+        raise sp.CalledProcessError
