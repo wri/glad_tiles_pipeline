@@ -61,6 +61,6 @@ EOL
 service docker start
 docker build . -t glad-pipeline
 
-docker run -d --ulimit nofile=4096:4096 -e IAM_ROLE=gfw-sync -v /mnt/data:/usr/data -v /mnt/log:/var/log glad-pipeline glad_pipeline.py -w 35 --env prod --shutdown
+docker run -d --ulimit nofile=4096:4096 -e IAM_ROLE=gfw-sync -v /mnt/data:/usr/data -v /mnt/log:/var/log glad-pipeline glad_pipeline.py -w 30 --env prod --shutdown
 
 while sleep 30; do [ -f /mnt/log/glad/done ] && shutdown -h now; done &
