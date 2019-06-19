@@ -1,0 +1,11 @@
+*-info/*
+boto3/*
+botocore/*
+dateutil/*
+docutils/*
+easy_install/*
+jmespath/*
+pkg_resources/*
+s3transfer/*
+setuptools/*
+urllib3/*

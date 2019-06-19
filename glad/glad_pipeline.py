@@ -15,14 +15,18 @@ from glad.utils.tiles import get_tile_ids_by_bbox
 from glad.utils.utils import get_data_root, output_file
 from glad.utils.parser import get_parser
 from glad.utils.logger import get_logger, get_logfile
+from glad.utils.aws import update_status, update_lastrun
 from typing import Dict, Any
 
 import os
 import shutil
 import logging
+import datetime
 
 
 def main():
+
+    update_status("PENDING")
 
     args = get_parser()
 
@@ -85,8 +89,11 @@ def main():
         kwargs["tile_date"], tile_ids = get_most_recent_day(tile_ids=tile_ids, **kwargs)
     except ValueError:
         logging.error("Cannot find recently processes tiles. Aborting")
+        update_status("FAILED")
     else:
         try:
+
+            update_lastrun(datetime.datetime.strptime(kwargs["tile_date"], "%Y/%m_%d"))
 
             if os.path.exists(root):
                 # ignore_errors true will allow us to mount the data directory as a docker volume.
@@ -105,8 +112,11 @@ def main():
             download_climate_data(tile_ids, **kwargs)
             csv_export_pipe(**kwargs)
             stats_db(**kwargs)
+            update_status("SAVED")
+
         except Exception as e:
             logging.exception(e)
+            update_status("FAILED")
 
     finally:
         upload_logs(**kwargs)
