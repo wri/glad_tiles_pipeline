@@ -1,5 +1,8 @@
 FROM lambci/lambda:build-python3.7
 
+WORKDIR /var/task
+ENV WORKDIR /var/task
+
 RUN mkdir -p packages/ \
     && pip install retrying boto3 google-cloud-storage -t packages
 
@@ -15,8 +18,8 @@ COPY .lambdaignore "$WORKDIR/packages/.lambdaignore"
 
 # Compress all source codes expect files listed in .lambdaignore
 RUN cd $WORKDIR/packages && \
-#    cat .lambdaignore | xargs zip -9qyr $WORKDIR/lambda.zip . -x
-    zip -9qyr $WORKDIR/lambda.zip .
+    cat .lambdaignore | xargs zip -9qyr $WORKDIR/lambda.zip . -x
+
 RUN cd $WORKDIR && \
     zip -g lambda.zip lambda_function.py
 
