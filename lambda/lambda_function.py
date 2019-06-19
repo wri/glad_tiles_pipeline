@@ -101,7 +101,7 @@ def get_google_json():
         SecretId="google_cloud/earthenginepartners-hansen"
     )
 
-    json_file = sys.prefix + "credentials.json"
+    json_file = "/tmp/credentials.json"
     with open(json_file, "w+") as f:
         f.write(response["SecretString"])
 
