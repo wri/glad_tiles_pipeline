@@ -1,5 +1,6 @@
 import datetime
 import boto3
+import json
 
 
 S3 = boto3.resource("s3")
@@ -25,3 +26,9 @@ def update_lastrun(d):
 def update_status(status):
     STATUS.put(Body=status)
     return
+
+
+def get_slack_webhook(channel):
+    client = boto3.client("secretsmanager")
+    response = client.get_secret_value(SecretId="slack/gfw-sync")
+    return json.loads(response["SecretString"])[channel]
