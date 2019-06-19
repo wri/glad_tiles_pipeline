@@ -32,7 +32,7 @@ pro_id=$(echo $meta | jq '.Credentials.AccessKeyId'  | sed -e 's/^"//' -e 's/"$/
 pro_secret=$(echo $meta | jq '.Credentials.SecretAccessKey'  | sed -e 's/^"//' -e 's/"$//')
 pro_token=$(echo $meta | jq '.Credentials.SessionToken'  | sed -e 's/^"//' -e 's/"$//')
 
-secret=$(aws secretsmanager get-secret-value --secret-id google_cloud/gfw_sync --region us-east-1 | jq '.SecretString'  | sed -e 's/^"//' -e 's/"$//' -e 's/\\"/"/g' -e 's/\\\\n/\\n/g')
+secret=$(aws secretsmanager get-secret-value --secret-id google_cloud/earthenginepartners-hansen --region us-east-1 | jq '.SecretString'  | sed -e 's/^"//' -e 's/"$//' -e 's/\\"/"/g' -e 's/\\\\n/\\n/g')
 
 cat >.aws/credentials <<EOL
 [default]

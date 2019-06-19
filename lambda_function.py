@@ -38,8 +38,8 @@ def lambda_handler(event, context):
 
         if tile_date > lastrun and status != "PENDING":
             response = start_pipline()
-            update_lastrun(tile_date)
-            update_status("PENDING")
+            # update_lastrun(tile_date)
+            # update_status("PENDING")
             return {
                 "statusCode": 200,
                 "headers": {"Content-Type": "application/json"},
@@ -240,8 +240,6 @@ def start_pipline():
         ImageId="ami-02da3a138888ced85",
         InstanceType="r5d.24xlarge",
         KeyName="tmaschler_wri2",
-        # SecurityGroupIds=["sg-d7a0d8ad", "sg-6c6a5911"],
-        # SubnetId="subnet-00335589f5f424283",
         UserData=bootstrap,
         EbsOptimized=True,
         IamInstanceProfile={"Name": "gfw_docker_host"},
