@@ -90,7 +90,9 @@ def main():
         kwargs["tile_date"], tile_ids = get_most_recent_day(tile_ids=tile_ids, **kwargs)
     except ValueError:
         logging.error("Cannot find recently processes tiles. Aborting")
-        slack_webhook("WARNING", "Cannot find recently processes tiles. Aborting")
+        slack_webhook(
+            "WARNING", "Cannot find recently processes tiles. Aborting", **kwargs
+        )
         update_status("FAILED")
     else:
         try:
@@ -108,22 +110,24 @@ def main():
             preprocessed_tile_pipe(tile_ids, **kwargs)
             date_conf_tiles = date_conf_pipe(tile_ids, **kwargs)
             resample_date_conf_pipe(date_conf_tiles, **kwargs)
-            slack_webhook("INFO", "GLAD Anlysis Tiles updated")
+            slack_webhook("INFO", "GLAD Analysis Tiles updated", **kwargs)
             intensity_pipe(date_conf_tiles, **kwargs)
             rgb_pipe(**kwargs)
             tilecache_pipe(**kwargs)
-            slack_webhook("INFO", "GLAD Tile Cache updated")
+            slack_webhook("INFO", "GLAD Tile Cache updated", **kwargs)
             download_climate_data(tile_ids, **kwargs)
             csv_export_pipe(**kwargs)
             stats_db(**kwargs)
-            slack_webhook("INFO", "GLAD XYZ Stats Database updated")
+            slack_webhook("INFO", "GLAD XYZ Stats Database updated", **kwargs)
             update_status("SAVED")
 
         except Exception as e:
             logging.exception(e)
             update_status("FAILED")
             slack_webhook(
-                "ERROR", "GLAD Tile Pipeline failed. Please check logs for details"
+                "ERROR",
+                "GLAD Tile Pipeline failed. Please check logs for details",
+                **kwargs
             )
 
     finally:

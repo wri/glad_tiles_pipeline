@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name="glad_tile_pipeline",
-    version="0.1.0",
+    version="0.3.0",
     description="Tool to process GLAD tiles",
     packages=["glad"],
     author="Thomas Maschler",
@@ -17,6 +17,7 @@ setup(
         "xmltodict",
         "raster2points",
         "mercantile",
+        "boto3",
     ],
     scripts=[
         "glad/glad_pipeline.py",
