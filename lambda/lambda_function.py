@@ -37,7 +37,7 @@ def lambda_handler(event, context):
         tile_date_str = tile_date.strftime("%Y-%m-%d")
 
         if tile_date > lastrun and status != "PENDING":
-            response = start_pipline()
+            response = serialize_dates(start_pipline())
             # update_lastrun(tile_date)
             # update_status("PENDING")
             return {
@@ -278,6 +278,30 @@ def start_pipline():
     )
 
     return response
+
+
+def serialize_dates(d):
+
+    if isinstance(d, dict):
+        new_d = dict()
+        for k, v in d.items():
+            if isinstance(v, dict):
+                new_d[k] = serialize_dates(v)
+            elif isinstance(v, list):
+                new_d[k] = list()
+                for i in v:
+                    new_d[k].append(serialize_dates(i))
+            else:
+                if isinstance(v, datetime.datetime):
+                    new_d[k] = v.strftime("%Y-%m-%d %H:%M:%S")
+                else:
+                    new_d[k] = v
+
+        return new_d
+    elif isinstance(d, datetime.datetime):
+        return d.strftime("%Y-%m-%d %H:%M:%S")
+    else:
+        return d
 
 
 if __name__ == "__main__":
