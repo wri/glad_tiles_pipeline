@@ -97,7 +97,9 @@ def main():
     else:
         try:
 
-            update_lastrun(datetime.datetime.strptime(kwargs["tile_date"], "%Y/%m_%d"))
+            update_lastrun(
+                datetime.datetime.strptime(kwargs["tile_date"], "%Y/%m_%d"), **kwargs
+            )
 
             if os.path.exists(root):
                 # ignore_errors true will allow us to mount the data directory as a docker volume.
