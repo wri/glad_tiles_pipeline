@@ -18,13 +18,15 @@ def get_status():
     return body
 
 
-def update_lastrun(d):
-    LASTRUN.put(Body=d.strftime("%Y-%m-%d").encode("utf-8"))
+def update_lastrun(d, **kwargs):
+    if kwargs["env"] != "test":
+        LASTRUN.put(Body=d.strftime("%Y-%m-%d").encode("utf-8"))
     return
 
 
-def update_status(status):
-    STATUS.put(Body=status)
+def update_status(status, **kwargs):
+    if kwargs["env"] != "test":
+        STATUS.put(Body=status)
     return
 
 

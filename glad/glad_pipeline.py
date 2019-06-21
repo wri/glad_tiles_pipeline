@@ -27,9 +27,9 @@ import datetime
 
 def main():
 
-    update_status("PENDING")
-
     args = get_parser()
+
+    update_status("PENDING", **{"env": args.env})
 
     logfile = get_logfile()
     get_logger(logfile, debug=args.debug)
@@ -93,7 +93,7 @@ def main():
         slack_webhook(
             "WARNING", "Cannot find recently processes tiles. Aborting", **kwargs
         )
-        update_status("FAILED")
+        update_status("FAILED", **kwargs)
     else:
         try:
 
@@ -119,11 +119,11 @@ def main():
             csv_export_pipe(**kwargs)
             stats_db(**kwargs)
             slack_webhook("INFO", "GLAD XYZ Stats Database updated", **kwargs)
-            update_status("SAVED")
+            update_status("SAVED", **kwargs)
 
         except Exception as e:
             logging.exception(e)
-            update_status("FAILED")
+            update_status("FAILED", **kwargs)
             slack_webhook(
                 "ERROR",
                 "GLAD Tile Pipeline failed. Please check logs for details",
