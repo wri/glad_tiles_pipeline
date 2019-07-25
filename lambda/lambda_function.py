@@ -47,26 +47,30 @@ def lambda_handler(event, context):
         ]
         if tile_date > lastrun and status != "PENDING":
 
+            message = None
             for subnet_id in subnet_ids:
                 try:
                     response = serialize_dates(start_pipline(subnet_id))
-                except botocore.exceptions.ClientError:
-                    pass
+                except botocore.exceptions.ClientError as e:
+                    message = str(e)
                 else:
-                    break
+                    return {
+                        "statusCode": 200,
+                        "headers": {"Content-Type": "application/json"},
+                        "body": {
+                            "Last Update": tile_date_str,
+                            "Status": status,
+                            "Action": "Glad Pipeline triggered",
+                            "Details": response,
+                        },
+                    }
 
-            # update_lastrun(tile_date)
-            # update_status("PENDING")
             return {
-                "statusCode": 200,
+                "statusCode": 500,
                 "headers": {"Content-Type": "application/json"},
-                "body": {
-                    "Last Update": tile_date_str,
-                    "Status": status,
-                    "Action": "Glad Pipeline triggered",
-                    "Details": response,
-                },
+                "body": {"message": "No capacity available.\n" + message},
             }
+
         else:
             return {
                 "statusCode": 200,
