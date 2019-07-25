@@ -38,12 +38,12 @@ def lambda_handler(event, context):
         tile_date_str = tile_date.strftime("%Y-%m-%d")
 
         subnet_ids = [
-            "subnet-00335589f5f424283"  # GFW subnet zone us-east-1a
-            "subnet-8c2b5ea1"  # GFW subnet zone us-east-1b
-            "subnet-08458452c1d05713b"  # GFW subnet zone us-east-1c
-            "subnet-116d9a4a"  # GFW subnet zone us-east-1d
-            # "subnet-037b97cff4493e3a1" # GFW subnet zone us-east-1e
-            "subnet-0360516ee122586ff"  # GFW subnet zone us-east-1f
+            "subnet-00335589f5f424283",  # GFW subnet zone us-east-1a
+            "subnet-8c2b5ea1",  # GFW subnet zone us-east-1b
+            "subnet-08458452c1d05713b",  # GFW subnet zone us-east-1c
+            "subnet-116d9a4a",  # GFW subnet zone us-east-1d
+            # "subnet-037b97cff4493e3a1", # GFW subnet zone us-east-1e
+            "subnet-0360516ee122586ff",  # GFW subnet zone us-east-1f
         ]
         if tile_date > lastrun and status != "PENDING":
 
@@ -68,7 +68,7 @@ def lambda_handler(event, context):
             return {
                 "statusCode": 500,
                 "headers": {"Content-Type": "application/json"},
-                "body": {"message": "No capacity available.\n" + message},
+                "body": {"message": message},
             }
 
         else:
