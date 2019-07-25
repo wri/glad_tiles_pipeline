@@ -5,7 +5,8 @@ from retrying import retry
 import os
 import datetime
 import boto3
-import sys
+import botocore
+
 
 S3 = boto3.resource("s3")
 LASTRUN = S3.Object("gfw2-data", "forest_change/umd_landsat_alerts/prod/events/lastrun")
@@ -36,8 +37,24 @@ def lambda_handler(event, context):
 
         tile_date_str = tile_date.strftime("%Y-%m-%d")
 
+        subnet_ids = [
+            "subnet-00335589f5f424283"  # GFW subnet zone us-east-1a
+            "subnet-8c2b5ea1"  # GFW subnet zone us-east-1b
+            "subnet-08458452c1d05713b"  # GFW subnet zone us-east-1c
+            "subnet-116d9a4a"  # GFW subnet zone us-east-1d
+            # "subnet-037b97cff4493e3a1" # GFW subnet zone us-east-1e
+            "subnet-0360516ee122586ff"  # GFW subnet zone us-east-1f
+        ]
         if tile_date > lastrun and status != "PENDING":
-            response = serialize_dates(start_pipline())
+
+            for subnet_id in subnet_ids:
+                try:
+                    response = serialize_dates(start_pipline(subnet_id))
+                except botocore.exceptions.ClientError:
+                    pass
+                else:
+                    break
+
             # update_lastrun(tile_date)
             # update_status("PENDING")
             return {
@@ -230,7 +247,7 @@ def _check_tifs_exist(process_date, tile_ids, years):
     return available_tiles
 
 
-def start_pipline():
+def start_pipline(subnet):
     dirname = os.path.dirname(__file__)
     with open(os.path.join(dirname, "bootstrap.sh"), "r") as f:
         bootstrap = f.read()
@@ -251,7 +268,7 @@ def start_pipline():
                 "AssociatePublicIpAddress": True,
                 "DeviceIndex": 0,
                 "Groups": ["sg-d7a0d8ad", "sg-6c6a5911"],
-                "SubnetId": "subnet-00335589f5f424283",
+                "SubnetId": subnet,
             }
         ],
         TagSpecifications=[
@@ -281,7 +298,6 @@ def start_pipline():
 
 
 def serialize_dates(d):
-
     if isinstance(d, dict):
         new_d = dict()
         for k, v in d.items():
