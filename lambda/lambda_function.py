@@ -45,7 +45,7 @@ def lambda_handler(event, context):
             # "subnet-037b97cff4493e3a1", # GFW subnet zone us-east-1e
             "subnet-0360516ee122586ff",  # GFW subnet zone us-east-1f
         ]
-        if tile_date > lastrun and status != "PENDING":
+        if tile_date > lastrun and (status == "FAILED" or status == "COMPLETED"):
 
             message = None
             for subnet_id in subnet_ids:
