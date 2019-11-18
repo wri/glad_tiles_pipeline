@@ -21,6 +21,8 @@ ENV AWS_SHARED_CREDENTIALS_FILE $SECRETS_PATH/.aws/credentials
 ENV AWS_CONFIG_FILE $SECRETS_PATH/.aws/config
 ENV GOOGLE_APPLICATION_CREDENTIALS $SECRETS_PATH/.google/earthenginepartners-hansen.json
 
+RUN pip3 install --upgrade setuptools>=41.6.0
+
 # install app and compile scripts
 RUN cd /usr/local/include && ln -s ./ gdal
 RUN cd $SRC_PATH && \
