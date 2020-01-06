@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name="glad_tile_pipeline",
-    version="0.3.1",
+    version="1.0.2",
     description="Tool to process GLAD tiles",
     packages=["glad"],
     author="Thomas Maschler",
@@ -12,10 +12,10 @@ setup(
         "google-cloud-storage~=1.14.0",
         "parallelpipe~=0.2.6",
         "gdal~=2.4.0",
-        "numba~=0.44.1",
+        "numba~=0.47.0",
         "numpy~=1.16.2",
         "xmltodict~=0.12.0",
-        "raster2points~=0.1.5",
+        "raster2points~=0.1.6",
         "mercantile~=1.0.4",
         "boto3~=1.9.170",
     ],
