@@ -45,7 +45,9 @@ def lambda_handler(event, context):
             # "subnet-037b97cff4493e3a1", # GFW subnet zone us-east-1e
             "subnet-0360516ee122586ff",  # GFW subnet zone us-east-1f
         ]
-        if tile_date > lastrun and (status == "FAILED" or status == "COMPLETED"):
+        if tile_date > lastrun and (
+            status == "FAILED" or status == "HADOOP FAILED" or status == "COMPLETED"
+        ):
 
             message = None
             for subnet_id in subnet_ids:
@@ -58,7 +60,8 @@ def lambda_handler(event, context):
                         "statusCode": 200,
                         "headers": {"Content-Type": "application/json"},
                         "body": {
-                            "Last Update": tile_date_str,
+                            "Lastest data": tile_date_str,
+                            "Last Update": lastrun.strftime("%Y-%m-%d"),
                             "Status": status,
                             "Action": "Glad Pipeline triggered",
                             "Details": response,
@@ -76,6 +79,7 @@ def lambda_handler(event, context):
                 "statusCode": 200,
                 "headers": {"Content-Type": "application/json"},
                 "body": {
+                    "Latest data": tile_date_str,
                     "Last Update": lastrun.strftime("%Y-%m-%d"),
                     "Status": status,
                     "Action": "No action taken",
