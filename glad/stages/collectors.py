@@ -26,7 +26,7 @@ def get_most_recent_day(**kwargs: Any) -> Tuple[str, List[str]]:
         )
 
         available_tiles: List[str] = _check_tifs_exist(process_date, tile_ids, years)
-        if len(available_tiles) == num_tiles:
+        if len(available_tiles) >= num_tiles:
             return process_date, available_tiles
 
     msg: str = (
