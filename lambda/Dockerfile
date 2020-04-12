@@ -5,7 +5,7 @@ ENV WORKDIR /var/task
 ENV LAMBDANAME gfw-glad-pipeline
 
 RUN mkdir -p packages/ \
-    && pip install retrying boto3 google-cloud-storage -t packages
+    && pip install retrying boto3 google-cloud-storage requests -t packages
 
 #Precompile all python packages and remove .py files
 #RUN python -m compileall .
