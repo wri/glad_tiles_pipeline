@@ -330,7 +330,7 @@ def start_pipline(subnet):
     client = boto3.client("ec2")
     response = client.run_instances(
         ImageId="ami-02da3a138888ced85",
-        InstanceType="r5d.24xlarge",
+        InstanceType="r5ad.24xlarge",
         KeyName="tmaschler_wri2",
         UserData=bootstrap,
         EbsOptimized=True,
