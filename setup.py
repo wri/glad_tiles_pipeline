@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name="glad_tile_pipeline",
-    version="1.0.2",
+    version="1.0.5",
     description="Tool to process GLAD tiles",
     packages=["glad"],
     author="Thomas Maschler",
