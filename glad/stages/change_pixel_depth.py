@@ -2,6 +2,8 @@ from glad.utils.utils import output_file, file_details
 import subprocess as sp
 import logging
 
+PIXEL_WIDTH = "0.00025"
+
 
 def change_pixel_depth(tiles, **kwargs):
 
@@ -29,6 +31,9 @@ def change_pixel_depth(tiles, **kwargs):
                 "TILED=YES",
                 "-co",
                 "SPARSE_OK=TRUE",
+                "-tr",
+                PIXEL_WIDTH,
+                PIXEL_WIDTH,
                 tile,
                 output,
             ]
