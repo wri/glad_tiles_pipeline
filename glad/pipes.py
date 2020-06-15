@@ -8,7 +8,6 @@ from glad.stages.download import (
     download_stats_db,
 )
 from glad.stages.change_pixel_depth import change_pixel_depth
-from glad.stages.realign_pixels import realign_pixels
 from glad.stages.encode_glad import (
     encode_date_conf,
     prep_intensity,
@@ -125,7 +124,6 @@ def date_conf_pipe(tile_ids, **kwargs):
         tile_ids
         | Stage(download_latest_tiles, name="download", **kwargs).setup(workers=workers)
         | Stage(change_pixel_depth, name="pixel_depth", **kwargs).setup(workers=workers)
-        | Stage(realign_pixels, name ="realign_pixels", **kwargs).setup(workers=workers)
         | Stage(upload_raw_tile_s3, name="pixel_depth", **kwargs).setup(workers=workers)
         | Stage(encode_date_conf, name="encode_day_conf", **kwargs).setup(
             workers=workers
