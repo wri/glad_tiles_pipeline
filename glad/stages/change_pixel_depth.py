@@ -1,6 +1,9 @@
 from glad.utils.utils import output_file, file_details
+from glad.utils.tiles import get_bbox_by_tile_id
 import subprocess as sp
 import logging
+
+TILE_WIDTH = 40000
 
 
 def change_pixel_depth(tiles, **kwargs):
@@ -17,11 +20,13 @@ def change_pixel_depth(tiles, **kwargs):
 
             output = output_file(root, "tiles", tile_id, name, year, f_name)
 
+            min_x, min_y, max_x, max_y = get_bbox_by_tile_id(tile_id)
+
             cmd = [
-                "gdal_translate",
+                "gdalwarp",
                 "-ot",
                 "UInt16",
-                "-a_nodata",
+                "-dstnodata",
                 "0",
                 "-co",
                 "COMPRESS=LZW",
@@ -29,6 +34,16 @@ def change_pixel_depth(tiles, **kwargs):
                 "TILED=YES",
                 "-co",
                 "SPARSE_OK=TRUE",
+                "-r",
+                "near",
+                "-te",
+                str(min_x),
+                str(min_y),
+                str(max_x),
+                str(max_y),
+                "-ts",
+                str(TILE_WIDTH),
+                str(TILE_WIDTH),
                 tile,
                 output,
             ]
