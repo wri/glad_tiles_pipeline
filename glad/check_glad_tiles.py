@@ -25,7 +25,9 @@ def main():
     kwargs: Dict[str, Any] = {"years": args.years, "num_tiles": num_tiles}
 
     try:
-        kwargs["tile_date"], tile_ids = get_most_recent_day(tile_ids=tile_ids, **kwargs)
+        kwargs["tile_date"], tile_ids = get_most_recent_day(
+            max_date=args.max_date, tile_ids=tile_ids, **kwargs
+        )
     except ValueError:
         logging.warning("Cannot find recently processes tiles.")
 
