@@ -91,6 +91,12 @@ def get_parser():
         default=115,
         help="Number of expected input tiles",
     )
+    parser.add_argument(
+        "--max_date",
+        type=lambda s: datetime.strptime(s, "%Y-%m-%d"),
+        default=datetime.today(),
+        help="Max date to use when fetching new tiles",
+    )
 
     return parser.parse_args()
 

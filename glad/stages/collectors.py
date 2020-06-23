@@ -17,11 +17,11 @@ def get_most_recent_day(**kwargs: Any) -> Tuple[str, List[str]]:
     tile_ids: List[str] = kwargs["tile_ids"]
     years: List[int] = kwargs["years"]
     num_tiles: int = kwargs["num_tiles"]
-    today: datetime.datetime = datetime.datetime.today()
+    max_date: datetime.datetime = kwargs["max_date"]
 
     # check for most recent day of GLAD data
     for day_offset in range(0, 11):
-        process_date: str = (today - datetime.timedelta(days=day_offset)).strftime(
+        process_date: str = (max_date - datetime.timedelta(days=day_offset)).strftime(
             "%Y/%m_%d"
         )
 
