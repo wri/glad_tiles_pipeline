@@ -1,4 +1,9 @@
-from glad.utils.utils import file_details, output_file, get_tile_id
+from glad.utils.utils import (
+    file_details,
+    output_file,
+    get_tile_id,
+    preprocessed_years_str,
+)
 from pathlib import PurePath
 import subprocess as sp
 import logging
@@ -102,6 +107,51 @@ def upload_day_conf_s3(tiles, **kwargs):
         else:
             tile_id = get_tile_id(tile)
             output = path.format(env=env, tile_id=tile_id)
+
+            cmd = ["aws", "s3", "cp", tile, output]
+
+            logging.debug(cmd)
+            p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
+            o, e = p.communicate()
+            logging.debug(o)
+            if p.returncode == 0:
+                logging.info("Uploaded file " + output)
+                yield tile
+            else:
+                logging.error("Failed to upload file to " + output)
+                logging.error(e)
+                raise sp.CalledProcessError
+
+
+def upload_day_conf_s3_archive(tiles, **kwargs):
+    """
+    Uploads final encode tiles which include all years to archive
+    :param tiles:
+    :param kwargs:
+    :return:
+    """
+
+    # TODO: This function returns the input and should be marked accordingly
+
+    env = kwargs["env"]
+    preprocessed_years = list(kwargs["preprocessed_years"])
+
+    s3_url = "s3://gfw2-data/forest_change/umd_landsat_alerts/archive/pipeline/tiles/{}/day_conf/{}/day_conf.tif"
+
+    preprocessed_years.append(max(preprocessed_years) + 1)
+    year_str = preprocessed_years_str(preprocessed_years)
+
+    for tile in tiles:
+        tile_id = get_tile_id(tile)
+        output = s3_url.format(tile_id, year_str)
+
+        if env == "test":
+            logging.info(
+                "Test run, skipped upload preprocessed tile " + tile + " to " + output
+            )
+            yield tile
+
+        else:
 
             cmd = ["aws", "s3", "cp", tile, output]
 

@@ -22,6 +22,7 @@ setup(
     scripts=[
         "glad/glad_pipeline.py",
         "glad/check_glad_tiles.py",
+        "glad/merge_years.py",
         "glad/scripts/pixel_depth.py",
         "glad/scripts/encode_date_conf.py",
         "glad/scripts/download_glad_tiles.py",

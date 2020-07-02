@@ -1,13 +1,6 @@
 from glad.pipes import (
     preprocessed_tile_pipe,
-    date_conf_pipe,
-    resample_date_conf_pipe,
-    intensity_pipe,
-    rgb_pipe,
-    tilecache_pipe,
-    download_climate_data,
-    csv_export_pipe,
-    stats_db,
+    date_conf_merge_pipe,
 )
 from glad.stages.collectors import get_most_recent_day
 from glad.stages.upload_tiles import upload_logs
@@ -107,30 +100,12 @@ def main():
                 # Data inside the directory/ volume - if any - will still be removed
                 shutil.rmtree(root, ignore_errors=True)
 
-            # TODO
-            #  add some logic to skip preprocssing step incase igonore_preprocessed_tiles is true
             preprocessed_tile_pipe(tile_ids, **kwargs)
-            date_conf_tiles = date_conf_pipe(tile_ids, **kwargs)
-            resample_date_conf_pipe(date_conf_tiles, **kwargs)
-            slack_webhook("INFO", "GLAD Analysis Tiles updated", **kwargs)
-            intensity_pipe(date_conf_tiles, **kwargs)
-            rgb_pipe(**kwargs)
-            tilecache_pipe(**kwargs)
-            slack_webhook("INFO", "GLAD Tile Cache updated", **kwargs)
-            download_climate_data(tile_ids, **kwargs)
-            csv_export_pipe(**kwargs)
-            stats_db(**kwargs)
-            slack_webhook("INFO", "GLAD XYZ Stats Database updated", **kwargs)
-            update_status("SAVED", **kwargs)
+            date_conf_merge_pipe(tile_ids, **kwargs)
 
         except Exception as e:
             logging.exception(e)
             update_status("FAILED", **kwargs)
-            slack_webhook(
-                "ERROR",
-                "GLAD Tile Pipeline failed. Please check logs for details",
-                **kwargs
-            )
 
     finally:
         upload_logs(**kwargs)
