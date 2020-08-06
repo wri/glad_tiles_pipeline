@@ -7,11 +7,9 @@ def validate_tiles(tiles, **kwargs):
         f_name, year, folder, tile_id = file_details(tile)
 
         if f_name == "day.tif":
-            expected_min = 0
-            expected_max = 366
+            expected_range = range(0, 367)
         else:
-            expected_min = 0
-            expected_max = 3
+            expected_range = [0, 2, 3]
 
         gtif = gdal.Open(tile)
         srcband = gtif.GetRasterBand(1)
@@ -20,8 +18,8 @@ def validate_tiles(tiles, **kwargs):
         min = stats[0]
         max = stats[1]
 
-        if min < expected_min or max > expected_max:
-            raise ValueError(f"Tile f{tile_id} in year {year} had min, max of {min, max}, "
-                             f"but expected min, max of {expected_min, expected_max}")
+        if min not in expected_range or max not in expected_range:
+            raise ValueError(f"Tile f{tile_id}, year {year}, file {f_name} "
+                             f"had min, max of {min, max}, which is outside of the expected range")
 
         yield tile
