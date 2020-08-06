@@ -23,3 +23,5 @@ def validate_tiles(tiles, **kwargs):
         if min < expected_min or max > expected_max:
             raise ValueError(f"Tile f{tile_id} in year {year} had min, max of {min, max}, "
                              f"but expected min, max of {expected_min, expected_max}")
+
+        yield tile
