@@ -2,6 +2,7 @@ import pandas as pd
 import sqlite3
 import logging
 import glob
+from datetime import datetime
 
 
 def delete_current_years(**kwargs):
@@ -26,6 +27,13 @@ def delete_current_years(**kwargs):
             "WHERE alert_date >= '{1}-01-01' "
             "AND alert_date <= '{1}-12-31';".format(db_table, year)
         )
+
+    logging.info("Delete any future entries, if they exist")
+    today = datetime.now().strftime("%Y-%m-%d")
+    cursor.execute(
+        "DELETE FROM {0} "
+        "WHERE alert_date > '{1}';".format(db_table, today)
+    )
 
     conn.commit()
     conn.close()
