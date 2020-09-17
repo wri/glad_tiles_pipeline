@@ -11,9 +11,8 @@ import logging
 
 
 def download_latest_tiles(tile_ids, **kwargs):
-
-    years = kwargs["years"]
-    tile_date = kwargs["tile_date"]
+    #years = kwargs["years"]
+    #tile_date = kwargs["tile_date"]
     root = kwargs["root"]
     name = kwargs["name"]
 
@@ -22,44 +21,39 @@ def download_latest_tiles(tile_ids, **kwargs):
     bucket = get_gs_bucket()
 
     for tile_id in tile_ids:
-        for year in years:
-            year_dig = str(year)[2:]
+        for product in ["day", "conf"]:
+            tif_url = url_pattern.format(
+                date="2019/final",
+                year_dig="19",
+                tile_id=tile_id,
+                product=get_suffix(product),
+            )
+            output = output_file(
+                root, "tiles", tile_id, name, "2019", product + ".tif"
+            )
 
-            for product in ["day", "conf"]:
-
-                tif_url = url_pattern.format(
-                    date=tile_date,
-                    year_dig=year_dig,
-                    tile_id=tile_id,
-                    product=get_suffix(product),
-                )
-                output = output_file(
-                    root, "tiles", tile_id, name, year, product + ".tif"
-                )
-
-                try:
-                    logging.debug("Attempt to download " + tif_url)
-                    blob = bucket.blob(tif_url)
-                    blob.download_to_filename(output)
-                except Exception as e:
-                    logging.error("Failed to download file: " + tif_url)
-                    logging.error(e)
-                    raise e
-                else:
-                    logging.info("Downloaded file: " + tif_url)
-                    logging.debug(output)
-                    yield output
+            try:
+                logging.debug("Attempt to download " + tif_url)
+                blob = bucket.blob(tif_url)
+                blob.download_to_filename(output)
+            except Exception as e:
+                logging.error("Failed to download file: " + tif_url)
+                logging.error(e)
+                raise e
+            else:
+                logging.info("Downloaded file: " + tif_url)
+                logging.debug(output)
+                yield output
 
 
 def download_preprocessed_tiles_years(tile_ids, **kwargs):
     root = kwargs["root"]
     name = kwargs["name"]
-    preprocessed_years = kwargs["preprocessed_years"]
+    preprocessed_years = [2015, 2016, 2017, 2018]
 
     year_str = preprocessed_years_str(preprocessed_years)
 
     for tile_id in tile_ids:
-
         s3_url = "s3://gfw2-data/forest_change/umd_landsat_alerts/archive/pipeline/tiles/{}/day_conf/{}/day_conf.tif".format(
             tile_id, year_str
         )

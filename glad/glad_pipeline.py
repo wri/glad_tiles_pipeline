@@ -24,6 +24,8 @@ import shutil
 import logging
 import datetime
 
+# docker run -v /Users/justin.terry/dev/data2:/usr/data -it glad_tiles_pipeline glad_pipeline.py --env test
+# docker build . -t glad_tiles_pipeline
 
 def main():
 
@@ -35,7 +37,7 @@ def main():
     get_logger(logfile, debug=args.debug)
 
     if not args.ignore_preprocessed_years:
-        preprocessed_years = range(2015, min(args.years))
+        preprocessed_years = range(2015, 2019)
     else:
         preprocessed_years = list()
 
@@ -75,12 +77,12 @@ def main():
             "encoded_backup": s3_base_path + "{env}/encoded/{year_str}/{tile_id}.tif",
             "raw_backup": s3_base_path + "{env}/raw/{year}/{product}/{tile_id}.tif",
             "resampled_rgb": s3_base_path + "{env}/rgb/{zoom}/{tile_id}.tif",
-            "analysis": s3_base_path + "{env}/analysis/{tile_id}.tif",
+            "analysis": "s3://gfw2-data/forest_change/umd_landsat_alerts/archive/pipeline/tiles/{tile_id}/day_conf/{year_str}/day_conf.tif",
             "csv": s3_base_path + "{env}/csv/{tile_id}_{year}.csv",
             "stats_db": s3_base_path + "{env}/db/stats.db",
             "pro": "s3://gfwpro-raster-data/{pro_id}",
             "tilecache": "s3://wri-tiles/glad_{env}/tiles",
-            "log": s3_base_path + "{env}/log/{logfile}",
+            "log": "/usr/local/data/logs",
         },
     }
 
@@ -97,9 +99,9 @@ def main():
     else:
         try:
 
-            update_lastrun(
-                datetime.datetime.strptime(kwargs["tile_date"], "%Y/%m_%d"), **kwargs
-            )
+            # update_lastrun(
+            #     datetime.datetime.strptime(kwargs["tile_date"], "%Y/%m_%d"), **kwargs
+            # )
 
             if os.path.exists(root):
                 # ignore_errors true will allow us to mount the data directory as a docker volume.
@@ -111,17 +113,17 @@ def main():
             #  add some logic to skip preprocssing step incase igonore_preprocessed_tiles is true
             preprocessed_tile_pipe(tile_ids, **kwargs)
             date_conf_tiles = date_conf_pipe(tile_ids, **kwargs)
-            resample_date_conf_pipe(date_conf_tiles, **kwargs)
-            slack_webhook("INFO", "GLAD Analysis Tiles updated", **kwargs)
-            intensity_pipe(date_conf_tiles, **kwargs)
-            rgb_pipe(**kwargs)
-            tilecache_pipe(**kwargs)
-            slack_webhook("INFO", "GLAD Tile Cache updated", **kwargs)
-            download_climate_data(tile_ids, **kwargs)
-            csv_export_pipe(**kwargs)
-            stats_db(**kwargs)
-            slack_webhook("INFO", "GLAD XYZ Stats Database updated", **kwargs)
-            update_status("SAVED", **kwargs)
+            # resample_date_conf_pipe(date_conf_tiles, **kwargs)
+            # slack_webhook("INFO", "GLAD Analysis Tiles updated", **kwargs)
+            # intensity_pipe(date_conf_tiles, **kwargs)
+            # rgb_pipe(**kwargs)
+            # tilecache_pipe(**kwargs)
+            # slack_webhook("INFO", "GLAD Tile Cache updated", **kwargs)
+            # download_climate_data(tile_ids, **kwargs)
+            # csv_export_pipe(**kwargs)
+            # stats_db(**kwargs)
+            # slack_webhook("INFO", "GLAD XYZ Stats Database updated", **kwargs)
+            # update_status("SAVED", **kwargs)
 
         except Exception as e:
             logging.exception(e)

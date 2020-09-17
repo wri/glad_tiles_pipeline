@@ -86,20 +86,20 @@ def preprocessed_tile_pipe(tile_ids, **kwargs):
         | Stage(download_preprocessed_tiles_years, name="day_conf", **kwargs).setup(
             workers=workers
         )
-        | Stage(download_preprocessed_tiles_year, name="download", **kwargs).setup(
-            workers=workers
-        )
-        | Stage(change_pixel_depth, name="pixel_depth", **kwargs).setup(workers=workers)
-        | Stage(encode_date_conf, name="encode_day_conf", **kwargs).setup(
-            workers=workers
-        )
-        | Stage(collect_day_conf_pairs).setup(workers=1)  # !Important
-        | Stage(combine_date_conf_pairs, name="day_conf", **kwargs).setup(
-            workers=workers
-        )
-        | Stage(collect_day_conf, **kwargs).setup(workers=1)  # Important
-        | Stage(merge_years, name="day_conf", **kwargs).setup(workers=workers)
-        | Stage(upload_preprocessed_tiles_s3, **kwargs).setup(workers=workers)
+        # | Stage(download_preprocessed_tiles_year, name="download", **kwargs).setup(
+        #     workers=workers
+        # )
+        # | Stage(change_pixel_depth, name="pixel_depth", **kwargs).setup(workers=workers)
+        # | Stage(encode_date_conf, name="encode_day_conf", **kwargs).setup(
+        #     workers=workers
+        # )
+        # | Stage(collect_day_conf_pairs).setup(workers=1)  # !Important
+        # | Stage(combine_date_conf_pairs, name="day_conf", **kwargs).setup(
+        #     workers=workers
+        # )
+        # | Stage(collect_day_conf, **kwargs).setup(workers=1)  # Important
+        # | Stage(merge_years, name="day_conf", **kwargs).setup(workers=workers)
+        # | Stage(upload_preprocessed_tiles_s3, **kwargs).setup(workers=workers)
     )
 
     for output in pipe.results():
@@ -118,7 +118,7 @@ def date_conf_pipe(tile_ids, **kwargs):
     """
     workers = kwargs["workers"]
 
-    pro_tiles = get_pro_tiles()
+    #pro_tiles = get_pro_tiles()
 
     pipe = (
         tile_ids
@@ -135,7 +135,7 @@ def date_conf_pipe(tile_ids, **kwargs):
         | Stage(collect_day_conf_all_years, **kwargs).setup(workers=1)  # Important!
         | Stage(merge_years, name="day_conf", **kwargs).setup(workers=workers)
         | Stage(upload_day_conf_s3, **kwargs).setup(workers=workers)
-        | Stage(upload_day_conf_s3_gfw_pro, pro_tiles, **kwargs).setup(workers=workers)
+        # | Stage(upload_day_conf_s3_gfw_pro, pro_tiles, **kwargs).setup(workers=workers)
     )
 
     date_conf_tiles = list()

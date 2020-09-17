@@ -1,4 +1,4 @@
-from glad.utils.utils import file_details, output_file, get_tile_id
+from glad.utils.utils import file_details, output_file, get_tile_id, preprocessed_years_str
 from pathlib import PurePath
 import subprocess as sp
 import logging
@@ -92,7 +92,7 @@ def upload_day_conf_s3(tiles, **kwargs):
     # TODO: This function returns the input and should be marked accordingly
 
     env = kwargs["env"]
-    path = kwargs["paths"]["analysis"]
+    year_str = preprocessed_years_str([2015, 2016, 2017, 2018, 2019])
 
     for tile in tiles:
         if env == "test":
@@ -101,7 +101,8 @@ def upload_day_conf_s3(tiles, **kwargs):
 
         else:
             tile_id = get_tile_id(tile)
-            output = path.format(env=env, tile_id=tile_id)
+            path = f"s3://gfw2-data/forest_change/umd_landsat_alerts/archive/pipeline/tiles/{tile_id}/day_conf/{year_str}/day_conf.tif"
+            output = path
 
             cmd = ["aws", "s3", "cp", tile, output]
 

@@ -13,22 +13,22 @@ import logging
 
 
 def get_most_recent_day(**kwargs: Any) -> Tuple[str, List[str]]:
-
     tile_ids: List[str] = kwargs["tile_ids"]
     years: List[int] = kwargs["years"]
     num_tiles: int = kwargs["num_tiles"]
-    max_date: datetime.datetime = kwargs["max_date"]
+    # max_date: datetime.datetime = kwargs["max_date"]
+    #
+    # # check for most recent day of GLAD data
+    # for day_offset in range(0, 11):
+    #     process_date: str = (max_date - datetime.timedelta(days=day_offset)).strftime(
+    #         "%Y/%m_%d"
+    #     )
 
-    # check for most recent day of GLAD data
-    for day_offset in range(0, 11):
-        process_date: str = (max_date - datetime.timedelta(days=day_offset)).strftime(
-            "%Y/%m_%d"
-        )
+    available_tiles: List[str] = _check_tifs_exist("2019/final", tile_ids, [2019])
+    if len(available_tiles) >= num_tiles:
+        return "final", available_tiles
 
-        available_tiles: List[str] = _check_tifs_exist(process_date, tile_ids, years)
-        if len(available_tiles) >= num_tiles:
-            return process_date, available_tiles
-
+    logging.info(len(available_tiles))
     msg: str = (
         "Checked GCS for last 10 days - none had all {} tiled TIFs. "
         "You may want to verify the argument value for --num_tiles".format(num_tiles)
