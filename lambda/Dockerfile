@@ -39,5 +39,5 @@ CMD aws lambda update-function-code --function-name $LAMBDANAME --zip-file fileb
 #                                --tags "Project=Global Forest Watch"
 #                                --timeout 90
 
-# docker build -t gfw/gfw-glad-pipeline .
-# docker run --rm -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_DEFAULT_REGION  gfw/gfw-glad-pipeline
+# docker build -t globalforestwatch/glad_pipeline_tigger .
+# docker run --rm -v $HOME/.aws:/root/.aws:ro globalforestwatch/glad_pipeline_tigger
