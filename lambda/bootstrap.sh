@@ -17,8 +17,6 @@ yum -y install docker git jq htop
 
 cd /home/ec2-user
 
-git clone https://github.com/wri/glad_tiles_pipeline.git
-cd glad_tiles_pipeline
 mkdir .aws
 mkdir .google
 
@@ -59,8 +57,7 @@ $secret
 EOL
 
 service docker start
-docker build . -t glad-pipeline
 
-docker run -d --ulimit nofile=4096:4096 -e IAM_ROLE=gfw-sync -v /mnt/data:/usr/data -v /mnt/log:/var/log glad-pipeline glad_pipeline.py -w 30 --env prod --shutdown
+docker run -d --ulimit nofile=4096:4096 -e IAM_ROLE=gfw-sync -v $PWD/.aws:/usr/secrets/.aws:ro -v $PWD/.google:/usr/secrets/.google:ro -v /mnt/data:/usr/data -v /mnt/log:/var/log globalforestwatch/glad-pipeline:latest -w 30 --env prod --shutdown
 
 while sleep 30; do [ -f /mnt/log/glad/done ] && shutdown -h now; done &
