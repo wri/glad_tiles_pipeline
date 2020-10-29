@@ -13,8 +13,6 @@ COPY requirements.txt $SRC_PATH
 COPY setup.py $SRC_PATH
 COPY glad $SRC_PATH/glad
 COPY cpp $SRC_PATH/cpp
-COPY .aws  $SECRETS_PATH/.aws
-COPY .google  $SECRETS_PATH/.google
 
 # set environment variables
 ENV AWS_SHARED_CREDENTIALS_FILE $SECRETS_PATH/.aws/credentials
@@ -33,3 +31,5 @@ RUN cd $SRC_PATH && \
     g++ cpp/combine2.cpp -o /usr/bin/combine2 -lgdal && \
     g++ cpp/combine3.cpp -o /usr/bin/combine3 -lgdal && \
     g++ cpp/reclass.cpp -o /usr/bin/reclass -lgdal
+
+ENTRYPOINT ["glad_pipeline.py"]
