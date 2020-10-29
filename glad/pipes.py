@@ -8,6 +8,7 @@ from glad.stages.download import (
     download_stats_db,
 )
 from glad.stages.change_pixel_depth import change_pixel_depth
+from glad.stages.validate import validate_tiles
 from glad.stages.encode_glad import (
     encode_date_conf,
     prep_intensity,
@@ -25,6 +26,7 @@ from glad.stages.upload_tiles import (
     upload_tilecache_s3,
     upload_csv_s3,
     upload_statsdb,
+    upload_day_conf_s3_archive,
 )
 from glad.stages.resample import resample
 from glad.stages.tiles import (
@@ -123,6 +125,7 @@ def date_conf_pipe(tile_ids, **kwargs):
     pipe = (
         tile_ids
         | Stage(download_latest_tiles, name="download", **kwargs).setup(workers=workers)
+        | Stage(validate_tiles, name="validate_tiles", **kwargs).setup(workers=workers)
         | Stage(change_pixel_depth, name="pixel_depth", **kwargs).setup(workers=workers)
         | Stage(upload_raw_tile_s3, name="pixel_depth", **kwargs).setup(workers=workers)
         | Stage(encode_date_conf, name="encode_day_conf", **kwargs).setup(
@@ -136,6 +139,41 @@ def date_conf_pipe(tile_ids, **kwargs):
         | Stage(merge_years, name="day_conf", **kwargs).setup(workers=workers)
         | Stage(upload_day_conf_s3, **kwargs).setup(workers=workers)
         | Stage(upload_day_conf_s3_gfw_pro, pro_tiles, **kwargs).setup(workers=workers)
+    )
+
+    date_conf_tiles = list()
+    for output in pipe.results():
+        date_conf_tiles.append(output)
+        logging.debug("Date Conf  output: " + str(output))
+    logging.info("Date Conf - Done")
+
+    return date_conf_tiles
+
+
+def date_conf_merge_pipe(tile_ids, **kwargs):
+    """
+    Pipeline to process latest GLAD alerts
+    :param tile_ids: List of Tile IDs to process
+    :param kwargs: Dictonary with keyword arguments
+    :return: pipe
+    """
+    workers = kwargs["workers"]
+
+    pipe = (
+        tile_ids
+        | Stage(download_latest_tiles, name="download", **kwargs).setup(workers=workers)
+        | Stage(change_pixel_depth, name="pixel_depth", **kwargs).setup(workers=workers)
+        | Stage(upload_raw_tile_s3, name="pixel_depth", **kwargs).setup(workers=workers)
+        | Stage(encode_date_conf, name="encode_day_conf", **kwargs).setup(
+            workers=workers
+        )
+        | Stage(collect_day_conf_pairs).setup(workers=1)  # Important!
+        | Stage(combine_date_conf_pairs, name="day_conf", **kwargs).setup(
+            workers=workers
+        )
+        | Stage(collect_day_conf_all_years, **kwargs).setup(workers=1)  # Important!
+        | Stage(merge_years, name="day_conf", **kwargs).setup(workers=workers)
+        | Stage(upload_day_conf_s3_archive, **kwargs).setup(workers=workers)
     )
 
     date_conf_tiles = list()
