@@ -1,0 +1,13 @@
+version: "3"
+
+services:
+  glad_pipeline:
+    build:
+      context: .
+    container_name: glad_pipeline
+    volumes:
+      - $HOME/.aws:/usr/secrets/.aws:ro
+      - $HOME/.google:/usr/secrets/.google:ro
+    environment:
+      - ENV=test
+    entrypoint: glad_pipeline.py
